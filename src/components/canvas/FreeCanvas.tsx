@@ -77,10 +77,12 @@ interface DraggableBlockProps {
   cardStyle: CardStyle;
   onChange: (id: string, patch: Partial<Block>) => void;
   onExpand?: (kind: Block['kind']) => void;
+  onBringForward: (id: string) => void;
+  onSendBackward: (id: string) => void;
   children: ReactNode;
 }
 
-function DraggableBlock({ block, editMode, cardStyle, onChange, onExpand, children }: DraggableBlockProps) {
+function DraggableBlock({ block, editMode, cardStyle, onChange, onExpand, onBringForward, onSendBackward, children }: DraggableBlockProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: block.id,
     disabled: !editMode,
@@ -167,6 +169,30 @@ function DraggableBlock({ block, editMode, cardStyle, onChange, onExpand, childr
               title={block.visibility === 'public' ? '공개 페이지에 보임' : '공개 페이지에 안 보임'}
             >
               {block.visibility === 'public' ? '공개' : '비공개'}
+            </button>
+            <button
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                onBringForward(block.id);
+              }}
+              className="text-[10px] px-1.5 py-0.5 rounded bg-white/70 hover:bg-white"
+              title="앞으로 보내기"
+              aria-label="앞으로 보내기"
+            >
+              ▲
+            </button>
+            <button
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSendBackward(block.id);
+              }}
+              className="text-[10px] px-1.5 py-0.5 rounded bg-white/70 hover:bg-white"
+              title="뒤로 보내기"
+              aria-label="뒤로 보내기"
+            >
+              ▼
             </button>
             <button
               onPointerDown={(e) => e.stopPropagation()}
@@ -260,6 +286,15 @@ export function FreeCanvas({
     onLayoutsChange({ ...layouts, [track]: next });
   }
 
+  function bringForward(id: string) {
+    const maxZ = blocks.reduce((m, b) => Math.max(m, b.z ?? 0), 0);
+    applyChange(id, { z: maxZ + 1 });
+  }
+  function sendBackward(id: string) {
+    const minZ = blocks.reduce((m, b) => Math.min(m, b.z ?? 0), 0);
+    applyChange(id, { z: minZ - 1 });
+  }
+
   const onDragEnd = useCallback(
     (e: DragEndEvent) => {
       if (!onLayoutsChange) return;
@@ -291,6 +326,8 @@ export function FreeCanvas({
             cardStyle={cardStyle}
             onChange={applyChange}
             onExpand={onExpand}
+            onBringForward={bringForward}
+            onSendBackward={sendBackward}
           >
             <div style={{ '--point': pointColor } as React.CSSProperties}>{renderBlock(b)}</div>
           </DraggableBlock>
