@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useRef, ChangeEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, Button, GhostButton, Input, Label, ErrorText } from '@/components/ui/primitives';
 import { WidgetBoard, type PreviewData, type DecorateStyle } from '@/components/public/WidgetRenderer';
 import type { MiniHomepageRow, LayoutMode, LayoutSlot, WidgetKind, CardStyle, FontStyle } from '@/types/db';
@@ -84,6 +85,7 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
   const [err, setErr] = useState('');
   const [msg, setMsg] = useState('');
   const bgInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   // 중복 위젯 감지
   const duplicates = useMemo(() => {
@@ -160,6 +162,8 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
       return;
     }
     setMsg('저장되었습니다.');
+    // server component(admin/layout, HomeDashboard)가 새 값으로 다시 렌더되게
+    router.refresh();
   }
 
   return (

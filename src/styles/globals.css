@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+/* 동적 합성 클래스 safelist — JSX의 `font-${var}` / cardClass()가 빌드에서 누락되지 않게 */
+@source inline("font-default font-rounded font-emotional font-pretendard font-notoSans font-notoSerif font-nanumGothic font-gowunDodum font-nanumPen font-ibmPlex font-blackHan font-hiMelody");
+@source inline("bg-white border border-gray-200 rounded-lg rounded-3xl rounded-2xl rounded-xl");
+@source inline("shadow shadow-sm shadow-xl shadow-lg shadow-2xl");
+@source inline("bg-gradient-to-br from-white to-gray-50 border-gray-100");
+@source inline("border-2 border-gray-900");
+@source inline("bg-white/40 bg-white/70 bg-white/80 backdrop-blur backdrop-blur-xl border border-white/40 border-white/60");
+@source inline("bg-transparent border-b border-gray-300");
+@source inline("shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)]");
+@source inline("ring-1 ring-inset ring-gray-100");
+
 /* 한글 친화 웹폰트 — Google Fonts + Pretendard CDN */
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Noto+Serif+KR:wght@400;700&family=Nanum+Gothic:wght@400;700&family=Nanum+Pen+Script&family=Gowun+Dodum&family=IBM+Plex+Sans+KR:wght@400;500;700&family=Black+Han+Sans&family=Hi+Melody&family=Nunito:wght@500;700&display=swap');
