@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Modal, IconButton } from '@/components/ui/primitives';
 import { FreeCanvas, defaultBlocks, useTrack } from '@/components/canvas/FreeCanvas';
 import { UrlsManager } from '@/components/urls/UrlsManager';
@@ -50,18 +50,17 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
     loadAll();
   }, []);
 
-  function handleLayoutsChange(next: Layouts) {
-    setLayouts(next);
-    setDirty(true);
-  }
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const layoutsRef = useRef<Layouts>(layouts);
+  useEffect(() => { layoutsRef.current = layouts; }, [layouts]);
 
-  async function saveLayouts() {
+  const persistLayouts = useCallback(async (next: Layouts) => {
     setSaving(true);
     const r = await (
       await fetch('/api/decorate', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ layouts }),
+        body: JSON.stringify({ layouts: next }),
       })
     ).json();
     setSaving(false);
@@ -70,7 +69,21 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
     } else {
       alert(r.message ?? '저장 실패');
     }
+  }, []);
+
+  function handleLayoutsChange(next: Layouts) {
+    setLayouts(next);
+    setDirty(true);
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => { persistLayouts(next); }, 1500);
   }
+
+  async function saveLayouts() {
+    if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
+    await persistLayouts(layoutsRef.current);
+  }
+
+  useEffect(() => () => { if (saveTimer.current) clearTimeout(saveTimer.current); }, []);
 
   const closeExpanded = useCallback(() => {
     setExpanded(null);
@@ -213,6 +226,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
         pointColor={hp.point_color}
         renderBlock={renderBlock}
         onExpand={(k) => k !== 'title' && k !== 'profile' && setExpanded(k as ExpandKind)}
+        onExitEdit={() => setEditMode(false)}
       />
 
       <Modal open={expanded === 'urls'} onClose={closeExpanded} title="URL 보관함" size="xl">

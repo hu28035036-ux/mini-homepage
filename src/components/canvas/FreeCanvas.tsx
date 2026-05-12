@@ -75,6 +75,8 @@ interface DraggableBlockProps {
   block: Block;
   editMode: boolean;
   cardStyle: CardStyle;
+  selected: boolean;
+  onSelect: (id: string) => void;
   onChange: (id: string, patch: Partial<Block>) => void;
   onExpand?: (kind: Block['kind']) => void;
   onBringForward: (id: string) => void;
@@ -82,7 +84,7 @@ interface DraggableBlockProps {
   children: ReactNode;
 }
 
-function DraggableBlock({ block, editMode, cardStyle, onChange, onExpand, onBringForward, onSendBackward, children }: DraggableBlockProps) {
+function DraggableBlock({ block, editMode, cardStyle, selected, onSelect, onChange, onExpand, onBringForward, onSendBackward, children }: DraggableBlockProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: block.id,
     disabled: !editMode,
@@ -119,7 +121,8 @@ function DraggableBlock({ block, editMode, cardStyle, onChange, onExpand, onBrin
   return (
     <div
       ref={setNodeRef}
-      className={`absolute ${cardClass(cardStyle)} ${isDragging ? 'opacity-80 shadow-2xl' : ''} ${editMode ? 'ring-1 ring-violet-300/40' : ''}`}
+      onClick={() => { if (editMode) onSelect(block.id); }}
+      className={`absolute ${cardClass(cardStyle)} ${isDragging ? 'opacity-80 shadow-2xl' : ''} ${editMode ? (selected ? 'ring-2 ring-violet-500' : 'ring-1 ring-violet-300/40') : ''}`}
       style={{
         left: block.x,
         top: block.y,
@@ -253,6 +256,7 @@ export interface FreeCanvasProps {
   pointColor: string;
   renderBlock: (block: Block) => ReactNode;
   onExpand?: (kind: Block['kind']) => void;
+  onExitEdit?: () => void;
   /** 공개 페이지 등 visibility=private 필터링 모드 */
   publicViewOnly?: boolean;
   /** 강제 트랙(공개 페이지의 클라이언트 hydration용) */
@@ -268,9 +272,11 @@ export function FreeCanvas({
   pointColor,
   renderBlock,
   onExpand,
+  onExitEdit,
   publicViewOnly = false,
   forceTrack,
 }: FreeCanvasProps) {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const detectedTrack = useTrack();
   const track = forceTrack ?? detectedTrack;
   const canvasWidth = CANVAS_WIDTH[track];
@@ -294,6 +300,42 @@ export function FreeCanvas({
     const minZ = blocks.reduce((m, b) => Math.min(m, b.z ?? 0), 0);
     applyChange(id, { z: minZ - 1 });
   }
+
+  // 편집 모드 키보드 단축키
+  useEffect(() => {
+    if (!editMode) return;
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setSelectedId(null);
+        onExitEdit?.();
+        return;
+      }
+      if (!selectedId) return;
+      const step = e.shiftKey ? 10 : 1;
+      const b = blocks.find((x) => x.id === selectedId);
+      if (!b) return;
+      let patch: Partial<Block> | null = null;
+      switch (e.key) {
+        case 'ArrowLeft': patch = { x: b.x - step }; break;
+        case 'ArrowRight': patch = { x: b.x + step }; break;
+        case 'ArrowUp': patch = { y: b.y - step }; break;
+        case 'ArrowDown': patch = { y: b.y + step }; break;
+      }
+      if (patch) {
+        e.preventDefault();
+        applyChange(selectedId, patch);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editMode, selectedId, blocks, onExitEdit]);
+
+  // 평소 모드로 전환 시 선택 해제
+  useEffect(() => { if (!editMode) setSelectedId(null); }, [editMode]);
 
   const onDragEnd = useCallback(
     (e: DragEndEvent) => {
@@ -324,6 +366,8 @@ export function FreeCanvas({
             block={b}
             editMode={editMode}
             cardStyle={cardStyle}
+            selected={selectedId === b.id}
+            onSelect={setSelectedId}
             onChange={applyChange}
             onExpand={onExpand}
             onBringForward={bringForward}
