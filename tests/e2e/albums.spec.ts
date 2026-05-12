@@ -60,11 +60,12 @@ test.describe('앨범 이미지 업로드 E2E (TC-ALB-006~010)', () => {
     await page.setInputFiles('input[type=file]', FIXTURE);
     await expect(page.locator('.grid img').first()).toBeVisible({ timeout: 15_000 });
 
-    // 사진 삭제 — group hover 영역의 삭제 버튼
+    // 사진 삭제 — group hover 영역의 삭제 버튼 (photos 그리드 한정)
     page.once('dialog', (d) => d.accept());
-    await page.locator('.grid > div').first().hover();
-    await page.locator('.grid > div').first().getByRole('button').click();
-    await expect(page.locator('.grid img')).toHaveCount(0);
+    const photoGrid = page.locator('div.grid-cols-2.gap-3, div.gap-3.grid-cols-2, div[class*="grid-cols-2"][class*="gap-3"]').first();
+    await photoGrid.locator('> div').first().hover();
+    await photoGrid.locator('button', { hasText: '삭제' }).first().click({ force: true });
+    await expect(photoGrid.locator('img')).toHaveCount(0);
   });
 
   test('TC-ALB-010 비공개 미니홈피의 사진은 익명 공개 페이지에서 안 보임', async ({ page, context }) => {

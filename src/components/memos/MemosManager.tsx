@@ -47,7 +47,13 @@ export function MemosManager() {
     setDrafts((d) => ({ ...d, [m.id]: { title: m.title, content: '' } }));
   }
 
-  function persist(id: string, patch: { title?: string; content?: string }) {
+  const draftsRef = useRef<DraftMap>({});
+  useEffect(() => { draftsRef.current = drafts; }, [drafts]);
+
+  function persist(id: string) {
+    const cur = draftsRef.current[id];
+    if (!cur) return;
+    const patch = { title: cur.title, content: cur.content };
     savingSet.current.add(id);
     setSavingTick((t) => t + 1);
     fetch(`/api/memos/${id}`, {
@@ -71,7 +77,7 @@ export function MemosManager() {
     setDrafts((d) => ({ ...d, [id]: { ...(d[id] ?? { title: '', content: '' }), ...patch } }));
     if (timers.current[id]) clearTimeout(timers.current[id]);
     timers.current[id] = setTimeout(() => {
-      persist(id, patch);
+      persist(id);
       delete timers.current[id];
     }, 800);
   }

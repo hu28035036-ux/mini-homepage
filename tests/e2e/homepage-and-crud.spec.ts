@@ -60,16 +60,20 @@ test.describe('미니홈피 + URL/메모 CRUD (TC-HP / TC-URL / TC-MEMO)', () =>
     await page.getByRole('button', { name: '+ 새 메모' }).click();
     // 첫 카드 title input에 입력
     const titleInput = page.getByLabel('제목').first();
-    await titleInput.fill('첫 메모');
     const contentArea = page.getByLabel('내용').first();
+    await titleInput.fill('첫 메모');
     await contentArea.fill('내용입니다.');
-    // 800ms debounce 자동저장 대기
-    await page.waitForTimeout(1200);
+    // 800ms 디바운스 후 PATCH 발생 → 응답 확인 후 reload
+    await page.waitForResponse(
+      (r) => r.url().includes('/api/memos/') && r.request().method() === 'PATCH' && r.ok(),
+      { timeout: 5_000 }
+    );
+    await page.waitForTimeout(200);
     await page.reload();
-    await expect(page.locator('input[value="첫 메모"]')).toBeVisible();
+    await expect(page.getByLabel('제목').first()).toHaveValue('첫 메모');
 
     page.once('dialog', (d) => d.accept());
     await page.getByRole('button', { name: '삭제' }).first().click();
-    await expect(page.locator('input[value="첫 메모"]')).toHaveCount(0);
+    await expect(page.getByLabel('제목')).toHaveCount(0);
   });
 });
