@@ -10,6 +10,7 @@ export interface PublicData {
     | 'title' | 'intro' | 'profile_image_url' | 'slug'
     | 'background_color' | 'background_image_url' | 'use_background_image'
     | 'point_color' | 'text_color' | 'card_style' | 'font_style'
+    | 'default_card_opacity' | 'default_font_size'
   > & { layouts: Layouts };
   profile: { nickname: string; intro: string | null; image_url: string | null };
   urls: Array<{ id: string; title: string; url: string; created_at: string }>;
@@ -123,6 +124,8 @@ export function PublicCanvas({ data }: { data: PublicData }) {
         cardStyle={homepage.card_style}
         fontStyle={homepage.font_style}
         pointColor={homepage.point_color}
+        defaultOpacity={homepage.default_card_opacity ?? 1}
+        defaultFontSize={homepage.default_font_size ?? 'base'}
         renderBlock={renderBlock}
         publicViewOnly
       />

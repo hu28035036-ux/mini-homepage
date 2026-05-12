@@ -18,16 +18,22 @@ const FONT_STYLES = [
   'pretendard', 'notoSans', 'notoSerif', 'nanumGothic', 'gowunDodum', 'nanumPen', 'ibmPlex', 'blackHan', 'hiMelody',
 ] as const;
 
+const FONT_SIZES = ['xs', 'sm', 'base', 'lg', 'xl'] as const;
+
 const blockSchema = z.object({
   id: z.string().min(1),
-  kind: z.enum(['title', 'profile', 'urls', 'albums', 'memos']),
+  kind: z.enum(['title', 'profile', 'urls', 'albums', 'memos', 'custom']),
   x: z.number().finite(),
   y: z.number().finite(),
   w: z.number().min(160).max(4000),
   h: z.number().min(80).max(4000),
-  z: z.number().int().min(0).max(9999),
+  z: z.number().int().min(-9999).max(9999),
   visible: z.boolean(),
   visibility: z.enum(['public', 'private']),
+  opacity: z.number().min(0).max(1).optional(),
+  fontSize: z.enum(FONT_SIZES).optional(),
+  customTitle: z.string().max(200).optional(),
+  customContent: z.string().max(5000).optional(),
 });
 
 const layoutsSchema = z.object({
@@ -43,6 +49,8 @@ export const updateDecorateSchema = z.object({
   text_color: hex.optional(),
   card_style: z.enum(CARD_STYLES).optional(),
   font_style: z.enum(FONT_STYLES).optional(),
+  default_card_opacity: z.number().min(0).max(1).optional(),
+  default_font_size: z.enum(FONT_SIZES).optional(),
   layout_mode: z.enum(['single', 'double']).optional(),
   layout_slots: z.array(slotSchema).optional(),
   layouts: layoutsSchema.optional(),

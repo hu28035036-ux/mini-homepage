@@ -32,7 +32,8 @@ export interface LayoutSlot {
 }
 
 // v2 자유 캔버스 블록
-export type BlockKind = 'title' | 'profile' | 'urls' | 'albums' | 'memos';
+export type BlockKind = 'title' | 'profile' | 'urls' | 'albums' | 'memos' | 'custom';
+export type FontSize = 'xs' | 'sm' | 'base' | 'lg' | 'xl';
 
 export interface Block {
   id: string;
@@ -44,6 +45,10 @@ export interface Block {
   z: number;        // z-index
   visible: boolean;          // 본인 화면 표시 여부
   visibility: 'public' | 'private'; // 공개 페이지 노출 여부
+  opacity?: number;          // 카드별 투명도 오버라이드 (0~1). 미지정 시 전역값
+  fontSize?: FontSize;       // 카드별 폰트 크기 오버라이드. 미지정 시 전역값
+  customTitle?: string;      // custom 카드 제목 (Step L)
+  customContent?: string;    // custom 카드 본문
 }
 
 export interface Layouts {
@@ -68,6 +73,8 @@ export interface MiniHomepageRow {
   layout_mode: LayoutMode;
   layout_slots: LayoutSlot[];
   layouts: Layouts;
+  default_card_opacity: number;
+  default_font_size: FontSize;
   is_public: boolean;
   created_at: string;
   updated_at: string;

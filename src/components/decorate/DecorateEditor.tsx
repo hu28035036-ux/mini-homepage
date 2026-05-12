@@ -4,7 +4,7 @@ import { useState, useMemo, useRef, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, Button, GhostButton, Input, Label, ErrorText } from '@/components/ui/primitives';
 import { WidgetBoard, type PreviewData, type DecorateStyle } from '@/components/public/WidgetRenderer';
-import type { MiniHomepageRow, LayoutMode, LayoutSlot, WidgetKind, CardStyle, FontStyle } from '@/types/db';
+import type { MiniHomepageRow, LayoutMode, LayoutSlot, WidgetKind, CardStyle, FontStyle, FontSize } from '@/types/db';
 
 const CARD_STYLES: { value: CardStyle; label: string }[] = [
   { value: 'basic', label: '기본형' },
@@ -79,6 +79,8 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
   const [text, setText] = useState(initial.text_color);
   const [card, setCard] = useState<CardStyle>(initial.card_style);
   const [font, setFont] = useState<FontStyle>(initial.font_style);
+  const [opacity, setOpacity] = useState<number>(initial.default_card_opacity ?? 1);
+  const [fontSize, setFontSize] = useState<FontSize>(initial.default_font_size ?? 'base');
   const [mode, setMode] = useState<LayoutMode>(initial.layout_mode);
   const [slots, setSlots] = useState<LayoutSlot[]>(initial.layout_slots);
   const [saving, setSaving] = useState(false);
@@ -152,6 +154,8 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
         text_color: text,
         card_style: card,
         font_style: font,
+        default_card_opacity: opacity,
+        default_font_size: fontSize,
         layout_mode: mode,
         layout_slots: slots,
       }),
@@ -246,6 +250,41 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
               ))}
             </select>
             <p className={`mt-2 text-base font-${font}`}>가나다라 — The quick brown fox jumps over the lazy dog. 1234</p>
+          </Card>
+
+          <Card>
+            <Label htmlFor="opacity">카드 투명도 (전역 기본값)</Label>
+            <div className="flex items-center gap-2">
+              <input
+                id="opacity"
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={opacity}
+                onChange={(e) => setOpacity(parseFloat(e.target.value))}
+                className="flex-1"
+              />
+              <span className="text-sm tabular-nums w-12 text-right">{Math.round(opacity * 100)}%</span>
+            </div>
+            <p className="text-[11px] opacity-60 mt-1">카드별로 다르게 하려면 편집 모드에서 카드를 선택하세요.</p>
+          </Card>
+
+          <Card>
+            <Label htmlFor="font-size">글자 크기 (전역 기본값)</Label>
+            <select
+              id="font-size"
+              value={fontSize}
+              onChange={(e) => setFontSize(e.target.value as FontSize)}
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+            >
+              <option value="xs">XS — 매우 작게</option>
+              <option value="sm">SM — 작게</option>
+              <option value="base">기본</option>
+              <option value="lg">LG — 크게</option>
+              <option value="xl">XL — 매우 크게</option>
+            </select>
+            <p className="text-[11px] opacity-60 mt-1">카드별로 다르게 하려면 편집 모드에서 카드를 선택하세요.</p>
           </Card>
 
           {/* v2.1에서 자유 캔버스로 대체 예정. v1 레이아웃 모드/슬롯 편집기는 숨김. */}

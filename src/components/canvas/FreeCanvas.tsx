@@ -2,7 +2,17 @@
 
 import { useEffect, useRef, useState, useCallback, ReactNode } from 'react';
 import { DndContext, useDraggable, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
-import type { Block, Layouts, CardStyle, FontStyle } from '@/types/db';
+import type { Block, Layouts, CardStyle, FontStyle, FontSize } from '@/types/db';
+
+export function fontSizeClass(s: FontSize): string {
+  switch (s) {
+    case 'xs': return 'text-xs';
+    case 'sm': return 'text-sm';
+    case 'base': return 'text-base';
+    case 'lg': return 'text-lg';
+    case 'xl': return 'text-xl';
+  }
+}
 
 export type Track = 'desktop' | 'mobile';
 const CANVAS_WIDTH: Record<Track, number> = { desktop: 1200, mobile: 360 };
@@ -76,6 +86,8 @@ interface DraggableBlockProps {
   editMode: boolean;
   cardStyle: CardStyle;
   selected: boolean;
+  effectiveOpacity: number;
+  effectiveFontSize: FontSize;
   onSelect: (id: string) => void;
   onChange: (id: string, patch: Partial<Block>) => void;
   onExpand?: (kind: Block['kind']) => void;
@@ -84,7 +96,7 @@ interface DraggableBlockProps {
   children: ReactNode;
 }
 
-function DraggableBlock({ block, editMode, cardStyle, selected, onSelect, onChange, onExpand, onBringForward, onSendBackward, children }: DraggableBlockProps) {
+function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity, effectiveFontSize, onSelect, onChange, onExpand, onBringForward, onSendBackward, children }: DraggableBlockProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: block.id,
     disabled: !editMode,
@@ -129,13 +141,14 @@ function DraggableBlock({ block, editMode, cardStyle, selected, onSelect, onChan
         }
         if (expandable) onExpand!(block.kind);
       }}
-      className={`absolute ${cardClass(cardStyle)} ${isDragging ? 'opacity-80 shadow-2xl' : ''} ${editMode ? (selected ? 'ring-2 ring-violet-500' : 'ring-1 ring-violet-300/40') : ''} ${!editMode && expandable ? 'cursor-zoom-in' : ''}`}
+      className={`absolute ${cardClass(cardStyle)} ${fontSizeClass(effectiveFontSize)} ${isDragging ? 'shadow-2xl' : ''} ${editMode ? (selected ? 'ring-2 ring-violet-500' : 'ring-1 ring-violet-300/40') : ''} ${!editMode && expandable ? 'cursor-zoom-in' : ''}`}
       style={{
         left: block.x,
         top: block.y,
         width: block.w,
         height: block.h,
         zIndex: isDragging ? 9999 : block.z,
+        opacity: isDragging ? Math.min(0.8, effectiveOpacity) : effectiveOpacity,
         ...transformStyle,
         touchAction: editMode ? 'none' : undefined,
       }}
@@ -261,6 +274,8 @@ export interface FreeCanvasProps {
   cardStyle: CardStyle;
   fontStyle: FontStyle;
   pointColor: string;
+  defaultOpacity?: number;
+  defaultFontSize?: FontSize;
   renderBlock: (block: Block) => ReactNode;
   onExpand?: (kind: Block['kind']) => void;
   onExitEdit?: () => void;
@@ -277,6 +292,8 @@ export function FreeCanvas({
   cardStyle,
   fontStyle,
   pointColor,
+  defaultOpacity = 1,
+  defaultFontSize = 'base',
   renderBlock,
   onExpand,
   onExitEdit,
@@ -361,8 +378,60 @@ export function FreeCanvas({
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
+  const selectedBlock = selectedId ? blocks.find((b) => b.id === selectedId) ?? null : null;
+
   return (
     <DndContext sensors={sensors} onDragEnd={onDragEnd}>
+      {editMode && selectedBlock && (
+        <div className="sticky top-2 z-50 mx-auto mb-2 flex flex-wrap items-center gap-3 rounded-xl border border-violet-200 bg-white/90 backdrop-blur px-3 py-2 text-xs shadow-md" style={{ width: 'fit-content', maxWidth: '95%' }}>
+          <span className="font-semibold text-violet-700">⋮ {selectedBlock.kind}</span>
+          <label className="flex items-center gap-1.5">
+            <span className="opacity-60">투명도</span>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={selectedBlock.opacity ?? defaultOpacity}
+              onChange={(e) => applyChange(selectedBlock.id, { opacity: parseFloat(e.target.value) })}
+              className="w-24"
+            />
+            <span className="w-8 text-right tabular-nums">{Math.round(((selectedBlock.opacity ?? defaultOpacity)) * 100)}%</span>
+            <button
+              onClick={() => applyChange(selectedBlock.id, { opacity: undefined })}
+              className="text-[10px] underline opacity-60 hover:opacity-100"
+              title="전역값 사용"
+            >
+              기본
+            </button>
+          </label>
+          <label className="flex items-center gap-1.5">
+            <span className="opacity-60">글자크기</span>
+            <select
+              value={selectedBlock.fontSize ?? ''}
+              onChange={(e) => {
+                const v = e.target.value;
+                applyChange(selectedBlock.id, { fontSize: v ? (v as FontSize) : undefined });
+              }}
+              className="rounded border border-gray-200 px-1 py-0.5 text-xs"
+            >
+              <option value="">전역</option>
+              <option value="xs">XS</option>
+              <option value="sm">SM</option>
+              <option value="base">기본</option>
+              <option value="lg">LG</option>
+              <option value="xl">XL</option>
+            </select>
+          </label>
+          <button
+            onClick={() => setSelectedId(null)}
+            className="text-[11px] px-2 py-0.5 rounded bg-gray-100 hover:bg-gray-200"
+            aria-label="선택 해제"
+          >
+            ✕
+          </button>
+        </div>
+      )}
       <div
         className={`relative mx-auto font-${fontStyle} ${editMode ? 'bg-[radial-gradient(circle,rgba(0,0,0,0.04)_1px,transparent_1px)] [background-size:24px_24px]' : ''}`}
         style={{ width: canvasWidth, minHeight, maxWidth: '100%', color: 'inherit' }}
@@ -374,6 +443,8 @@ export function FreeCanvas({
             editMode={editMode}
             cardStyle={cardStyle}
             selected={selectedId === b.id}
+            effectiveOpacity={b.opacity ?? defaultOpacity}
+            effectiveFontSize={b.fontSize ?? defaultFontSize}
             onSelect={setSelectedId}
             onChange={applyChange}
             onExpand={onExpand}

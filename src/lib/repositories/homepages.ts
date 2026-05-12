@@ -119,6 +119,8 @@ export const homepagesRepo = {
         | 'text_color'
         | 'card_style'
         | 'font_style'
+        | 'default_card_opacity'
+        | 'default_font_size'
         | 'layout_mode'
       >
     > & { layout_slots?: LayoutSlot[]; layouts?: Layouts }

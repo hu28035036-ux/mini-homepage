@@ -230,6 +230,8 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
         cardStyle={hp.card_style}
         fontStyle={hp.font_style}
         pointColor={hp.point_color}
+        defaultOpacity={hp.default_card_opacity ?? 1}
+        defaultFontSize={hp.default_font_size ?? 'base'}
         renderBlock={renderBlock}
         onExpand={(k) => k !== 'title' && k !== 'profile' && setExpanded(k as ExpandKind)}
         onExitEdit={() => setEditMode(false)}

@@ -58,6 +58,8 @@ function stripHomepage(hp: MiniHomepageRow) {
     text_color: hp.text_color,
     card_style: hp.card_style,
     font_style: hp.font_style,
+    default_card_opacity: hp.default_card_opacity,
+    default_font_size: hp.default_font_size,
     layout_mode: hp.layout_mode,
     layout_slots: hp.layout_slots,
     layouts: hp.layouts,
