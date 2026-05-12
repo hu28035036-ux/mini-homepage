@@ -90,6 +90,25 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
     loadAll();
   }, []);
 
+  async function quickAdd(kind: Block['kind']) {
+    if (kind === 'urls' || kind === 'albums') {
+      setExpanded(kind);
+      return;
+    }
+    if (kind === 'memos') {
+      // 빈 메모 즉시 생성 후 메모 모달 오픈
+      const r = await (await fetch('/api/memos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: '새 메모', content: ' ' }),
+      })).json();
+      if (r.success) {
+        setMemos((s) => [r.data.item as MemoRow, ...s]);
+      }
+      setExpanded('memos');
+    }
+  }
+
   function renderBlock(b: Block) {
     switch (b.kind) {
       case 'title':
@@ -230,10 +249,12 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
         cardStyle={hp.card_style}
         fontStyle={hp.font_style}
         pointColor={hp.point_color}
+        textColor={hp.text_color}
         defaultOpacity={hp.default_card_opacity ?? 1}
         defaultFontSize={hp.default_font_size ?? 'base'}
         renderBlock={renderBlock}
         onExpand={(k) => k !== 'title' && k !== 'profile' && setExpanded(k as ExpandKind)}
+        onQuickAdd={quickAdd}
         onExitEdit={() => setEditMode(false)}
       />
 

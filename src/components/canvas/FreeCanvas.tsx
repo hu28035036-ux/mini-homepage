@@ -88,15 +88,17 @@ interface DraggableBlockProps {
   selected: boolean;
   effectiveOpacity: number;
   effectiveFontSize: FontSize;
+  textColor?: string;
   onSelect: (id: string) => void;
   onChange: (id: string, patch: Partial<Block>) => void;
   onExpand?: (kind: Block['kind']) => void;
+  onQuickAdd?: (kind: Block['kind']) => void;
   onBringForward: (id: string) => void;
   onSendBackward: (id: string) => void;
   children: ReactNode;
 }
 
-function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity, effectiveFontSize, onSelect, onChange, onExpand, onBringForward, onSendBackward, children }: DraggableBlockProps) {
+function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity, effectiveFontSize, textColor, onSelect, onChange, onExpand, onQuickAdd, onBringForward, onSendBackward, children }: DraggableBlockProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: block.id,
     disabled: !editMode,
@@ -161,15 +163,31 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
         {children}
       </div>
 
-      {/* 2. 평소 모드 전체보기 버튼 */}
-      {!editMode && onExpand && block.kind !== 'title' && block.kind !== 'profile' && (
-        <button
-          onClick={() => onExpand(block.kind)}
-          className="absolute top-2 right-2 z-20 text-xs opacity-50 hover:opacity-100 px-1.5 py-0.5 rounded hover:bg-black/5"
-          title="전체보기"
-        >
-          ⛶
-        </button>
+      {/* 2. 평소 모드 우상단 액션 — + 새로 추가 (urls/albums/memos), ⛶ 전체보기 */}
+      {!editMode && block.kind !== 'title' && block.kind !== 'profile' && (
+        <div className="absolute top-2 right-2 z-20 flex items-center gap-1">
+          {onQuickAdd && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onQuickAdd(block.kind); }}
+              style={{ color: textColor }}
+              className="text-base leading-none opacity-70 hover:opacity-100 w-7 h-7 rounded hover:bg-black/5 flex items-center justify-center"
+              title="새로 추가"
+              aria-label="새로 추가"
+            >
+              +
+            </button>
+          )}
+          {onExpand && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onExpand(block.kind); }}
+              className="text-xs opacity-50 hover:opacity-100 w-7 h-7 rounded hover:bg-black/5 flex items-center justify-center"
+              title="전체보기"
+              aria-label="전체보기"
+            >
+              ⛶
+            </button>
+          )}
+        </div>
       )}
 
       {/* 3. 편집 모드 드래그 핸들 — 콘텐츠 위에 오게 z-30 + DOM 마지막에 작성 */}
@@ -274,10 +292,12 @@ export interface FreeCanvasProps {
   cardStyle: CardStyle;
   fontStyle: FontStyle;
   pointColor: string;
+  textColor?: string;
   defaultOpacity?: number;
   defaultFontSize?: FontSize;
   renderBlock: (block: Block) => ReactNode;
   onExpand?: (kind: Block['kind']) => void;
+  onQuickAdd?: (kind: Block['kind']) => void;
   onExitEdit?: () => void;
   /** 공개 페이지 등 visibility=private 필터링 모드 */
   publicViewOnly?: boolean;
@@ -292,10 +312,12 @@ export function FreeCanvas({
   cardStyle,
   fontStyle,
   pointColor,
+  textColor,
   defaultOpacity = 1,
   defaultFontSize = 'base',
   renderBlock,
   onExpand,
+  onQuickAdd,
   onExitEdit,
   publicViewOnly = false,
   forceTrack,
@@ -445,9 +467,11 @@ export function FreeCanvas({
             selected={selectedId === b.id}
             effectiveOpacity={b.opacity ?? defaultOpacity}
             effectiveFontSize={b.fontSize ?? defaultFontSize}
+            textColor={textColor}
             onSelect={setSelectedId}
             onChange={applyChange}
             onExpand={onExpand}
+            onQuickAdd={onQuickAdd}
             onBringForward={bringForward}
             onSendBackward={sendBackward}
           >
