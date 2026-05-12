@@ -9,6 +9,10 @@ coverage/
 *.log
 .DS_Store
 
+# TS incremental cache
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+
 # Playwright
 /test-results/
 /playwright-report/
