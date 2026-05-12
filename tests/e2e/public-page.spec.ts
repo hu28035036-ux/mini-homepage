@@ -67,9 +67,9 @@ test.describe('공개/비공개 (TC-PUB)', () => {
     await page.getByRole('button', { name: '추가' }).click();
     await expect(page.getByText('비공개 메모')).toBeVisible();
 
-    // 비공개 상태에서도 본인은 봄
+    // 비공개 상태에서도 본인은 봄. v0.6: data-public 속성으로 확인
     await page.goto('/admin');
-    await expect(page.locator('header')).toContainText('비공개');
+    await expect(page.locator('[data-public]').first()).toHaveAttribute('data-public', '0');
     await expect(page.getByText('비공개 메모')).toBeVisible();
   });
 });

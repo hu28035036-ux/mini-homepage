@@ -4,8 +4,8 @@ import { signupAndLogin, getCurrentSlug } from './helpers';
 test.describe('미니홈피 + URL/메모 CRUD (TC-HP / TC-URL / TC-MEMO)', () => {
   test('TC-HP-001/003 가입 후 첫 진입 시 미니홈피 자동 생성, 기본 비공개', async ({ page }) => {
     await signupAndLogin(page, 'hp-create');
-    // /admin 진입 = 미니홈피 자동 생성 완료
-    await expect(page.locator('header')).toContainText('비공개');
+    // /admin 진입 = 미니홈피 자동 생성 완료. v0.6: data-public 속성으로 확인
+    await expect(page.locator('[data-public]').first()).toHaveAttribute('data-public', '0');
     const slug = await getCurrentSlug(page);
     expect(slug).toMatch(/^mh-/);
   });
@@ -53,17 +53,23 @@ test.describe('미니홈피 + URL/메모 CRUD (TC-HP / TC-URL / TC-MEMO)', () =>
     expect(body.error_code).toBe('URL_INVALID_FORMAT');
   });
 
-  test('TC-MEMO-001/005 메모 작성/삭제', async ({ page }) => {
+  test('TC-MEMO-001/005 메모 작성/삭제 (v0.6: + 새 메모 + 인라인 + ✕)', async ({ page }) => {
     await signupAndLogin(page, 'memo-crud');
     await page.goto('/admin/memos');
 
-    await page.getByLabel('제목').fill('첫 메모');
-    await page.getByLabel('내용').fill('내용입니다.');
-    await page.getByRole('button', { name: '작성' }).click();
-    await expect(page.getByText('첫 메모')).toBeVisible();
+    await page.getByRole('button', { name: '+ 새 메모' }).click();
+    // 첫 카드 title input에 입력
+    const titleInput = page.getByLabel('제목').first();
+    await titleInput.fill('첫 메모');
+    const contentArea = page.getByLabel('내용').first();
+    await contentArea.fill('내용입니다.');
+    // 800ms debounce 자동저장 대기
+    await page.waitForTimeout(1200);
+    await page.reload();
+    await expect(page.locator('input[value="첫 메모"]')).toBeVisible();
 
     page.once('dialog', (d) => d.accept());
     await page.getByRole('button', { name: '삭제' }).first().click();
-    await expect(page.getByText('첫 메모')).toHaveCount(0);
+    await expect(page.locator('input[value="첫 메모"]')).toHaveCount(0);
   });
 });
