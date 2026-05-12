@@ -1,6 +1,6 @@
 ---
 상태: Draft
-버전: v0.5
+버전: v0.6
 마지막 수정일: 2026-05-13
 문서 목적: 운영 / 변경 이력
 ---
@@ -8,6 +8,25 @@
 # 변경 이력
 
 본 문서는 시간순 변경 기록을 남긴다. 현재 기능 지도는 `docs/19_FEATURE_CATALOG.md`에 있으며, 본 문서는 "언제, 무엇이 바뀌었는지"만 간단히 적는다.
+
+## v0.6 — 2026-05-13 (PWA + 카드 관리 + 햄버거 메뉴 + 설정 비밀번호)
+
+12개 Step 일괄. 마이그레이션 0003 신규.
+
+- 🆕 **Step A. PWA** — `public/manifest.webmanifest` + 보라 단색 아이콘 192/512/180/32 + `viewport.themeColor` + iOS `appleWebApp`
+- 🆕 **Step B. 카드 z-index 제어** — 편집 모드 핸들에 ▲(앞)/▼(뒤) 버튼 + `bringForward`/`sendBackward`
+- 🆕 **Step C. 편집 UX 보강** — 자동저장 디바운스(1500ms) + 카드 클릭 선택(보라 ring) + 화살표 ±1, Shift+화살표 ±10 + Esc로 편집 종료
+- 🆕 **Step E. 카드 투명도 / 폰트 크기 (전역+카드별)** — 마이그레이션 0003: `default_card_opacity numeric`, `default_font_size text(check enum)`. Block에 `opacity?`/`fontSize?` 옵셔널. DecorateEditor에 전역 슬라이더+select. 편집 모드에서 선택된 카드에 floating 컨트롤(투명도 slider + fontSize select + 기본값 복귀)
+- 🆕 **Step F. 메모 row 단위 카드형 UX** — MemosManager 전면 개편: 상단 폼 제거, `+ 새 메모` 버튼 → 빈 row 즉시 생성 → 인라인 input/textarea, 800ms 디바운스 자동저장, 우상단 `✕` 휴지통. `updateMemoSchema` 빈 문자열 허용. HomeDashboard/PublicCanvas 메모 미리보기 `divide-y` 시각 분리
+- 🆕 **Step G. 스크롤바 카드색 통일** — `globals.css`에 `--scrollbar-track`/`--scrollbar-thumb` CSS 변수 + `::-webkit-scrollbar` + `scrollbar-color`. admin/layout/PublicCanvas에서 본인 배경색/포인트색을 inline 주입
+- 🆕 **Step H. 햄버거 메뉴** — TopBar 삭제, 우측 상단 fixed `MenuButton`(햄버거) → 드롭다운(@slug+공개토글, 홈, 꾸미기, 설정, 공개 페이지, 로그아웃). safe-area-inset 대응, click-outside + Esc 닫기
+- 🆕 **Step I. /admin/settings 비밀번호 변경 추가** — `/api/auth/password` POST + `authService.changePassword` + `usersRepo.updatePassword`. SettingsForm에 계정 카드(이메일 표시 + 현재/새/확인 비밀번호)
+- 🆕 **Step J. 카드별 + 버튼** — FreeCanvas DraggableBlock 평소 모드 우상단 `+` 버튼 (urls/albums/memos). 색은 `text_color` inline으로 자동 추종. HomeDashboard.quickAdd: urls/albums → 모달 오픈, memos → 빈 row 즉시 생성 후 모달
+- 🆕 **Step K. 카드 본문 클릭 → expand 버그 수정** — FreeCanvas 루트 div에 onClick 부착, urls 링크는 `stopPropagation`로 새 탭 동작 유지
+- 🆕 **Step L. custom 카드 추가/삭제** — `BlockKind`에 `'custom'` 확장 + Block에 `customTitle?`/`customContent?`. 편집 모드 우상단 `+ 카드 추가` 버튼 + DraggableBlock 핸들에 'custom' 전용 삭제 버튼. renderBlock 'custom' 분기(편집모드 인풋/textarea + 평소모드 div). PublicCanvas 동일
+- 🧪 **Step D. E2E TC-ALB-006~010 신규** — `tests/fixtures/test-image{,-2}.png` + `tests/e2e/albums.spec.ts`. 회귀 갱신: TopBar 제거에 따라 `[data-slug]`/`[data-public]` 셀렉터, TC-MEMO 메모 자동저장에 `waitForResponse` 사용
+- 📦 **마이그레이션 0003** — 로컬 + 운영 모두 적용 필요
+- ✅ **검증 게이트**: `tsc --noEmit` 0 에러, `next build` 성공, E2E **31 passed / 3 skipped / 0 failed**
 
 ## v0.5.x — 2026-05-13 (꾸미기 적용 버그 fix)
 

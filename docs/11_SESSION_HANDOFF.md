@@ -1,11 +1,11 @@
 ---
 상태: Draft
-버전: v0.5
+버전: v0.6
 마지막 수정일: 2026-05-13
 문서 목적: 운영 / 세션 인수인계
 ---
 
-# 세션 인수인계 — v0.5 (자유 캔버스 + 폰트/카드 다양화 운영 배포)
+# 세션 인수인계 — v0.6 (PWA + 카드 관리 + 햄버거 메뉴 + 비밀번호 변경)
 
 다음 세션이 곧장 이어받을 수 있도록 **현재 상태 / 환경 / 다음 작업 후보**를 한 곳에 정리한다.
 
@@ -19,10 +19,11 @@
 | GitHub repo | https://github.com/hu28035036-ux/mini-homepage (Private) |
 | Supabase Project | `mini-homepage-prod` (ref `efokjcootdmcrnpnqpce`, Seoul) |
 | Vercel Project | `mini-homepage` (orgId `team_Fej1ZZqXQJPzGwxXB9oGo9AB`, projectId `prj_F0mAKTWVVZ38KBfXYj9qDSlJ46L6`) |
-| 최근 commit | `06547fc fix(decorate): 카드/폰트 저장 후 적용 안 되던 버그 + Tailwind v4 safelist` |
-| 마지막 운영 배포 | Vercel 자동 (GitHub master push) — 완료 |
-| E2E | **26 passed / 3 skipped / 0 failed** |
+| 최근 commit | `27b067d fix(memos): persist 시 draftsRef 사용 — 마지막 입력의 누적 patch 보존` |
+| 마지막 운영 배포 | Vercel 자동 (GitHub master push) — 진행/완료 |
+| E2E | **31 passed / 3 skipped / 0 failed** (chromium) |
 | TypeScript | 0 에러 |
+| 마이그레이션 0003 | 로컬 적용 완료 / 운영 SQL Editor 적용 **필요** |
 
 ---
 
@@ -51,19 +52,28 @@
 - 홈 = HomeDashboard 클라이언트 컴포넌트로 재구성, 4 카드 + 각 카드 expand 모달
 - v1 layout_slots/layout_mode 편집기 숨김 (v2 자유 캔버스로 대체)
 
-### v0.5 — Phase B + 카드/폰트 다양화 (현재 운영)
+### v0.5 — Phase B + 카드/폰트 다양화
 - 마이그레이션 0002: font_style/card_style enum 확장 + `mini_homepages.layouts jsonb` 추가
-- **폰트 12종** (default, pretendard, notoSans, notoSerif, nanumGothic, gowunDodum, rounded, nanumPen, emotional, ibmPlex, blackHan, hiMelody)
-- **카드 스타일 10종** (basic, rounded, shadow, transparent, soft, bordered, glass, minimal, elevated, frame)
-- DecorateEditor: 라디오 → 드롭다운, 폰트 선택 항목마다 자기 폰트 미리보기
-- **자유 캔버스 (FreeCanvas)**: 5개 카드(title/profile/urls/albums/memos) 자율 좌표 + @dnd-kit/core 드래그 + 자체 pointer 리사이즈
-- **편집 모드 토글** + 드래그 핸들(`⋮⋮ kind`) + 보라 사각형 리사이즈 핸들
-- 카드별 visibility(공개/비공개) + visible(숨김) + expand(⛶) 액션
-- **PC ↔ 모바일·태블릿 2-track 좌표** (`layouts.desktop` / `layouts.mobile`)
+- 폰트 12종, 카드 스타일 10종, DecorateEditor 드롭다운 전환
+- 자유 캔버스 5개 카드 자율 좌표 + @dnd-kit, PC/모바일 2-track
 - 공개 페이지 `/u/[slug]`도 같은 FreeCanvas + visibility=private 필터
-- 보안 헤더 (HSTS, X-Content-Type-Options, X-Frame-Options, Referrer, Permissions)
-- DecorateEditor save() → router.refresh() (저장 즉시 server prop 갱신)
-- Tailwind v4 `@source inline()` 안전 리스트
+- 보안 헤더, router.refresh, Tailwind v4 safelist
+
+### v0.6 — PWA + 카드 관리 + 햄버거 + 비밀번호 (현재 운영)
+- 마이그레이션 **0003**: `default_card_opacity numeric` + `default_font_size text` 추가 (운영 SQL Editor 적용 필수)
+- **Step A. PWA** — manifest.webmanifest + 아이콘 192/512/180/32 + iOS 메타 + themeColor
+- **Step B. z-index 제어** — 핸들에 ▲/▼ 버튼 + bringForward/sendBackward
+- **Step C. 편집 UX** — 자동저장 디바운스(1500ms), 카드 선택, 화살표 미세이동(±1, Shift ±10), Esc로 편집 종료
+- **Step E. 투명도/폰트크기 전역+카드별** — Block.opacity/fontSize 옵셔널, DecorateEditor 슬라이더/select, 선택 카드 floating 컨트롤
+- **Step F. 메모 row 카드형** — `+ 새 메모` 인라인 + 800ms 디바운스 자동저장 + ✕ 휴지통, divide-y 미리보기
+- **Step G. 스크롤바 카드색** — `--scrollbar-track`/`--scrollbar-thumb` + `::-webkit-scrollbar` + `scrollbar-color`
+- **Step H. 햄버거 메뉴** — TopBar 제거, 우상단 fixed MenuButton (공개 토글/홈/꾸미기/설정/공개 페이지/로그아웃), safe-area 대응
+- **Step I. 설정 비밀번호 변경** — `/api/auth/password` POST + 계정 카드(이메일 표시 + 현재/새/확인)
+- **Step J. 카드별 +** — 평소 모드 카드 우상단 + 버튼 (text_color 자동 추종)
+- **Step K. 카드 클릭 expand** — 카드 본문 클릭 → expand 모달 자동 오픈 (urls 링크는 stopPropagation으로 새 탭 유지)
+- **Step L. custom 카드 추가/삭제** — BlockKind 'custom' + customTitle/Content. 편집 모드 '+ 카드 추가' + 핸들 삭제 버튼
+- **Step D. E2E TC-ALB-006~010** — fixture PNG 2개 + albums.spec.ts. 회귀 갱신
+- 31 passed / 3 skipped / 0 failed
 
 ---
 
@@ -93,7 +103,7 @@ npm run dev
 
 ```powershell
 npx playwright test
-# 기대: 26 passed / 3 skipped / 0 failed
+# 기대: 31 passed / 3 skipped / 0 failed (chromium)
 ```
 
 ### 3-3. 배포 (코드 변경 후)
@@ -128,33 +138,22 @@ npx supabase status  # 출력에 anon key 등 표시. legacy JWT는 docker exec 
 
 ---
 
-## 5. 사용자 확인 대기 중인 항목 (가장 우선)
+## 5. 운영 후속 작업 (이번 세션 직후 처리 필요)
 
-직전 push(`06547fc`) 후 운영에서 다음을 확인 요청한 상태:
-
-1. 꾸미기 탭에서 폰트 `nanumPen` 또는 `blackHan` 선택 + 저장 → 화면 폰트가 실제로 바뀌는지 (router.refresh() 효과)
-2. 카드 스타일 `glass` 또는 `bordered` 선택 + 저장 → 카드 모양이 실제로 바뀌는지
-3. 새로고침 없이 즉시 반영되는지 (이전엔 router.refresh 누락으로 안 됐음)
-
-피드백 도착하면 그 결과에 따라 분기 (정상 → 다음 Phase 진행 / 비정상 → 추가 디버깅).
+1. **마이그레이션 0003을 운영 Supabase에 적용** — Supabase Studio → SQL Editor → `supabase/migrations/0003_card_opacity_font_size.sql` 본문 실행. 컬럼 default 1 / 'base' 이므로 기존 row 무중단 호환.
+2. 운영 헬스 체크 — `https://mini-homepage.vercel.app/manifest.webmanifest` 200, `/admin/settings` 200, 햄버거 메뉴 노출, 메모 자동저장.
+3. 사용자 검증 — 모바일(크롬/삼성인터넷/사파리)·태블릿·PC에서 실제 동작 점검 후 비정상이면 추가 fix.
 
 ---
 
-## 6. 다음 작업 후보 (피드백 받은 후 분기)
+## 6. 다음 작업 후보 (사용자 검증 후 분기)
 
-피드백이 OK라면 다음 후보 중 사용자가 선택:
-
-- **A. Phase D — PWA (모바일/태블릿에서 앱처럼)**
-  - `public/manifest.webmanifest` + 앱 아이콘 192/512 + iOS 메타 태그
-  - "홈 화면에 추가" UX, standalone 풀스크린
-  - 작업량 ~30분
-- **B. 카드 z-index/겹침 제어** — 앞/뒤 보내기 + 정렬 가이드
-- **C. 편집 모드 UX 보강** — 자동저장 디바운스, 키보드 화살표 미세 이동, Esc로 종료
-- **D. 이미지 업로드 E2E 보강** — TC-ALB-006~010 자동화 (`setInputFiles`)
-- **E. 비밀번호 재설정 흐름** — v2.1 신규
+- **E. 비밀번호 재설정 흐름** — 이메일 발송 기반 (v0.6에 비밀번호 변경 본인 인증은 추가됨)
 - **F. 휴지통 / 복구 UI** — `deleted_at` 활용
-- **G. 운영 모니터링** — Vercel Analytics + Logflare 또는 Sentry
-- **H. DB 컬럼명 마이그레이션** — `mini_homepages` → `notes` (비용 큼, 마지막에)
+- **G. 운영 모니터링** — Vercel Analytics + Logflare/Sentry
+- **H. DB 컬럼명 마이그레이션** — `mini_homepages` → `notes` (비용 큼)
+- **I. Playwright multi-viewport** — webkit/mobile 추가 프로젝트 (v0.6 plan 명시했으나 시간상 chromium만 적용)
+- **J. /admin/decorate 안 미리보기 영역(WidgetRenderer)** — v2 자유캔버스에 맞춰 단계적으로 정리
 
 ---
 
