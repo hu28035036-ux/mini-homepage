@@ -54,4 +54,17 @@ export const usersRepo = {
     }
     return data as UserRow;
   },
+
+  async updatePassword(userId: string, password_hash: string): Promise<void> {
+    const supabase = supabaseServer();
+    const { error } = await supabase
+      .from('users')
+      .update({ password_hash })
+      .eq('id', userId)
+      .is('deleted_at', null);
+    if (error) {
+      console.error('[users.updatePassword]', error);
+      throw new AppError('SERVER_INTERNAL_ERROR');
+    }
+  },
 };

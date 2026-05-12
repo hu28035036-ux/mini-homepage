@@ -4,6 +4,7 @@ import { hashPassword, verifyPassword } from '@/lib/auth/password';
 import { getSession } from '@/lib/auth/session';
 import { ensureHomepageForUserId } from './homepage';
 import { AppError } from '@/lib/errors/codes';
+import { requireUser } from '@/lib/auth/guards';
 
 export const authService = {
   async signup(raw: unknown): Promise<{ user_id: string }> {
@@ -39,6 +40,20 @@ export const authService = {
   async logout(): Promise<void> {
     const session = await getSession();
     session.destroy();
+  },
+
+  async changePassword(raw: unknown): Promise<void> {
+    const uid = await requireUser();
+    const body = (raw ?? {}) as { current?: unknown; next?: unknown };
+    const current = typeof body.current === 'string' ? body.current : '';
+    const next = typeof body.next === 'string' ? body.next : '';
+    if (next.length < 8) throw new AppError('AUTH_PASSWORD_WEAK');
+    const user = await usersRepo.findByIdActive(uid);
+    if (!user) throw new AppError('AUTH_REQUIRED');
+    const ok = await verifyPassword(current, user.password_hash);
+    if (!ok) throw new AppError('AUTH_PASSWORD_MISMATCH');
+    const password_hash = await hashPassword(next);
+    await usersRepo.updatePassword(uid, password_hash);
   },
 };
 

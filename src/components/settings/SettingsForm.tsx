@@ -5,7 +5,13 @@ import { useRouter } from 'next/navigation';
 import { Card, Button, Input, Textarea, Label, ErrorText } from '@/components/ui/primitives';
 import type { MiniHomepageRow } from '@/types/db';
 
-export function SettingsForm({ initial }: { initial: MiniHomepageRow }) {
+export function SettingsForm({
+  initial,
+  ownerEmail,
+}: {
+  initial: MiniHomepageRow;
+  ownerEmail: string;
+}) {
   const router = useRouter();
   const [title, setTitle] = useState(initial.title);
   const [intro, setIntro] = useState(initial.intro ?? '');
@@ -15,6 +21,41 @@ export function SettingsForm({ initial }: { initial: MiniHomepageRow }) {
   const [err, setErr] = useState('');
   const [msg, setMsg] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // 비밀번호 변경
+  const [pwCurrent, setPwCurrent] = useState('');
+  const [pwNext, setPwNext] = useState('');
+  const [pwConfirm, setPwConfirm] = useState('');
+  const [pwErr, setPwErr] = useState('');
+  const [pwMsg, setPwMsg] = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
+
+  async function changePassword(e: FormEvent) {
+    e.preventDefault();
+    setPwErr('');
+    setPwMsg('');
+    if (pwNext.length < 8) {
+      setPwErr('새 비밀번호는 8자 이상이어야 합니다.');
+      return;
+    }
+    if (pwNext !== pwConfirm) {
+      setPwErr('새 비밀번호 확인이 일치하지 않습니다.');
+      return;
+    }
+    setPwSaving(true);
+    const r = await (await fetch('/api/auth/password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ current: pwCurrent, next: pwNext }),
+    })).json();
+    setPwSaving(false);
+    if (!r.success) {
+      setPwErr(r.message ?? '비밀번호 변경 실패');
+      return;
+    }
+    setPwMsg('비밀번호가 변경되었습니다.');
+    setPwCurrent(''); setPwNext(''); setPwConfirm('');
+  }
 
   async function onProfileFile(e: ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
@@ -115,6 +156,40 @@ export function SettingsForm({ initial }: { initial: MiniHomepageRow }) {
           {msg && <span className="text-sm text-green-700">{msg}</span>}
         </div>
       </form>
+
+      <Card>
+        <h2 className="text-sm font-bold mb-3">계정</h2>
+        <div className="text-sm space-y-1 mb-4">
+          <div>
+            <span className="opacity-60">이메일(아이디): </span>
+            <span className="font-medium">{ownerEmail}</span>
+            <span className="text-[11px] opacity-50 ml-2">변경 불가</span>
+          </div>
+        </div>
+
+        <form onSubmit={changePassword} className="space-y-3 border-t border-black/5 pt-4">
+          <h3 className="text-xs font-bold opacity-80">비밀번호 변경</h3>
+
+          <div>
+            <Label htmlFor="pw-current">현재 비밀번호</Label>
+            <Input id="pw-current" type="password" autoComplete="current-password" value={pwCurrent} onChange={(e) => setPwCurrent(e.target.value)} required />
+          </div>
+          <div>
+            <Label htmlFor="pw-next">새 비밀번호 (8자 이상)</Label>
+            <Input id="pw-next" type="password" autoComplete="new-password" value={pwNext} onChange={(e) => setPwNext(e.target.value)} required minLength={8} />
+          </div>
+          <div>
+            <Label htmlFor="pw-confirm">새 비밀번호 확인</Label>
+            <Input id="pw-confirm" type="password" autoComplete="new-password" value={pwConfirm} onChange={(e) => setPwConfirm(e.target.value)} required minLength={8} />
+          </div>
+
+          {pwErr && <ErrorText>{pwErr}</ErrorText>}
+          <div className="flex items-center gap-3">
+            <Button type="submit" disabled={pwSaving}>{pwSaving ? '변경 중...' : '비밀번호 변경'}</Button>
+            {pwMsg && <span className="text-sm text-green-700">{pwMsg}</span>}
+          </div>
+        </form>
+      </Card>
     </div>
   );
 }

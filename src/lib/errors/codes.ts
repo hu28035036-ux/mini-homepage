@@ -6,6 +6,8 @@ export const ERROR_CODES = {
   AUTH_INVALID_CREDENTIAL: { status: 401, message: '이메일 또는 비밀번호가 올바르지 않습니다.' },
   AUTH_EMAIL_DUPLICATE: { status: 409, message: '이미 사용 중인 이메일입니다.' },
   AUTH_PERMISSION_DENIED: { status: 403, message: '권한이 없습니다.' },
+  AUTH_PASSWORD_MISMATCH: { status: 400, message: '현재 비밀번호가 올바르지 않습니다.' },
+  AUTH_PASSWORD_WEAK: { status: 400, message: '비밀번호는 8자 이상이어야 합니다.' },
 
   VALIDATION_REQUIRED_FIELD: { status: 400, message: '필수 입력값이 누락되었습니다.' },
   VALIDATION_INVALID_FORMAT: { status: 400, message: '입력 형식이 올바르지 않습니다.' },
