@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback, ReactNode } from 'react';
-import { DndContext, useDraggable, type DragEndEvent } from '@dnd-kit/core';
+import { DndContext, useDraggable, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import type { Block, Layouts, CardStyle, FontStyle } from '@/types/db';
 
 export type Track = 'desktop' | 'mobile';
@@ -117,43 +117,76 @@ function DraggableBlock({ block, editMode, cardStyle, onChange, onExpand, childr
   return (
     <div
       ref={setNodeRef}
-      className={`absolute ${cardClass(cardStyle)} ${isDragging ? 'opacity-80 cursor-grabbing shadow-2xl z-50' : ''} ${editMode ? 'ring-1 ring-violet-300/40' : ''}`}
+      className={`absolute ${cardClass(cardStyle)} ${isDragging ? 'opacity-80 shadow-2xl' : ''} ${editMode ? 'ring-1 ring-violet-300/40' : ''}`}
       style={{
         left: block.x,
         top: block.y,
         width: block.w,
         height: block.h,
-        zIndex: block.z,
+        zIndex: isDragging ? 9999 : block.z,
         ...transformStyle,
+        touchAction: editMode ? 'none' : undefined,
       }}
     >
+      {/* 1. 내부 콘텐츠 — 핸들 아래에 깔리도록 먼저 작성 + 편집 모드 OFF는 인터랙티브, ON일 때는 pointer-events: none(드래그 우선) */}
+      <div
+        className={`absolute inset-x-0 bottom-0 ${editMode ? 'top-8' : 'top-0'} overflow-auto p-4`}
+        style={editMode ? { pointerEvents: 'none' } : undefined}
+      >
+        {children}
+      </div>
+
+      {/* 2. 평소 모드 전체보기 버튼 */}
+      {!editMode && onExpand && block.kind !== 'title' && block.kind !== 'profile' && (
+        <button
+          onClick={() => onExpand(block.kind)}
+          className="absolute top-2 right-2 z-20 text-xs opacity-50 hover:opacity-100 px-1.5 py-0.5 rounded hover:bg-black/5"
+          title="전체보기"
+        >
+          ⛶
+        </button>
+      )}
+
+      {/* 3. 편집 모드 드래그 핸들 — 콘텐츠 위에 오게 z-30 + DOM 마지막에 작성 */}
       {editMode && (
         <div
           {...listeners}
           {...attributes}
-          className="absolute inset-x-0 top-0 h-8 cursor-grab active:cursor-grabbing select-none flex items-center justify-between px-3 text-[10px] text-gray-500 bg-black/[0.02] rounded-t"
+          className="absolute inset-x-0 top-0 h-8 z-30 cursor-grab active:cursor-grabbing select-none flex items-center justify-between px-3 text-[10px] text-gray-700 bg-violet-50 border-b border-violet-200 rounded-t"
           aria-label="드래그 핸들"
         >
-          <span>⋮⋮ {block.kind}</span>
-          <div className="flex items-center gap-2">
+          <span className="font-medium">⋮⋮ {block.kind}</span>
+          <div className="flex items-center gap-1.5">
             <button
-              onClick={() => onChange(block.id, { visibility: block.visibility === 'public' ? 'private' : 'public' })}
-              className="text-[10px] px-1.5 py-0.5 rounded hover:bg-black/5"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange(block.id, { visibility: block.visibility === 'public' ? 'private' : 'public' });
+              }}
+              className="text-[10px] px-1.5 py-0.5 rounded bg-white/70 hover:bg-white"
               title={block.visibility === 'public' ? '공개 페이지에 보임' : '공개 페이지에 안 보임'}
             >
               {block.visibility === 'public' ? '공개' : '비공개'}
             </button>
             <button
-              onClick={() => onChange(block.id, { visible: false })}
-              className="text-[10px] px-1.5 py-0.5 rounded hover:bg-black/5"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange(block.id, { visible: false });
+              }}
+              className="text-[10px] px-1.5 py-0.5 rounded bg-white/70 hover:bg-white"
               title="이 화면에서 숨김"
             >
               숨김
             </button>
             {onExpand && block.kind !== 'title' && block.kind !== 'profile' && (
               <button
-                onClick={() => onExpand(block.kind)}
-                className="text-[10px] px-1.5 py-0.5 rounded hover:bg-black/5"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onExpand(block.kind);
+                }}
+                className="text-[10px] px-1.5 py-0.5 rounded bg-white/70 hover:bg-white"
                 title="전체보기"
               >
                 ⛶
@@ -163,30 +196,22 @@ function DraggableBlock({ block, editMode, cardStyle, onChange, onExpand, childr
         </div>
       )}
 
-      {!editMode && onExpand && block.kind !== 'title' && block.kind !== 'profile' && (
-        <button
-          onClick={() => onExpand(block.kind)}
-          className="absolute top-2 right-2 z-10 text-xs opacity-50 hover:opacity-100 px-1.5 py-0.5 rounded hover:bg-black/5"
-          title="전체보기"
-        >
-          ⛶
-        </button>
-      )}
-
-      <div className={`absolute inset-0 ${editMode ? 'pt-8' : ''} overflow-auto p-4`}>{children}</div>
-
+      {/* 4. 리사이즈 핸들 — 더 크고 눈에 띄게, 가장 높은 z */}
       {editMode && (
         <div
           onPointerDown={onResizeStart}
           onPointerMove={onResizeMove}
           onPointerUp={onResizeEnd}
           onPointerCancel={onResizeEnd}
-          className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize select-none"
+          className="absolute -bottom-1 -right-1 w-6 h-6 z-40 cursor-nwse-resize select-none flex items-end justify-end p-0.5"
+          style={{ touchAction: 'none' }}
           aria-label="리사이즈 핸들"
         >
-          <svg viewBox="0 0 16 16" className="w-full h-full text-gray-400">
-            <path d="M14 14L8 14M14 14L14 8M14 14L4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-          </svg>
+          <div className="w-5 h-5 rounded-br-lg bg-violet-500 hover:bg-violet-600 shadow-md flex items-end justify-end p-0.5">
+            <svg viewBox="0 0 16 16" className="w-3 h-3 text-white">
+              <path d="M14 14L8 14M14 14L14 8M14 14L4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
+            </svg>
+          </div>
         </div>
       )}
     </div>
@@ -247,8 +272,13 @@ export function FreeCanvas({
     [blocks, layouts, onLayoutsChange, track]
   );
 
+  // 마우스·터치 모두 지원. 5px 이동 후 드래그 시작(클릭과 구분)
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
+
   return (
-    <DndContext onDragEnd={onDragEnd}>
+    <DndContext sensors={sensors} onDragEnd={onDragEnd}>
       <div
         className={`relative mx-auto font-${fontStyle} ${editMode ? 'bg-[radial-gradient(circle,rgba(0,0,0,0.04)_1px,transparent_1px)] [background-size:24px_24px]' : ''}`}
         style={{ width: canvasWidth, minHeight, maxWidth: '100%', color: 'inherit' }}
