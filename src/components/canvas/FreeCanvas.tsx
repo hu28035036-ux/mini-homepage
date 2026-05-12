@@ -118,11 +118,18 @@ function DraggableBlock({ block, editMode, cardStyle, selected, onSelect, onChan
     resizing.current = null;
   };
 
+  const expandable = block.kind !== 'title' && block.kind !== 'profile' && !!onExpand;
   return (
     <div
       ref={setNodeRef}
-      onClick={() => { if (editMode) onSelect(block.id); }}
-      className={`absolute ${cardClass(cardStyle)} ${isDragging ? 'opacity-80 shadow-2xl' : ''} ${editMode ? (selected ? 'ring-2 ring-violet-500' : 'ring-1 ring-violet-300/40') : ''}`}
+      onClick={() => {
+        if (editMode) {
+          onSelect(block.id);
+          return;
+        }
+        if (expandable) onExpand!(block.kind);
+      }}
+      className={`absolute ${cardClass(cardStyle)} ${isDragging ? 'opacity-80 shadow-2xl' : ''} ${editMode ? (selected ? 'ring-2 ring-violet-500' : 'ring-1 ring-violet-300/40') : ''} ${!editMode && expandable ? 'cursor-zoom-in' : ''}`}
       style={{
         left: block.x,
         top: block.y,

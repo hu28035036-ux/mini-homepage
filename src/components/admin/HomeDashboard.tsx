@@ -122,7 +122,13 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
               <ul className="space-y-2">
                 {urls.slice(0, 6).map((u) => (
                   <li key={u.id} className="text-sm">
-                    <a href={u.url} target="_blank" rel="noopener noreferrer" className="block hover:underline">
+                    <a
+                      href={u.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="block hover:underline"
+                    >
                       <div className="font-medium truncate">{u.title}</div>
                       <div className="opacity-50 text-xs truncate">{u.url}</div>
                     </a>
