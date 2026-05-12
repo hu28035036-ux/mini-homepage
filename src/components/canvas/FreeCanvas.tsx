@@ -133,18 +133,22 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
     resizing.current = null;
   };
 
+  // URL 카드는 본문 클릭으로 확대 모달 진입 X (개별 링크 클릭 우선).
+  // 확대(추가/수정/삭제)는 ⛶ / + 버튼으로만 진입.
   const expandable = block.kind !== 'title' && block.kind !== 'profile' && !!onExpand;
+  const clickExpands = expandable && block.kind !== 'urls';
   return (
     <div
       ref={setNodeRef}
+      data-block-fontsize={effectiveFontSize}
       onClick={() => {
         if (editMode) {
           onSelect(block.id);
           return;
         }
-        if (expandable) onExpand!(block.kind);
+        if (clickExpands) onExpand!(block.kind);
       }}
-      className={`absolute ${cardClass(cardStyle)} ${fontSizeClass(effectiveFontSize)} ${isDragging ? 'shadow-2xl' : ''} ${editMode ? (selected ? 'ring-2 ring-violet-500' : 'ring-1 ring-violet-300/40') : ''} ${!editMode && expandable ? 'cursor-zoom-in' : ''}`}
+      className={`absolute ${cardClass(cardStyle)} ${isDragging ? 'shadow-2xl' : ''} ${editMode ? (selected ? 'ring-2 ring-violet-500' : 'ring-1 ring-violet-300/40') : ''} ${!editMode && clickExpands ? 'cursor-zoom-in' : ''}`}
       style={{
         left: block.x,
         top: block.y,

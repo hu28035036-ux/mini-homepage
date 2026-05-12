@@ -10,6 +10,7 @@
 @source inline("bg-transparent border-b border-gray-300");
 @source inline("shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)]");
 @source inline("ring-1 ring-inset ring-gray-100");
+@source inline("text-xs text-sm text-base text-lg text-xl");
 
 /* 한글 친화 웹폰트 — Google Fonts + Pretendard CDN */
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
@@ -26,6 +27,17 @@ html, body {
   background: var(--background);
   color: var(--foreground);
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+}
+
+/* v0.6 — 카드별 글자 크기 적용: 부모 fontSize가 자식의 text-* 클래스에 덮이지 않도록
+   data-block-fontsize 속성을 통해 카드 본문 전체에 비례적 em 적용 */
+[data-block-fontsize="xs"]   { font-size: 0.75rem; }
+[data-block-fontsize="sm"]   { font-size: 0.875rem; }
+[data-block-fontsize="base"] { font-size: 1rem; }
+[data-block-fontsize="lg"]   { font-size: 1.125rem; }
+[data-block-fontsize="xl"]   { font-size: 1.25rem; }
+[data-block-fontsize] :is(h1, h2, h3, h4, h5, h6, p, div, span, li, a, button, input, textarea) {
+  font-size: 1em;
 }
 
 /* Step G — 세로 스크롤바 색을 미니홈피 카드/포인트 색에 통일 */
