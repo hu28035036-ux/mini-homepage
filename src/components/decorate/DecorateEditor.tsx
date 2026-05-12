@@ -222,42 +222,7 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
             </div>
           </Card>
 
-          <Card>
-            <h2 className="text-sm font-bold mb-3">레이아웃</h2>
-            <div className="grid grid-cols-2 gap-2 mb-4">
-              {(['single', 'double'] as LayoutMode[]).map((m) => (
-                <label key={m} className={`cursor-pointer text-sm px-3 py-2 rounded-lg border text-center ${mode === m ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-gray-200'}`}>
-                  <input type="radio" name="mode" value={m} checked={mode === m} onChange={() => changeMode(m)} className="sr-only" />
-                  {m === 'single' ? '1단 (4슬롯)' : '2단 (6슬롯)'}
-                </label>
-              ))}
-            </div>
-
-            <div className="space-y-2">
-              <div className="text-xs text-gray-500">슬롯에 위젯 배치 (모바일에서는 자동 1단 폴백)</div>
-              {slots.map((s, i) => (
-                <div key={s.slot} className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400 w-12">슬롯 {s.slot}</span>
-                  <select
-                    value={s.widget}
-                    onChange={(e) => setSlot(i, { widget: e.target.value as WidgetKind })}
-                    className={`flex-1 rounded-lg border px-2 py-1.5 text-sm ${duplicates.includes(s.widget) ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
-                  >
-                    {WIDGETS.map((w) => (
-                      <option key={w} value={w}>{w === 'empty' ? '— 비움 —' : w}</option>
-                    ))}
-                  </select>
-                  <label className="text-xs flex items-center gap-1">
-                    <input type="checkbox" checked={s.visible} onChange={(e) => setSlot(i, { visible: e.target.checked })} />
-                    표시
-                  </label>
-                </div>
-              ))}
-              {duplicates.length > 0 && (
-                <ErrorText>같은 위젯({duplicates.join(', ')})을 두 슬롯에 배치할 수 없습니다.</ErrorText>
-              )}
-            </div>
-          </Card>
+          {/* v2.1에서 자유 캔버스로 대체 예정. v1 레이아웃 모드/슬롯 편집기는 숨김. */}
         </div>
 
         {/* 우측 미리보기 */}

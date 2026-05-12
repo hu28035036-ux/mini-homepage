@@ -9,7 +9,7 @@ test.describe('인증 (TC-AUTH)', () => {
 
     await login(page, u.email, u.password);
     expect(page.url()).toMatch(/\/admin/);
-    await expect(page.locator('aside')).toContainText('@');
+    await expect(page.locator('header')).toContainText('@');
   });
 
   test('TC-AUTH-002 이메일 중복은 409 + AUTH_EMAIL_DUPLICATE', async ({ page }) => {

@@ -45,8 +45,8 @@ export async function apiPost(page: Page, url: string, body: unknown) {
 }
 
 export async function getCurrentSlug(page: Page): Promise<string> {
-  // 사이드바에 @{slug} 가 표시됨
-  const slugText = await page.locator('aside').locator('text=/^@/').first().textContent();
+  // 상단 TopBar에 @{slug} 가 표시됨 (v2부터 사이드바 제거)
+  const slugText = await page.locator('header').locator('text=/^@/').first().textContent();
   expect(slugText).toBeTruthy();
   return slugText!.replace(/^@/, '').trim();
 }

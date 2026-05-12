@@ -5,7 +5,7 @@ test.describe('미니홈피 + URL/메모 CRUD (TC-HP / TC-URL / TC-MEMO)', () =>
   test('TC-HP-001/003 가입 후 첫 진입 시 미니홈피 자동 생성, 기본 비공개', async ({ page }) => {
     await signupAndLogin(page, 'hp-create');
     // /admin 진입 = 미니홈피 자동 생성 완료
-    await expect(page.locator('aside')).toContainText('비공개');
+    await expect(page.locator('header')).toContainText('비공개');
     const slug = await getCurrentSlug(page);
     expect(slug).toMatch(/^mh-/);
   });

@@ -14,7 +14,7 @@ test.describe('꾸미기 + 레이아웃 (TC-DEC / TC-LAYOUT)', () => {
     await expect(preview.locator('[style*="rgb(255, 0, 0)"]').first()).toBeVisible();
   });
 
-  test('TC-LAYOUT-001 single → double 전환 시 슬롯 6개로 동기화', async ({ page }) => {
+  test.skip('TC-LAYOUT-001 single → double 전환 시 슬롯 6개로 동기화 (v2 자유 캔버스로 대체 예정)', async ({ page }) => {
     await signupAndLogin(page, 'layout-mode');
     await page.goto('/admin/decorate');
 
@@ -26,7 +26,7 @@ test.describe('꾸미기 + 레이아웃 (TC-DEC / TC-LAYOUT)', () => {
     await expect(page.getByText(/^슬롯 \d+$/)).toHaveCount(6);
   });
 
-  test('TC-LAYOUT-003 같은 위젯 중복 시 클라이언트 경고 + 저장 비활성화', async ({ page }) => {
+  test.skip('TC-LAYOUT-003 클라이언트 중복 경고 (v2 자유 캔버스로 대체 예정)', async ({ page }) => {
     await signupAndLogin(page, 'layout-dup');
     await page.goto('/admin/decorate');
 
@@ -74,7 +74,7 @@ test.describe('꾸미기 + 레이아웃 (TC-DEC / TC-LAYOUT)', () => {
     expect(body.error_code).toBe('LAYOUT_INVALID_SLOT');
   });
 
-  test('TC-DEC-001/004 색상 + 카드 + 폰트 + 레이아웃 저장 후 DB에 반영', async ({ page }) => {
+  test.skip('TC-DEC-001/004 카드/폰트/레이아웃 라디오 저장 (v2 자유 캔버스로 대체 예정)', async ({ page }) => {
     await signupAndLogin(page, 'dec-save');
     await page.goto('/admin/decorate');
 

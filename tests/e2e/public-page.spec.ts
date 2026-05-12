@@ -69,7 +69,7 @@ test.describe('공개/비공개 (TC-PUB)', () => {
 
     // 비공개 상태에서도 본인은 봄
     await page.goto('/admin');
-    await expect(page.locator('aside')).toContainText('비공개');
+    await expect(page.locator('header')).toContainText('비공개');
     await expect(page.getByText('비공개 메모')).toBeVisible();
   });
 });
