@@ -9,7 +9,7 @@ test.describe('인증 (TC-AUTH)', () => {
 
     await login(page, u.email, u.password);
     expect(page.url()).toMatch(/\/admin/);
-    await expect(page.locator('header')).toContainText('@');
+    await expect(page.locator('[data-slug]').first()).toHaveAttribute('data-slug', /.+/);
   });
 
   test('TC-AUTH-002 이메일 중복은 409 + AUTH_EMAIL_DUPLICATE', async ({ page }) => {
@@ -55,7 +55,9 @@ test.describe('인증 (TC-AUTH)', () => {
     await signup(page, u);
     await login(page, u.email, u.password);
 
-    await page.getByRole('button', { name: '로그아웃' }).click();
+    // v0.6: 햄버거 메뉴를 열고 '로그아웃' 클릭
+    await page.getByRole('button', { name: '메뉴 열기' }).click();
+    await page.getByRole('menuitem', { name: '로그아웃' }).click();
     await page.waitForURL(/\/login/);
 
     await page.goto('/admin');

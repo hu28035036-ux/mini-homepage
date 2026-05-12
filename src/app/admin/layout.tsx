@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUserId } from '@/lib/auth/guards';
 import { homepageService } from '@/lib/services/homepage';
-import { TopBar } from '@/components/admin/TopBar';
+import { MenuButton } from '@/components/admin/MenuButton';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const uid = await getCurrentUserId();
@@ -25,9 +25,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   };
 
   return (
-    <div className={`min-h-screen font-${hp.font_style}`} style={containerStyle}>
-      <TopBar slug={hp.slug} isPublic={hp.is_public} pointColor={hp.point_color} />
-      <main className="px-4 sm:px-6 lg:px-8 py-6 max-w-6xl mx-auto">{children}</main>
+    <div
+      className={`min-h-screen font-${hp.font_style}`}
+      style={containerStyle}
+      data-slug={hp.slug}
+      data-public={hp.is_public ? '1' : '0'}
+    >
+      <MenuButton slug={hp.slug} isPublic={hp.is_public} pointColor={hp.point_color} />
+      <main className="px-4 sm:px-6 lg:px-8 pt-16 pb-6 max-w-6xl mx-auto">{children}</main>
     </div>
   );
 }

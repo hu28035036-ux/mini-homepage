@@ -45,8 +45,8 @@ export async function apiPost(page: Page, url: string, body: unknown) {
 }
 
 export async function getCurrentSlug(page: Page): Promise<string> {
-  // 상단 TopBar에 @{slug} 가 표시됨 (v2부터 사이드바 제거)
-  const slugText = await page.locator('header').locator('text=/^@/').first().textContent();
-  expect(slugText).toBeTruthy();
-  return slugText!.replace(/^@/, '').trim();
+  // v0.6: TopBar 제거 → admin/layout.tsx 루트 div의 data-slug 속성 사용
+  const slug = await page.locator('[data-slug]').first().getAttribute('data-slug');
+  expect(slug).toBeTruthy();
+  return slug!;
 }
