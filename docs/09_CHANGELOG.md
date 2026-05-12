@@ -1,13 +1,53 @@
 ---
 상태: Draft
-버전: v0.1
-마지막 수정일: 2026-05-12
+버전: v0.5
+마지막 수정일: 2026-05-13
 문서 목적: 운영 / 변경 이력
 ---
 
 # 변경 이력
 
 본 문서는 시간순 변경 기록을 남긴다. 현재 기능 지도는 `docs/19_FEATURE_CATALOG.md`에 있으며, 본 문서는 "언제, 무엇이 바뀌었는지"만 간단히 적는다.
+
+## v0.5.x — 2026-05-13 (꾸미기 적용 버그 fix)
+
+- 🐛 **꾸미기 저장 후 적용 안 됨**: DecorateEditor.save() 후 `router.refresh()` 누락 → server component(admin/layout)의 prop이 옛 값 그대로 → wrapper 클래스 갱신 안 됨
+  - fix: save() 끝에 `router.refresh()` 추가
+- 🛡️ **Tailwind v4 동적 클래스 안전망**: `font-${var}`, `cardClass(...)` 합성 클래스 일부가 PostCSS 빌드에서 누락될 가능성
+  - fix: `globals.css` 상단에 `@source inline()` safelist 추가 (폰트 12종 + 카드 유틸 모음)
+- 🧪 **E2E 신규 4개**: TC-FONT-001/002, TC-CARD-001/002 — 폰트/카드 드롭다운 적용 + 12종/10종 노출 검증
+- ✅ 전수 점검 grep 9개 통과 (시크릿 노출, 자동삭제, 응답 헬퍼, user_id, deleted_at)
+- commit `06547fc`
+
+## v0.5 — 2026-05-13 (Phase B + 카드/폰트 다양화)
+
+- DB 마이그레이션 0002: `mini_homepages.layouts jsonb` 추가, font_style·card_style enum 확장
+  - 운영(efokjcootdmcrnpnqpce) + 로컬 Supabase 양쪽 적용
+- **폰트 12종**: default·rounded·emotional(v1) + pretendard·notoSans·notoSerif·nanumGothic·gowunDodum·nanumPen·ibmPlex·blackHan·hiMelody(v2)
+  - Google Fonts + Pretendard CDN을 `globals.css`에서 import
+- **카드 스타일 10종**: basic·rounded·shadow·transparent(v1) + soft·bordered·glass·minimal·elevated·frame(v2)
+- DecorateEditor: 라디오 → 드롭다운, 폰트 선택지마다 자기 폰트 미리보기 + 본문 샘플
+- **자유 캔버스 (FreeCanvas)** 신규 컴포넌트:
+  - `@dnd-kit/core` 의 useDraggable + 자체 pointer move 리사이즈
+  - 편집 모드 토글, 보라색 헤더(드래그) + 보라 사각형(리사이즈) 핸들
+  - 카드별 visibility(공개/비공개), visible(숨김), expand(⛶) 액션
+  - PC ↔ 모바일·태블릿 2-track 좌표 (`layouts.desktop` / `layouts.mobile`)
+- `HomeDashboard` = FreeCanvas + 모달 expand 통합
+- `/u/[slug]` 공개 페이지 = `PublicCanvas`로 같은 캔버스 + visibility=private 필터
+- 🐛 fix: defaultBlocks 가 'use client' 파일에 있어서 server page에서 호출 시 500 → FreeCanvas 내부에서만 사용
+- 🐛 fix: 카드 내부 콘텐츠가 드래그/리사이즈 핸들을 stacking으로 덮어서 클릭 안 되던 버그 → DOM 순서 재배치 + z-index 명시 + 편집 모드 ON일 때 콘텐츠 pointer-events: none
+- commit `de8d49e`, `6cb51b0`
+
+## v0.4 — 2026-05-12 (Phase A: 사용자 주인 정신)
+
+- 🐛 fix: `admin/layout.tsx` 회색 배경 하드코딩 → 본인 background_color·image·font·text_color 동적 적용
+- Sidebar 삭제, **TopBar**(sticky 상단 미니 액션 바) 신규
+- 홈 = `HomeDashboard` 클라이언트 컴포넌트, 4 카드 + 각 카드 expand 모달 (UrlsManager/AlbumsManager/MemosManager 재사용)
+- `Modal`/`IconButton` UI primitives 추가
+- DecorateEditor에서 v1 layout 모드/슬롯 편집기 숨김
+- "노트" 톤 카피 (DB 컬럼명은 유지)
+- E2E: aside → header 셀렉터 갱신, v1 슬롯 의존 3개 skip
+- commit `2f65f46`, `b86fcba`
 
 ## v0.3.1 — 2026-05-12 (버그 픽스)
 

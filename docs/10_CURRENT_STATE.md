@@ -1,49 +1,64 @@
 ---
 상태: Draft
-버전: v0.1
-마지막 수정일: 2026-05-12
+버전: v0.5
+마지막 수정일: 2026-05-13
 문서 목적: 운영 / 현재 상태
 ---
 
-# 현재 상태
+# 현재 상태 — v0.5 (자유 캔버스 + 폰트/카드 12·10종 운영 배포)
 
 ## 1. Phase
 
-- **현재 Phase: 10 — 회귀/마감 (코드 작성 완료, 실행 검증 대기)**
-- Phase 0~9: 모두 코드 작성 완료
-- 남은 작업: `npm install` → Supabase 프로젝트 생성 + 마이그레이션 적용 + `.env.local` 설정 → `npm run dev` → README의 1사이클 시나리오 수동 검증
+- 모든 Phase 0~10 완료. 그 후 **v2 재설계 사이클** 진행 중.
+- 현재 사이클: **v0.5 운영 배포 → 사용자 피드백 대기** (꾸미기 적용 확인 단계)
 
-`phases/index.json`의 `current_phase`는 Phase 1 진입 시 1로 변경하고, Phase 0의 `status`를 `done`으로 유지한다.
+## 2. 가동 중인 환경
 
-## 2. 최근 완료 작업
+| 서비스 | 주소 / 식별자 |
+|---|---|
+| 운영 URL | https://mini-homepage.vercel.app |
+| GitHub repo | https://github.com/hu28035036-ux/mini-homepage (Private, master 브랜치) |
+| Vercel project | `mini-homepage` (orgId `team_Fej1ZZqXQJPzGwxXB9oGo9AB`, projectId `prj_F0mAKTWVVZ38KBfXYj9qDSlJ46L6`) |
+| Supabase prod | ref `efokjcootdmcrnpnqpce`, region `ap-northeast-2` |
+| Supabase Local (개발 기본 DB) | 127.0.0.1:54321 / DB 54322 / Studio 54323 — Docker 컨테이너 12개 |
 
-- Phase 0 전체 문서 세트 작성:
-  - 기준 문서 7종 (PRD/아키텍처/DB/API/UI/단위화/오류코드)
-  - 하네스 14종 (계획 + 테스트 케이스 + 12개 하네스 문서)
-  - Phase 계획 / 기능 카탈로그
-  - 운영 문서 4종 (환경/백업/릴리즈/운영)
-  - 로그·상태·인수인계 5종
-  - 메타 2종 (문서 관리 규칙 + Skill Usage Map)
-  - `.claude/` (settings + commands 2 + skills 11)
-  - `phases/index.json` + Phase 0 Step 산출
+## 3. 최근 완료 작업 (시간 역순)
 
-## 3. 다음 작업 (Phase 1 진입 시)
+- **v0.5.x fix** — DecorateEditor save 후 `router.refresh()` + Tailwind v4 `@source inline` safelist (commit `06547fc`)
+- **v0.5 Phase B** — 자유 캔버스, 폰트 12종, 카드 10종, 드롭다운, 2-track layouts, PublicCanvas (commit `de8d49e`)
+- **v0.5 fix** — 드래그/리사이즈 핸들 stacking 버그 (commit `6cb51b0`)
+- **v0.4 Phase A** — 사이드바 제거, TopBar, 카드 expand 모달, 본인 스타일 동적 적용 (commit `b86fcba` + `2f65f46`)
+- **v0.3 운영 배포** — Vercel + Supabase prod, 환경변수 7개, 자동 배포 흐름 (commit `8e6726e` 외)
 
-1. Next.js + TypeScript + Tailwind 프로젝트 생성 (`npx create-next-app`)
-2. Supabase 개발 프로젝트 생성, `user-uploads` 버킷 생성, Supabase Auth는 사용하지 않음 안내
-3. `.env.local` 구성 + `.env.local.example` 커밋
-4. `src/` 폴더 골격 만들기 (UI/Service/Repository/Validator/Errors/Auth/Storage/Util/Types/Tests)
-5. `lib/errors/{codes,response}.ts` 스텁
-6. `npm run dev` 동작 확인 + 루트 페이지/Tailwind 적용 확인
-7. Phase 1 시작 시 `phases/1-env-and-skeleton/` 디렉터리와 Step 문서를 새로 생성
+## 4. 검증 현황
 
-## 4. 알려진 위험 / 미해결 항목
+- TypeScript: **0 에러**
+- E2E: **26 passed / 3 skipped / 0 failed** (v1 슬롯 의존 3개는 의도적 skip)
+- 운영 헬스: `/login` 200, `/u/<missing>` 404, `/api/public/<missing>` `HOMEPAGE_PRIVATE_OR_NOT_FOUND`, 보안 헤더 4종 적용
+- 빌드 시크릿 누출: 클라이언트 번들에 `SUPABASE_SERVICE_ROLE_KEY`/`SESSION_SECRET` 없음 (grep 확인)
+- DB 보안 advisors: ERROR 0건 (RLS 활성 + anon 권한 회수 완료)
 
-- 세션 라이브러리 구체 선정(`iron-session` vs `jose`) — Phase 2 진입 시 1회 결정.
-- Storage 버킷 공개 정책 vs signed URL — v1은 Public 버킷 + 추측 어려운 경로. v2에서 signed URL로 강화 검토.
-- RLS 미사용 → 모든 보안이 애플리케이션 레이어. 보안 하네스(`docs/harness/05_SECURITY_PRIVACY_HARNESS.md`)를 모든 Phase에서 실행할 것.
-- 비밀번호 재설정 기능 없음 — 운영 런북 §2-3 임시 절차로 대응. v2 도입 예정.
+## 5. 사용자 확인 대기 중
 
-## 5. 마지막 업데이트
+직전 push 후 다음을 사용자에게 확인 요청:
 
-2026-05-12 (Phase 0 완료)
+1. 꾸미기 탭에서 **폰트 변경 + 저장 → 즉시 화면에 반영**되는지 (router.refresh 효과)
+2. **카드 스타일 변경 + 저장 → 카드 모양 실제로 변하는지** (Tailwind safelist 효과)
+3. 카드 드래그·리사이즈가 부드럽게 동작하는지 (이전 push에서 fix됨)
+
+## 6. 다음 작업 후보
+
+[docs/11_SESSION_HANDOFF.md](11_SESSION_HANDOFF.md) §6 참조. 우선순위:
+A. Phase D — PWA / B. z-index 제어 / C. 편집 UX 보강 / D. 이미지 E2E / E~H. 운영 강화
+
+## 7. 알려진 위험
+
+[docs/11_SESSION_HANDOFF.md](11_SESSION_HANDOFF.md) §7 참조. 핵심:
+- iron-session stateless → 토큰 도용 시 로그아웃 무력화 (정상 브라우저는 안전)
+- 비밀번호 재설정 흐름 없음 (운영자 수동)
+- Supabase Storage Public 버킷 → 비공개 미니홈피 이미지 URL 유출 시 외부 접근
+- 모바일 터치 검증 부족
+
+## 8. 마지막 업데이트
+
+2026-05-13.
