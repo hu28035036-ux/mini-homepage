@@ -114,6 +114,8 @@ export function PublicCanvas({ data }: { data: PublicData }) {
     backgroundSize: 'cover',
     backgroundPosition: 'center',
     backgroundAttachment: 'fixed',
+    ['--scrollbar-track' as string]: homepage.background_color,
+    ['--scrollbar-thumb' as string]: homepage.point_color,
   };
 
   return (

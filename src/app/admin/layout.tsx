@@ -19,6 +19,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     backgroundSize: 'cover',
     backgroundPosition: 'center',
     backgroundAttachment: 'fixed',
+    // 세로 스크롤바 색을 카드/포인트 색과 통일 (모든 카드 동일)
+    ['--scrollbar-track' as string]: hp.background_color,
+    ['--scrollbar-thumb' as string]: hp.point_color,
   };
 
   return (
