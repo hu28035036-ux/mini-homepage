@@ -41,13 +41,15 @@ export const decorateService = {
     const uid = await requireUser();
     const input = parseInput(updateDecorateSchema, raw);
 
-    // 레이아웃 모드와 슬롯이 함께 일관되어야 함.
-    // mode만 바뀌고 slots가 안 왔다면 기존 슬롯과 불일치할 수 있으므로 함께 보내도록 권장.
-    const next = await homepagesRepo.findByUserActive(uid);
-    if (!next) throw new AppError('DB_RECORD_NOT_FOUND');
-    const finalMode = input.layout_mode ?? next.layout_mode;
-    const finalSlots = input.layout_slots ?? next.layout_slots;
-    validateLayout(finalMode, finalSlots);
+    // v1 호환: layout_slots/layout_mode 가 함께 오면 검증.
+    // v2 자유 캔버스(layouts)는 zod 스키마에서 형식 검증 이미 통과.
+    if (input.layout_slots !== undefined || input.layout_mode !== undefined) {
+      const next = await homepagesRepo.findByUserActive(uid);
+      if (!next) throw new AppError('DB_RECORD_NOT_FOUND');
+      const finalMode = input.layout_mode ?? next.layout_mode;
+      const finalSlots = input.layout_slots ?? next.layout_slots;
+      validateLayout(finalMode, finalSlots);
+    }
 
     return homepagesRepo.updateDecorate(uid, input);
   },

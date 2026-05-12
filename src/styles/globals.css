@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* 한글 친화 웹폰트 — Google Fonts + Pretendard CDN */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Noto+Serif+KR:wght@400;700&family=Nanum+Gothic:wght@400;700&family=Nanum+Pen+Script&family=Gowun+Dodum&family=IBM+Plex+Sans+KR:wght@400;500;700&family=Black+Han+Sans&family=Hi+Melody&family=Nunito:wght@500;700&display=swap');
+
 :root {
   --background: #fafafa;
   --foreground: #111827;
@@ -11,7 +15,16 @@ html, body {
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
 }
 
-/* font_style 토큰 */
-.font-default { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
-.font-rounded { font-family: "Nunito", ui-rounded, "SF Pro Rounded", system-ui, sans-serif; }
-.font-emotional { font-family: "Nanum Pen Script", "Gowun Dodum", cursive, system-ui, sans-serif; }
+/* font_style 토큰 — v1 호환 3개 + v2 신규 9개 */
+.font-default      { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+.font-rounded      { font-family: "Nunito", ui-rounded, "SF Pro Rounded", "Gowun Dodum", system-ui, sans-serif; }
+.font-emotional    { font-family: "Nanum Pen Script", "Gowun Dodum", cursive, system-ui, sans-serif; }
+.font-pretendard   { font-family: "Pretendard Variable", "Pretendard", system-ui, sans-serif; }
+.font-notoSans     { font-family: "Noto Sans KR", system-ui, sans-serif; }
+.font-notoSerif    { font-family: "Noto Serif KR", serif; }
+.font-nanumGothic  { font-family: "Nanum Gothic", "Noto Sans KR", sans-serif; }
+.font-gowunDodum   { font-family: "Gowun Dodum", "Noto Sans KR", sans-serif; }
+.font-nanumPen     { font-family: "Nanum Pen Script", cursive; }
+.font-ibmPlex      { font-family: "IBM Plex Sans KR", "Noto Sans KR", sans-serif; }
+.font-blackHan     { font-family: "Black Han Sans", "Noto Sans KR", sans-serif; }
+.font-hiMelody     { font-family: "Hi Melody", cursive; }

@@ -60,5 +60,6 @@ function stripHomepage(hp: MiniHomepageRow) {
     font_style: hp.font_style,
     layout_mode: hp.layout_mode,
     layout_slots: hp.layout_slots,
+    layouts: hp.layouts,
   };
 }

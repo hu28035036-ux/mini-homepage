@@ -10,12 +10,27 @@ const CARD_STYLES: { value: CardStyle; label: string }[] = [
   { value: 'rounded', label: '둥근형' },
   { value: 'shadow', label: '그림자형' },
   { value: 'transparent', label: '투명형' },
+  { value: 'soft', label: '부드러운' },
+  { value: 'bordered', label: '굵은 테두리' },
+  { value: 'glass', label: '유리 (Glassmorphism)' },
+  { value: 'minimal', label: '미니멀 (선만)' },
+  { value: 'elevated', label: '들뜬 그림자' },
+  { value: 'frame', label: '액자 (이중 테두리)' },
 ];
 
 const FONT_STYLES: { value: FontStyle; label: string }[] = [
-  { value: 'default', label: '기본' },
-  { value: 'rounded', label: '둥근' },
-  { value: 'emotional', label: '감성' },
+  { value: 'default', label: '기본 (시스템)' },
+  { value: 'pretendard', label: 'Pretendard (모던)' },
+  { value: 'notoSans', label: '본고딕 / Noto Sans KR' },
+  { value: 'notoSerif', label: '본명조 / Noto Serif KR' },
+  { value: 'ibmPlex', label: 'IBM Plex Sans KR' },
+  { value: 'nanumGothic', label: '나눔고딕' },
+  { value: 'gowunDodum', label: '고운 도담 (깔끔 손글씨)' },
+  { value: 'rounded', label: '둥근 / Nunito' },
+  { value: 'nanumPen', label: '나눔손글씨 펜 (감성)' },
+  { value: 'emotional', label: '감성 (펜 + 도담 혼합)' },
+  { value: 'hiMelody', label: '하이멜로디 (귀여움)' },
+  { value: 'blackHan', label: 'Black Han Sans (헤드라인)' },
 ];
 
 const WIDGETS: WidgetKind[] = ['profile', 'urls', 'albums', 'memos', 'empty'];
@@ -199,27 +214,34 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
           </Card>
 
           <Card>
-            <h2 className="text-sm font-bold mb-3">카드 스타일</h2>
-            <div className="grid grid-cols-2 gap-2">
+            <Label htmlFor="card-select">카드 스타일</Label>
+            <select
+              id="card-select"
+              value={card}
+              onChange={(e) => setCard(e.target.value as CardStyle)}
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+            >
               {CARD_STYLES.map((s) => (
-                <label key={s.value} className={`cursor-pointer text-sm px-3 py-2 rounded-lg border ${card === s.value ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-gray-200'}`}>
-                  <input type="radio" name="card" value={s.value} checked={card === s.value} onChange={() => setCard(s.value)} className="sr-only" />
-                  {s.label}
-                </label>
+                <option key={s.value} value={s.value}>{s.label}</option>
               ))}
-            </div>
+            </select>
           </Card>
 
           <Card>
-            <h2 className="text-sm font-bold mb-3">폰트</h2>
-            <div className="grid grid-cols-3 gap-2">
+            <Label htmlFor="font-select">폰트</Label>
+            <select
+              id="font-select"
+              value={font}
+              onChange={(e) => setFont(e.target.value as FontStyle)}
+              className={`w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 font-${font}`}
+            >
               {FONT_STYLES.map((s) => (
-                <label key={s.value} className={`cursor-pointer text-sm px-3 py-2 rounded-lg border text-center font-${s.value} ${font === s.value ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-gray-200'}`}>
-                  <input type="radio" name="font" value={s.value} checked={font === s.value} onChange={() => setFont(s.value)} className="sr-only" />
+                <option key={s.value} value={s.value} className={`font-${s.value}`}>
                   {s.label}
-                </label>
+                </option>
               ))}
-            </div>
+            </select>
+            <p className={`mt-2 text-base font-${font}`}>가나다라 — The quick brown fox jumps over the lazy dog. 1234</p>
           </Card>
 
           {/* v2.1에서 자유 캔버스로 대체 예정. v1 레이아웃 모드/슬롯 편집기는 숨김. */}

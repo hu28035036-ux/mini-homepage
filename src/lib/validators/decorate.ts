@@ -8,16 +8,44 @@ const slotSchema = z.object({
   visible: z.boolean(),
 });
 
+const CARD_STYLES = [
+  'basic', 'rounded', 'shadow', 'transparent',
+  'soft', 'bordered', 'glass', 'minimal', 'elevated', 'frame',
+] as const;
+
+const FONT_STYLES = [
+  'default', 'rounded', 'emotional',
+  'pretendard', 'notoSans', 'notoSerif', 'nanumGothic', 'gowunDodum', 'nanumPen', 'ibmPlex', 'blackHan', 'hiMelody',
+] as const;
+
+const blockSchema = z.object({
+  id: z.string().min(1),
+  kind: z.enum(['title', 'profile', 'urls', 'albums', 'memos']),
+  x: z.number().finite(),
+  y: z.number().finite(),
+  w: z.number().min(160).max(4000),
+  h: z.number().min(80).max(4000),
+  z: z.number().int().min(0).max(9999),
+  visible: z.boolean(),
+  visibility: z.enum(['public', 'private']),
+});
+
+const layoutsSchema = z.object({
+  desktop: z.array(blockSchema).max(50),
+  mobile: z.array(blockSchema).max(50),
+});
+
 export const updateDecorateSchema = z.object({
   background_color: hex.optional(),
   background_image_url: z.string().url().nullable().optional(),
   use_background_image: z.boolean().optional(),
   point_color: hex.optional(),
   text_color: hex.optional(),
-  card_style: z.enum(['basic', 'rounded', 'shadow', 'transparent']).optional(),
-  font_style: z.enum(['default', 'rounded', 'emotional']).optional(),
+  card_style: z.enum(CARD_STYLES).optional(),
+  font_style: z.enum(FONT_STYLES).optional(),
   layout_mode: z.enum(['single', 'double']).optional(),
   layout_slots: z.array(slotSchema).optional(),
+  layouts: layoutsSchema.optional(),
 });
 
 export type UpdateDecorateInput = z.infer<typeof updateDecorateSchema>;

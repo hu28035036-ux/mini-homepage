@@ -22,13 +22,25 @@ export interface DecorateStyle {
 function cardClass(style: CardStyle): string {
   switch (style) {
     case 'basic':
-      return 'bg-white border border-gray-200';
+      return 'bg-white border border-gray-200 rounded-lg';
     case 'rounded':
       return 'bg-white rounded-3xl border border-gray-200';
     case 'shadow':
       return 'bg-white rounded-xl shadow-xl border border-transparent';
     case 'transparent':
       return 'bg-white/70 backdrop-blur rounded-2xl border border-white/40';
+    case 'soft':
+      return 'bg-gradient-to-br from-white to-gray-50 rounded-2xl border border-gray-100 shadow-sm';
+    case 'bordered':
+      return 'bg-white rounded-lg border-2 border-gray-900';
+    case 'glass':
+      return 'bg-white/40 backdrop-blur-xl rounded-3xl border border-white/60 shadow-lg';
+    case 'minimal':
+      return 'bg-transparent border-b border-gray-300 rounded-none';
+    case 'elevated':
+      return 'bg-white rounded-2xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] border border-transparent';
+    case 'frame':
+      return 'bg-white rounded-xl border-2 border-gray-200 ring-1 ring-inset ring-gray-100';
     default:
       return 'bg-white';
   }

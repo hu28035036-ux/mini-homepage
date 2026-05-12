@@ -1,5 +1,5 @@
 import { supabaseServer } from '@/lib/db/supabase-server';
-import type { MiniHomepageRow, LayoutSlot } from '@/types/db';
+import type { MiniHomepageRow, LayoutSlot, Layouts } from '@/types/db';
 import { AppError } from '@/lib/errors/codes';
 
 export const homepagesRepo = {
@@ -121,7 +121,7 @@ export const homepagesRepo = {
         | 'font_style'
         | 'layout_mode'
       >
-    > & { layout_slots?: LayoutSlot[] }
+    > & { layout_slots?: LayoutSlot[]; layouts?: Layouts }
   ): Promise<MiniHomepageRow> {
     const supabase = supabaseServer();
     const { data, error } = await supabase

@@ -11,15 +11,44 @@ export interface UserRow {
   deleted_at: string | null;
 }
 
-export type CardStyle = 'basic' | 'rounded' | 'shadow' | 'transparent';
-export type FontStyle = 'default' | 'rounded' | 'emotional';
+// v1+v2 카드 스타일 합집합 (v1 호환 유지)
+export type CardStyle =
+  | 'basic' | 'rounded' | 'shadow' | 'transparent'
+  | 'soft' | 'bordered' | 'glass' | 'minimal' | 'elevated' | 'frame';
+
+// v1+v2 폰트 스타일 합집합
+export type FontStyle =
+  | 'default' | 'rounded' | 'emotional'
+  | 'pretendard' | 'notoSans' | 'notoSerif' | 'nanumGothic' | 'gowunDodum' | 'nanumPen' | 'ibmPlex' | 'blackHan' | 'hiMelody';
+
 export type LayoutMode = 'single' | 'double';
 export type WidgetKind = 'profile' | 'urls' | 'albums' | 'memos' | 'empty';
 
+// v1 슬롯 (호환 유지)
 export interface LayoutSlot {
   slot: number;
   widget: WidgetKind;
   visible: boolean;
+}
+
+// v2 자유 캔버스 블록
+export type BlockKind = 'title' | 'profile' | 'urls' | 'albums' | 'memos';
+
+export interface Block {
+  id: string;
+  kind: BlockKind;
+  x: number;        // 좌측 거리 (px)
+  y: number;        // 상단 거리 (px)
+  w: number;        // 폭 (px). 최소 160
+  h: number;        // 높이 (px). 최소 120
+  z: number;        // z-index
+  visible: boolean;          // 본인 화면 표시 여부
+  visibility: 'public' | 'private'; // 공개 페이지 노출 여부
+}
+
+export interface Layouts {
+  desktop: Block[];   // ≥ 1024px
+  mobile:  Block[];   // < 1024px (태블릿 포함, 태블릿은 폭만 자동 확대)
 }
 
 export interface MiniHomepageRow {
@@ -38,6 +67,7 @@ export interface MiniHomepageRow {
   font_style: FontStyle;
   layout_mode: LayoutMode;
   layout_slots: LayoutSlot[];
+  layouts: Layouts;
   is_public: boolean;
   created_at: string;
   updated_at: string;
