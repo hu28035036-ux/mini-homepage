@@ -101,6 +101,13 @@ export function PublicCanvas({ data }: { data: PublicData }) {
             )}
           </div>
         );
+      case 'custom':
+        return (
+          <div>
+            {b.customTitle && <h3 className="text-sm font-bold mb-1" style={{ color: homepage.point_color }}>{b.customTitle}</h3>}
+            <div className="text-xs opacity-80 whitespace-pre-wrap">{b.customContent}</div>
+          </div>
+        );
     }
   };
 

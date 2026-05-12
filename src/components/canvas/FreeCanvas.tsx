@@ -95,10 +95,11 @@ interface DraggableBlockProps {
   onQuickAdd?: (kind: Block['kind']) => void;
   onBringForward: (id: string) => void;
   onSendBackward: (id: string) => void;
+  onDelete?: (id: string) => void;
   children: ReactNode;
 }
 
-function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity, effectiveFontSize, textColor, onSelect, onChange, onExpand, onQuickAdd, onBringForward, onSendBackward, children }: DraggableBlockProps) {
+function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity, effectiveFontSize, textColor, onSelect, onChange, onExpand, onQuickAdd, onBringForward, onSendBackward, onDelete, children }: DraggableBlockProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: block.id,
     disabled: !editMode,
@@ -246,6 +247,20 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
             >
               숨김
             </button>
+            {block.kind === 'custom' && onDelete && (
+              <button
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (confirm('이 카드를 삭제할까요?')) onDelete(block.id);
+                }}
+                className="text-[10px] px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 hover:bg-rose-100"
+                title="카드 삭제"
+                aria-label="카드 삭제"
+              >
+                삭제
+              </button>
+            )}
             {onExpand && block.kind !== 'title' && block.kind !== 'profile' && (
               <button
                 onPointerDown={(e) => e.stopPropagation()}
@@ -347,6 +362,29 @@ export function FreeCanvas({
     applyChange(id, { z: minZ - 1 });
   }
 
+  function addCustomBlock() {
+    if (!onLayoutsChange) return;
+    const maxZ = blocks.reduce((m, b) => Math.max(m, b.z ?? 0), 0);
+    const id = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
+      ? crypto.randomUUID()
+      : `custom-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const newBlock: Block = {
+      id,
+      kind: 'custom',
+      x: 40, y: 40, w: 280, h: 180, z: maxZ + 1,
+      visible: true, visibility: 'public',
+      customTitle: '새 카드',
+      customContent: '내용을 입력하세요',
+    };
+    onLayoutsChange({ ...layouts, [track]: [...blocks, newBlock] });
+  }
+
+  function deleteBlock(id: string) {
+    if (!onLayoutsChange) return;
+    if (selectedId === id) setSelectedId(null);
+    onLayoutsChange({ ...layouts, [track]: blocks.filter((b) => b.id !== id) });
+  }
+
   // 편집 모드 키보드 단축키
   useEffect(() => {
     if (!editMode) return;
@@ -404,6 +442,17 @@ export function FreeCanvas({
 
   return (
     <DndContext sensors={sensors} onDragEnd={onDragEnd}>
+      {editMode && (
+        <div className="sticky top-2 z-50 mx-auto mb-2 flex justify-end" style={{ maxWidth: canvasWidth }}>
+          <button
+            onClick={addCustomBlock}
+            className="text-xs px-3 py-1.5 rounded-lg bg-violet-600 text-white hover:bg-violet-700 shadow"
+            aria-label="새 카드 추가"
+          >
+            + 카드 추가
+          </button>
+        </div>
+      )}
       {editMode && selectedBlock && (
         <div className="sticky top-2 z-50 mx-auto mb-2 flex flex-wrap items-center gap-3 rounded-xl border border-violet-200 bg-white/90 backdrop-blur px-3 py-2 text-xs shadow-md" style={{ width: 'fit-content', maxWidth: '95%' }}>
           <span className="font-semibold text-violet-700">⋮ {selectedBlock.kind}</span>
@@ -474,6 +523,7 @@ export function FreeCanvas({
             onQuickAdd={onQuickAdd}
             onBringForward={bringForward}
             onSendBackward={sendBackward}
+            onDelete={deleteBlock}
           >
             <div style={{ '--point': pointColor } as React.CSSProperties}>{renderBlock(b)}</div>
           </DraggableBlock>

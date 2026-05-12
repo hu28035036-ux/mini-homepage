@@ -190,6 +190,41 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
             )}
           </div>
         );
+      case 'custom':
+        if (editMode) {
+          return (
+            <div style={{ pointerEvents: 'auto' }} onPointerDown={(e) => e.stopPropagation()}>
+              <input
+                value={b.customTitle ?? ''}
+                onChange={(e) => {
+                  const next = layouts[track].map((x) => (x.id === b.id ? { ...x, customTitle: e.target.value } : x));
+                  handleLayoutsChange({ ...layouts, [track]: next });
+                }}
+                placeholder="제목"
+                maxLength={200}
+                className="w-full bg-transparent outline-none text-sm font-bold mb-1 border-b border-black/10 focus:border-violet-400"
+                style={{ color: hp.point_color }}
+              />
+              <textarea
+                value={b.customContent ?? ''}
+                onChange={(e) => {
+                  const next = layouts[track].map((x) => (x.id === b.id ? { ...x, customContent: e.target.value } : x));
+                  handleLayoutsChange({ ...layouts, [track]: next });
+                }}
+                placeholder="내용을 입력하세요"
+                maxLength={5000}
+                className="w-full bg-transparent outline-none text-xs h-full resize-none mt-1"
+                rows={4}
+              />
+            </div>
+          );
+        }
+        return (
+          <div>
+            {b.customTitle && <h3 className="text-sm font-bold mb-1" style={{ color: hp.point_color }}>{b.customTitle}</h3>}
+            <div className="text-xs opacity-80 whitespace-pre-wrap">{b.customContent}</div>
+          </div>
+        );
     }
   }
 
