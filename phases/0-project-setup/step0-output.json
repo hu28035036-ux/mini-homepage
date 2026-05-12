@@ -1,0 +1,91 @@
+{
+  "phase_id": 0,
+  "step_id": 0,
+  "title": "Phase 0 문서 세트 작성",
+  "status": "done",
+  "started_at": "2026-05-12",
+  "completed_at": "2026-05-12",
+  "outputs": {
+    "docs": [
+      "docs/00_MASTER_INDEX.md",
+      "docs/00_PRD.md",
+      "docs/01_ARCHITECTURE.md",
+      "docs/02_DATABASE_DESIGN.md",
+      "docs/03_API_DESIGN.md",
+      "docs/04_UI_FLOW.md",
+      "docs/05_HARNESS_PLAN.md",
+      "docs/06_TEST_CASES.md",
+      "docs/07_PHASE_PLAN.md",
+      "docs/08_VALIDATION_LOG.md",
+      "docs/09_CHANGELOG.md",
+      "docs/10_CURRENT_STATE.md",
+      "docs/11_SESSION_HANDOFF.md",
+      "docs/12_DESIGN_CHANGE_REQUESTS.md",
+      "docs/13_ENVIRONMENT_SETUP.md",
+      "docs/14_BACKUP_ROLLBACK_PLAN.md",
+      "docs/15_RELEASE_CHECKLIST.md",
+      "docs/16_OPERATION_RUNBOOK.md",
+      "docs/17_MODULEIZATION_GUIDE.md",
+      "docs/18_ERROR_CODE_RESPONSE_STANDARD.md",
+      "docs/19_FEATURE_CATALOG.md"
+    ],
+    "harness": [
+      "docs/harness/00_HARNESS_OVERVIEW.md",
+      "docs/harness/01_UNIT_TEST_HARNESS.md",
+      "docs/harness/02_API_DB_HARNESS.md",
+      "docs/harness/03_UI_FLOW_HARNESS.md",
+      "docs/harness/04_REGRESSION_HARNESS.md",
+      "docs/harness/05_SECURITY_PRIVACY_HARNESS.md",
+      "docs/harness/06_DESIGN_COMPLIANCE_HARNESS.md",
+      "docs/harness/07_MODULEIZATION_HARNESS.md",
+      "docs/harness/08_DOCUMENT_MANAGEMENT_HARNESS.md",
+      "docs/harness/09_ERROR_RESPONSE_HARNESS.md",
+      "docs/harness/10_FEATURE_CATALOG_HARNESS.md",
+      "docs/harness/11_EXECUTION_HARNESS.md",
+      "docs/harness/12_CLAUDE_HOOKS_HARNESS.md"
+    ],
+    "meta": [
+      "docs/meta/00_DOCUMENT_MANAGEMENT_RULES.md",
+      "docs/meta/01_SKILL_USAGE_MAP.md"
+    ],
+    "claude": [
+      ".claude/settings.json",
+      ".claude/commands/harness.md",
+      ".claude/commands/review.md",
+      ".claude/skills/project-bootstrap/SKILL.md",
+      ".claude/skills/phase-step-planner/SKILL.md",
+      ".claude/skills/design-compliance-review/SKILL.md",
+      ".claude/skills/modularization-review/SKILL.md",
+      ".claude/skills/harness-validation/SKILL.md",
+      ".claude/skills/error-response-standard/SKILL.md",
+      ".claude/skills/feature-catalog-update/SKILL.md",
+      ".claude/skills/document-management/SKILL.md",
+      ".claude/skills/release-check/SKILL.md",
+      ".claude/skills/session-handoff/SKILL.md",
+      ".claude/skills/bridge-orchestration/SKILL.md"
+    ],
+    "phases": [
+      "phases/index.json",
+      "phases/0-project-setup/index.json",
+      "phases/0-project-setup/step0.md",
+      "phases/0-project-setup/step0-output.json"
+    ]
+  },
+  "verification": {
+    "gates_applied": [0, 1, 11, 13],
+    "file_presence": "pass (53 files)",
+    "header_consistency": "pass (36 docs all have 상태/버전/마지막 수정일/문서 목적)",
+    "master_index_completeness": "pass",
+    "single_source_of_truth": "pass (error codes only in docs/18, layout_slots only in docs/02 §4)",
+    "json_validity": "pass (4/4 JSON files parse)"
+  },
+  "tests_run": [],
+  "regressions": [],
+  "remaining_risks": [
+    "세션 라이브러리(iron-session vs jose) 미확정 — Phase 2 진입 시 결정",
+    "Storage 버킷 공개 정책 vs signed URL — v2에서 강화 검토",
+    "RLS 미사용 → 보안은 애플리케이션 레이어 의존 — 보안 하네스(docs/harness/05) 모든 Phase 적용",
+    "비밀번호 재설정 기능 없음 — 운영 런북 임시 절차로 대응, v2 도입"
+  ],
+  "next_step": "Phase 1 진입 시 phases/1-env-and-skeleton/ 디렉터리 생성"
+}

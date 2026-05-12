@@ -1,0 +1,273 @@
+'use client';
+
+import { useState, useMemo, useRef, ChangeEvent } from 'react';
+import { Card, Button, GhostButton, Input, Label, ErrorText } from '@/components/ui/primitives';
+import { WidgetBoard, type PreviewData, type DecorateStyle } from '@/components/public/WidgetRenderer';
+import type { MiniHomepageRow, LayoutMode, LayoutSlot, WidgetKind, CardStyle, FontStyle } from '@/types/db';
+
+const CARD_STYLES: { value: CardStyle; label: string }[] = [
+  { value: 'basic', label: '기본형' },
+  { value: 'rounded', label: '둥근형' },
+  { value: 'shadow', label: '그림자형' },
+  { value: 'transparent', label: '투명형' },
+];
+
+const FONT_STYLES: { value: FontStyle; label: string }[] = [
+  { value: 'default', label: '기본' },
+  { value: 'rounded', label: '둥근' },
+  { value: 'emotional', label: '감성' },
+];
+
+const WIDGETS: WidgetKind[] = ['profile', 'urls', 'albums', 'memos', 'empty'];
+
+const SAMPLE: PreviewData = {
+  profile: { nickname: '미리보기', intro: '나만의 공간을 꾸미는 중...', image_url: null },
+  urls: [{ id: 'd1', title: '다시 보고 싶은 사이트', url: 'https://example.com', created_at: new Date().toISOString() }],
+  albums: [
+    {
+      category: '기본 앨범',
+      photos: [
+        { id: 'p1', image_url: 'https://placehold.co/200x200/eee/aaa?text=1', caption: null },
+        { id: 'p2', image_url: 'https://placehold.co/200x200/eee/aaa?text=2', caption: null },
+        { id: 'p3', image_url: 'https://placehold.co/200x200/eee/aaa?text=3', caption: null },
+      ],
+    },
+  ],
+  memos: [{ id: 'm1', title: '오늘의 메모', content: '나만의 공간을 꾸미는 중...', created_at: new Date().toISOString() }],
+};
+
+function defaultSlotsFor(mode: LayoutMode): LayoutSlot[] {
+  if (mode === 'single') {
+    return [
+      { slot: 1, widget: 'profile', visible: true },
+      { slot: 2, widget: 'urls', visible: true },
+      { slot: 3, widget: 'albums', visible: true },
+      { slot: 4, widget: 'memos', visible: true },
+    ];
+  }
+  return [
+    { slot: 1, widget: 'profile', visible: true },
+    { slot: 2, widget: 'urls', visible: true },
+    { slot: 3, widget: 'albums', visible: true },
+    { slot: 4, widget: 'memos', visible: true },
+    { slot: 5, widget: 'empty', visible: true },
+    { slot: 6, widget: 'empty', visible: true },
+  ];
+}
+
+export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
+  const [bg, setBg] = useState(initial.background_color);
+  const [bgUrl, setBgUrl] = useState<string | null>(initial.background_image_url);
+  const [useBg, setUseBg] = useState(initial.use_background_image);
+  const [point, setPoint] = useState(initial.point_color);
+  const [text, setText] = useState(initial.text_color);
+  const [card, setCard] = useState<CardStyle>(initial.card_style);
+  const [font, setFont] = useState<FontStyle>(initial.font_style);
+  const [mode, setMode] = useState<LayoutMode>(initial.layout_mode);
+  const [slots, setSlots] = useState<LayoutSlot[]>(initial.layout_slots);
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState('');
+  const [msg, setMsg] = useState('');
+  const bgInputRef = useRef<HTMLInputElement>(null);
+
+  // 중복 위젯 감지
+  const duplicates = useMemo(() => {
+    const seen = new Map<string, number>();
+    for (const s of slots) {
+      if (s.widget === 'empty') continue;
+      seen.set(s.widget, (seen.get(s.widget) ?? 0) + 1);
+    }
+    return [...seen.entries()].filter(([, n]) => n >= 2).map(([w]) => w as WidgetKind);
+  }, [slots]);
+
+  const previewStyle: DecorateStyle = {
+    background_color: bg,
+    background_image_url: bgUrl,
+    use_background_image: useBg,
+    point_color: point,
+    text_color: text,
+    card_style: card,
+    font_style: font,
+    layout_mode: mode,
+    layout_slots: slots,
+  };
+
+  function changeMode(next: LayoutMode) {
+    setMode(next);
+    setSlots(defaultSlotsFor(next));
+  }
+
+  function setSlot(idx: number, patch: Partial<LayoutSlot>) {
+    setSlots((s) => s.map((sl, i) => (i === idx ? { ...sl, ...patch } : sl)));
+  }
+
+  async function uploadBg(e: ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const fd = new FormData();
+    fd.append('file', f);
+    const r = await (await fetch('/api/decorate/background', { method: 'POST', body: fd })).json();
+    if (!r.success) {
+      setErr(r.message ?? '업로드 실패');
+      return;
+    }
+    setBgUrl(r.data.background_image_url);
+    setUseBg(true);
+    if (bgInputRef.current) bgInputRef.current.value = '';
+  }
+
+  async function save() {
+    setErr('');
+    setMsg('');
+    if (duplicates.length > 0) {
+      setErr(`중복된 위젯이 있습니다: ${duplicates.join(', ')}`);
+      return;
+    }
+    setSaving(true);
+    const r = await (await fetch('/api/decorate', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        background_color: bg,
+        background_image_url: bgUrl,
+        use_background_image: useBg,
+        point_color: point,
+        text_color: text,
+        card_style: card,
+        font_style: font,
+        layout_mode: mode,
+        layout_slots: slots,
+      }),
+    })).json();
+    setSaving(false);
+    if (!r.success) {
+      setErr(r.message ?? '저장 실패');
+      return;
+    }
+    setMsg('저장되었습니다.');
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">꾸미기</h1>
+        <div className="flex items-center gap-3">
+          {msg && <span className="text-sm text-green-700">{msg}</span>}
+          <Button onClick={save} disabled={saving || duplicates.length > 0}>
+            {saving ? '저장 중...' : '저장'}
+          </Button>
+        </div>
+      </div>
+      {err && <ErrorText>{err}</ErrorText>}
+
+      <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-4">
+        {/* 좌측 편집 패널 */}
+        <div className="space-y-4">
+          <Card>
+            <h2 className="text-sm font-bold mb-3">배경</h2>
+            <Label htmlFor="bg">배경색</Label>
+            <div className="flex items-center gap-2 mb-3">
+              <input id="bg" type="color" value={bg} onChange={(e) => setBg(e.target.value)} className="w-10 h-10 rounded border" />
+              <Input value={bg} onChange={(e) => setBg(e.target.value)} className="flex-1" />
+            </div>
+            <Label>배경 이미지</Label>
+            <div className="flex items-center gap-2">
+              <label className="inline-flex items-center justify-center cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium bg-gray-100 hover:bg-gray-200">
+                <input ref={bgInputRef} type="file" accept="image/*" className="hidden" onChange={uploadBg} />
+                업로드
+              </label>
+              {bgUrl && <span className="text-xs text-green-700">등록됨</span>}
+            </div>
+            <label className="flex items-center gap-2 mt-3 text-sm">
+              <input type="checkbox" checked={useBg} onChange={(e) => setUseBg(e.target.checked)} />
+              배경 이미지 사용
+            </label>
+          </Card>
+
+          <Card>
+            <h2 className="text-sm font-bold mb-3">색상</h2>
+            <Label htmlFor="point">포인트 색상</Label>
+            <div className="flex items-center gap-2 mb-3">
+              <input id="point" type="color" value={point} onChange={(e) => setPoint(e.target.value)} className="w-10 h-10 rounded border" />
+              <Input value={point} onChange={(e) => setPoint(e.target.value)} className="flex-1" />
+            </div>
+            <Label htmlFor="text">글자 색상</Label>
+            <div className="flex items-center gap-2">
+              <input id="text" type="color" value={text} onChange={(e) => setText(e.target.value)} className="w-10 h-10 rounded border" />
+              <Input value={text} onChange={(e) => setText(e.target.value)} className="flex-1" />
+            </div>
+          </Card>
+
+          <Card>
+            <h2 className="text-sm font-bold mb-3">카드 스타일</h2>
+            <div className="grid grid-cols-2 gap-2">
+              {CARD_STYLES.map((s) => (
+                <label key={s.value} className={`cursor-pointer text-sm px-3 py-2 rounded-lg border ${card === s.value ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-gray-200'}`}>
+                  <input type="radio" name="card" value={s.value} checked={card === s.value} onChange={() => setCard(s.value)} className="sr-only" />
+                  {s.label}
+                </label>
+              ))}
+            </div>
+          </Card>
+
+          <Card>
+            <h2 className="text-sm font-bold mb-3">폰트</h2>
+            <div className="grid grid-cols-3 gap-2">
+              {FONT_STYLES.map((s) => (
+                <label key={s.value} className={`cursor-pointer text-sm px-3 py-2 rounded-lg border text-center font-${s.value} ${font === s.value ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-gray-200'}`}>
+                  <input type="radio" name="font" value={s.value} checked={font === s.value} onChange={() => setFont(s.value)} className="sr-only" />
+                  {s.label}
+                </label>
+              ))}
+            </div>
+          </Card>
+
+          <Card>
+            <h2 className="text-sm font-bold mb-3">레이아웃</h2>
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {(['single', 'double'] as LayoutMode[]).map((m) => (
+                <label key={m} className={`cursor-pointer text-sm px-3 py-2 rounded-lg border text-center ${mode === m ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-gray-200'}`}>
+                  <input type="radio" name="mode" value={m} checked={mode === m} onChange={() => changeMode(m)} className="sr-only" />
+                  {m === 'single' ? '1단 (4슬롯)' : '2단 (6슬롯)'}
+                </label>
+              ))}
+            </div>
+
+            <div className="space-y-2">
+              <div className="text-xs text-gray-500">슬롯에 위젯 배치 (모바일에서는 자동 1단 폴백)</div>
+              {slots.map((s, i) => (
+                <div key={s.slot} className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400 w-12">슬롯 {s.slot}</span>
+                  <select
+                    value={s.widget}
+                    onChange={(e) => setSlot(i, { widget: e.target.value as WidgetKind })}
+                    className={`flex-1 rounded-lg border px-2 py-1.5 text-sm ${duplicates.includes(s.widget) ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
+                  >
+                    {WIDGETS.map((w) => (
+                      <option key={w} value={w}>{w === 'empty' ? '— 비움 —' : w}</option>
+                    ))}
+                  </select>
+                  <label className="text-xs flex items-center gap-1">
+                    <input type="checkbox" checked={s.visible} onChange={(e) => setSlot(i, { visible: e.target.checked })} />
+                    표시
+                  </label>
+                </div>
+              ))}
+              {duplicates.length > 0 && (
+                <ErrorText>같은 위젯({duplicates.join(', ')})을 두 슬롯에 배치할 수 없습니다.</ErrorText>
+              )}
+            </div>
+          </Card>
+        </div>
+
+        {/* 우측 미리보기 */}
+        <Card className="p-0 overflow-hidden sticky top-4 h-fit max-h-[calc(100vh-2rem)]">
+          <div className="px-4 py-2 border-b border-gray-100 text-xs text-gray-500 bg-white">미리보기 (저장 전)</div>
+          <div className="max-h-[calc(100vh-6rem)] overflow-auto">
+            <WidgetBoard style={previewStyle} data={SAMPLE} />
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}

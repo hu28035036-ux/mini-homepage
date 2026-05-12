@@ -1,0 +1,85 @@
+{
+  "project": "mini-homepage",
+  "current_phase": 10,
+  "phases": [
+    {
+      "id": 0,
+      "name": "project-setup",
+      "title": "프로젝트 기준 문서 작성",
+      "status": "done",
+      "started_at": "2026-05-12",
+      "completed_at": "2026-05-12"
+    },
+    {
+      "id": 1,
+      "name": "env-and-skeleton",
+      "title": "개발 환경 및 기본 구조 세팅",
+      "status": "done",
+      "completed_at": "2026-05-12"
+    },
+    {
+      "id": 2,
+      "name": "auth",
+      "title": "자체 회원가입/로그인/세션",
+      "status": "done",
+      "completed_at": "2026-05-12"
+    },
+    {
+      "id": 3,
+      "name": "homepage-create",
+      "title": "미니홈피 생성·기본 비공개·기본 카테고리",
+      "status": "done",
+      "completed_at": "2026-05-12"
+    },
+    {
+      "id": 4,
+      "name": "urls",
+      "title": "URL 보관함 CRUD",
+      "status": "done",
+      "completed_at": "2026-05-12"
+    },
+    {
+      "id": 5,
+      "name": "albums",
+      "title": "앨범 카테고리 + 사진 업로드/삭제",
+      "status": "done",
+      "completed_at": "2026-05-12"
+    },
+    {
+      "id": 6,
+      "name": "memos",
+      "title": "메모 CRUD",
+      "status": "done",
+      "completed_at": "2026-05-12"
+    },
+    {
+      "id": 7,
+      "name": "decorate-layout",
+      "title": "꾸미기 탭(색·카드·폰트·배경 + 레이아웃·슬롯 배치)",
+      "status": "done",
+      "completed_at": "2026-05-12"
+    },
+    {
+      "id": 8,
+      "name": "settings",
+      "title": "설정 탭(프로필/slug/공개·비공개)",
+      "status": "done",
+      "completed_at": "2026-05-12"
+    },
+    {
+      "id": 9,
+      "name": "public-page",
+      "title": "공개 미니홈피 페이지 /u/[slug]",
+      "status": "done",
+      "completed_at": "2026-05-12"
+    },
+    {
+      "id": 10,
+      "name": "regression-release",
+      "title": "전체 회귀·보안·반응형·마감",
+      "status": "in_progress",
+      "note": "E2E 22/22 통과 (Playwright + Supabase Local). 운영 배포 전 추가 수동 회귀·반응형 점검 + 보안 헤더 남음."
+    }
+  ],
+  "updated_at": "2026-05-12"
+}

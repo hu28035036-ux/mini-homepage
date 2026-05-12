@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fafafa;
+  --foreground: #111827;
+}
+
+html, body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+}
+
+/* font_style 토큰 */
+.font-default { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+.font-rounded { font-family: "Nunito", ui-rounded, "SF Pro Rounded", system-ui, sans-serif; }
+.font-emotional { font-family: "Nanum Pen Script", "Gowun Dodum", cursive, system-ui, sans-serif; }

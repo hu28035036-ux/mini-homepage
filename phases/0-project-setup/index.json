@@ -1,0 +1,17 @@
+{
+  "phase_id": 0,
+  "name": "project-setup",
+  "title": "프로젝트 기준 문서 작성",
+  "status": "done",
+  "started_at": "2026-05-12",
+  "completed_at": "2026-05-12",
+  "steps": [
+    {
+      "id": 0,
+      "title": "Phase 0 문서 세트 작성",
+      "file": "step0.md",
+      "output": "step0-output.json",
+      "status": "done"
+    }
+  ]
+}

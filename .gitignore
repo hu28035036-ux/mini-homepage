@@ -1,0 +1,26 @@
+node_modules/
+.next/
+.env.local
+.env.local.*
+.env.development.local
+.env.production.local
+.claude/settings.local.json
+coverage/
+*.log
+.DS_Store
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# Supabase Local
+/supabase/.temp/
+/supabase/.branches/
+
+# OS / IDE
+Thumbs.db
+.idea/
+.vscode/
+
