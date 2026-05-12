@@ -90,9 +90,9 @@ export function PublicCanvas({ data }: { data: PublicData }) {
             {data.memos.length === 0 ? (
               <p className="text-xs opacity-50">아직 메모가 없어요.</p>
             ) : (
-              <ul className="space-y-3">
+              <ul className="divide-y divide-black/5">
                 {data.memos.slice(0, 6).map((m) => (
-                  <li key={m.id} className="text-sm">
+                  <li key={m.id} className="text-sm py-2 first:pt-0 last:pb-0">
                     <div className="font-medium truncate">{m.title}</div>
                     <p className="opacity-60 text-xs line-clamp-3 whitespace-pre-wrap">{m.content}</p>
                   </li>

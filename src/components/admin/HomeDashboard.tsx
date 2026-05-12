@@ -160,9 +160,9 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
             {memos.length === 0 ? (
               <p className="text-xs opacity-50">아직 메모가 없어요.</p>
             ) : (
-              <ul className="space-y-2">
+              <ul className="divide-y divide-black/5">
                 {memos.slice(0, 4).map((m) => (
-                  <li key={m.id} className="text-sm">
+                  <li key={m.id} className="text-sm py-1.5 first:pt-0 last:pb-0">
                     <div className="font-medium truncate">{m.title}</div>
                     <div className="opacity-60 text-xs line-clamp-2 whitespace-pre-wrap">{m.content}</div>
                   </li>

@@ -1,115 +1,144 @@
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
-import { Card, Button, GhostButton, DangerButton, Input, Textarea, Label } from '@/components/ui/primitives';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Card, Button, DangerButton, Input, Textarea } from '@/components/ui/primitives';
 import type { MemoRow } from '@/types/db';
+
+type DraftMap = Record<string, { title: string; content: string }>;
 
 export function MemosManager() {
   const [items, setItems] = useState<MemoRow[]>([]);
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [editing, setEditing] = useState<string | null>(null);
-  const [eTitle, setETitle] = useState('');
-  const [eContent, setEContent] = useState('');
+  const [drafts, setDrafts] = useState<DraftMap>({});
+  const [loading, setLoading] = useState(true);
+  const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const savingSet = useRef<Set<string>>(new Set());
+  const [savingTick, setSavingTick] = useState(0);
 
-  async function load() {
+  const load = useCallback(async () => {
     const r = await (await fetch('/api/memos')).json();
-    if (r.success) setItems(r.data.items);
-  }
-  useEffect(() => {
-    load();
+    if (r.success) {
+      setItems(r.data.items);
+      const next: DraftMap = {};
+      for (const m of r.data.items as MemoRow[]) {
+        next[m.id] = { title: m.title, content: m.content };
+      }
+      setDrafts(next);
+    }
+    setLoading(false);
   }, []);
 
-  async function add(e: FormEvent) {
-    e.preventDefault();
+  useEffect(() => { load(); }, [load]);
+  useEffect(() => () => {
+    Object.values(timers.current).forEach(clearTimeout);
+  }, []);
+
+  async function addNew() {
     const r = await (await fetch('/api/memos', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, content }),
+      body: JSON.stringify({ title: '새 메모', content: ' ' }),
     })).json();
     if (!r.success) {
       alert(r.message ?? '작성 실패');
       return;
     }
-    setTitle('');
-    setContent('');
-    load();
+    const m = r.data.item as MemoRow;
+    setItems((s) => [m, ...s]);
+    setDrafts((d) => ({ ...d, [m.id]: { title: m.title, content: '' } }));
   }
 
-  function startEdit(m: MemoRow) {
-    setEditing(m.id);
-    setETitle(m.title);
-    setEContent(m.content);
-  }
-
-  async function save(id: string) {
-    const r = await (await fetch(`/api/memos/${id}`, {
+  function persist(id: string, patch: { title?: string; content?: string }) {
+    savingSet.current.add(id);
+    setSavingTick((t) => t + 1);
+    fetch(`/api/memos/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: eTitle, content: eContent }),
-    })).json();
-    if (!r.success) {
-      alert(r.message ?? '저장 실패');
-      return;
-    }
-    setEditing(null);
-    load();
+      body: JSON.stringify(patch),
+    })
+      .then((r) => r.json())
+      .then((r) => {
+        if (r.success) {
+          setItems((s) => s.map((m) => (m.id === id ? { ...m, ...patch } : m)));
+        }
+      })
+      .finally(() => {
+        savingSet.current.delete(id);
+        setSavingTick((t) => t + 1);
+      });
+  }
+
+  function changeField(id: string, patch: { title?: string; content?: string }) {
+    setDrafts((d) => ({ ...d, [id]: { ...(d[id] ?? { title: '', content: '' }), ...patch } }));
+    if (timers.current[id]) clearTimeout(timers.current[id]);
+    timers.current[id] = setTimeout(() => {
+      persist(id, patch);
+      delete timers.current[id];
+    }, 800);
   }
 
   async function remove(id: string) {
-    if (!confirm('정말 삭제할까요?')) return;
-    await fetch(`/api/memos/${id}`, { method: 'DELETE' });
-    load();
+    if (!confirm('이 메모를 삭제할까요?')) return;
+    if (timers.current[id]) { clearTimeout(timers.current[id]); delete timers.current[id]; }
+    const r = await (await fetch(`/api/memos/${id}`, { method: 'DELETE' })).json();
+    if (!r.success) {
+      alert(r.message ?? '삭제 실패');
+      return;
+    }
+    setItems((s) => s.filter((m) => m.id !== id));
+    setDrafts((d) => { const { [id]: _drop, ...rest } = d; void _drop; return rest; });
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">메모장</h1>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold">메모장</h1>
+        <Button onClick={addNew}>+ 새 메모</Button>
+      </div>
 
-      <Card>
-        <form onSubmit={add} className="space-y-3">
-          <div>
-            <Label htmlFor="mt">제목</Label>
-            <Input id="mt" value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={100} />
-          </div>
-          <div>
-            <Label htmlFor="mc">내용</Label>
-            <Textarea id="mc" value={content} onChange={(e) => setContent(e.target.value)} required rows={4} maxLength={10000} />
-          </div>
-          <Button type="submit">작성</Button>
-        </form>
-      </Card>
+      {loading && <p className="text-sm opacity-50">불러오는 중...</p>}
+
+      {!loading && items.length === 0 && (
+        <Card>
+          <p className="text-sm opacity-60">아직 메모가 없어요. 우측 상단 “+ 새 메모”로 추가하세요.</p>
+        </Card>
+      )}
 
       <div className="space-y-3">
-        {items.length === 0 && <Card><p className="text-sm text-gray-400">아직 메모가 없습니다.</p></Card>}
-        {items.map((m) => (
-          <Card key={m.id}>
-            {editing === m.id ? (
-              <div className="space-y-3">
-                <Input value={eTitle} onChange={(e) => setETitle(e.target.value)} />
-                <Textarea value={eContent} onChange={(e) => setEContent(e.target.value)} rows={4} />
-                <div className="flex gap-2">
-                  <Button onClick={() => save(m.id)}>저장</Button>
-                  <GhostButton onClick={() => setEditing(null)}>취소</GhostButton>
+        {items.map((m) => {
+          const d = drafts[m.id] ?? { title: m.title, content: m.content };
+          const saving = savingSet.current.has(m.id);
+          return (
+            <Card key={m.id} className="space-y-2">
+              <div className="flex items-start justify-between gap-3">
+                <Input
+                  aria-label="제목"
+                  className="flex-1 font-medium"
+                  value={d.title}
+                  maxLength={100}
+                  placeholder="제목"
+                  onChange={(e) => changeField(m.id, { title: e.target.value })}
+                />
+                <div className="flex items-center gap-2 shrink-0">
+                  {saving && <span className="text-[11px] opacity-50">저장 중…</span>}
+                  <DangerButton onClick={() => remove(m.id)} aria-label="삭제">✕</DangerButton>
                 </div>
               </div>
-            ) : (
-              <>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-medium">{m.title}</h3>
-                    <p className="text-sm text-gray-600 mt-1 whitespace-pre-wrap">{m.content}</p>
-                    <div className="text-xs text-gray-400 mt-2">{new Date(m.created_at).toLocaleDateString('ko-KR')}</div>
-                  </div>
-                  <div className="flex gap-2 shrink-0">
-                    <GhostButton onClick={() => startEdit(m)}>수정</GhostButton>
-                    <DangerButton onClick={() => remove(m.id)}>삭제</DangerButton>
-                  </div>
-                </div>
-              </>
-            )}
-          </Card>
-        ))}
+              <Textarea
+                aria-label="내용"
+                rows={4}
+                maxLength={10000}
+                placeholder="내용을 입력하세요"
+                value={d.content}
+                onChange={(e) => changeField(m.id, { content: e.target.value })}
+              />
+              <div className="text-[11px] opacity-40">
+                {new Date(m.created_at).toLocaleString('ko-KR')}
+              </div>
+            </Card>
+          );
+        })}
+        {/* savingTick → 렌더 강제 */}
+        <span className="hidden">{savingTick}</span>
       </div>
     </div>
   );
