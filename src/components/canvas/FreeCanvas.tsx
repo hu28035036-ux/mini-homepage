@@ -22,8 +22,12 @@ const CANVAS_WIDTH: Record<Track, number> = { desktop: 1200, mobile: 360 };
 export const MOBILE_BREAKPOINT = 768;
 
 export function useTrack(): Track {
-  // SSR-safe — 첫 렌더는 desktop, 마운트 후 실제 viewport 기준 갱신
-  const [track, setTrack] = useState<Track>('desktop');
+  // SSR fallback은 desktop. 클라이언트 첫 렌더에서는 lazy init으로 즉시 정확한 값.
+  // (lazy init이라 SSR 직후 hydration 시점에 클라이언트가 mobile로 식별되면 바로 mobile 분기로 렌더됨)
+  const [track, setTrack] = useState<Track>(() => {
+    if (typeof window === 'undefined') return 'desktop';
+    return window.innerWidth >= MOBILE_BREAKPOINT ? 'desktop' : 'mobile';
+  });
   useEffect(() => {
     const update = () => setTrack(window.innerWidth >= MOBILE_BREAKPOINT ? 'desktop' : 'mobile');
     update();

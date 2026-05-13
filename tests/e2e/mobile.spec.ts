@@ -25,7 +25,7 @@ test.describe('모바일 기록 전용 UI (TC-MOBILE)', () => {
     await expect(page.getByRole('button', { name: '+ 새 메모' })).toBeVisible();
   });
 
-  test('TC-MOBILE-DEC-001 모바일 꾸미기 페이지는 미리보기 패널 미노출', async ({ page }) => {
+  test('TC-MOBILE-DEC-001 모바일 꾸미기 페이지는 미리보기 패널 미노출 + 패턴 select 노출', async ({ page }) => {
     await signupAndLogin(page, 'mobile-decorate');
     await page.goto('/admin/decorate');
 
@@ -34,5 +34,26 @@ test.describe('모바일 기록 전용 UI (TC-MOBILE)', () => {
     await expect(page.locator('#font-select')).toBeVisible();
     await expect(page.locator('#opacity')).toBeVisible();
     await expect(page.locator('#font-size')).toBeVisible();
+    await expect(page.locator('#pattern-select')).toBeVisible();
+  });
+
+  test('TC-MOBILE-003 햄버거 메뉴 노출 + 메뉴 항목 클릭 시 페이지 이동', async ({ page }) => {
+    await signupAndLogin(page, 'mobile-hamburger');
+    await page.goto('/admin');
+
+    await page.getByRole('button', { name: '메뉴 열기' }).click();
+    await page.getByRole('menuitem', { name: '꾸미기' }).click();
+    await page.waitForURL(/\/admin\/decorate/);
+    await expect(page.locator('#card-select')).toBeVisible();
+  });
+
+  test('TC-MOBILE-004 설정 페이지 모바일 진입 정상', async ({ page }) => {
+    await signupAndLogin(page, 'mobile-settings');
+    await page.goto('/admin/settings');
+    // 헤더 노출 + 핵심 폼 요소 노출
+    await expect(page.getByRole('heading', { name: '설정' })).toBeVisible();
+    await expect(page.getByLabel('미니홈피 제목')).toBeVisible();
+    await expect(page.getByLabel('미니홈피 주소 (slug)')).toBeVisible();
+    await expect(page.getByLabel('현재 비밀번호')).toBeVisible();
   });
 });
