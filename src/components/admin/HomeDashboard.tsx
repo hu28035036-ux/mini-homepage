@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { Modal, IconButton } from '@/components/ui/primitives';
 import { FreeCanvas, defaultBlocks, useTrack } from '@/components/canvas/FreeCanvas';
 import { DrawPad } from '@/components/canvas/DrawPad';
@@ -38,6 +39,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
   const [expanded, setExpanded] = useState<ExpandKind>(null);
   const [drawingTarget, setDrawingTarget] = useState<Block | null>(null);
   const track = useTrack();
+  const router = useRouter();
 
   async function loadAll() {
     const [u, m, p, c] = await Promise.all([
@@ -60,6 +62,14 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
   const layoutsRef = useRef<Layouts>(layouts);
   useEffect(() => { layoutsRef.current = layouts; }, [layouts]);
 
+  // 외부 갱신(router.refresh 후 새 hp.layouts) 동기화 — 미저장 변경 중에는 덮어쓰지 않음
+  useEffect(() => {
+    if (dirty) return;
+    const next = ensureLayouts(hp);
+    setLayouts((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hp]);
+
   const persistLayouts = useCallback(async (next: Layouts) => {
     setSaving(true);
     const r = await (
@@ -72,10 +82,12 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
     setSaving(false);
     if (r.success) {
       setDirty(false);
+      // server component(admin/layout, admin/page)가 새 hp.layouts로 다시 렌더되도록
+      router.refresh();
     } else {
       alert(r.message ?? '저장 실패');
     }
-  }, []);
+  }, [router]);
 
   function handleLayoutsChange(next: Layouts) {
     setLayouts(next);
