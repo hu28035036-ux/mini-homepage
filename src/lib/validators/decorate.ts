@@ -1,11 +1,12 @@
 import { z } from 'zod';
 
-// 단색(#hex) 또는 그라데이션(linear/radial/conic-gradient(...)) 문자열 허용
+// 단색(#hex) 또는 그라데이션(linear/radial/conic-gradient(...)) 문자열 허용 — 배경/카드배경용
 const colorOrGradient = z.string().regex(
   /^(#[0-9a-fA-F]{3,8}|(linear|radial|conic)-gradient\([^)]+(\)|\)\s*))$/,
   'DECORATE_INVALID_VALUE',
 ).max(500);
-const hex = colorOrGradient;
+// 단색(#hex)만 — 글자색/포인트색 등 텍스트 색상용
+const hex = z.string().regex(/^#[0-9a-fA-F]{3,8}$/, 'DECORATE_INVALID_VALUE');
 
 const slotSchema = z.object({
   slot: z.number().int().positive(),
@@ -59,7 +60,7 @@ const BACKGROUND_PATTERNS = [
 const hexAlpha = colorOrGradient;
 
 export const updateDecorateSchema = z.object({
-  background_color: hex.optional(),
+  background_color: colorOrGradient.optional(),
   background_image_url: z.string().url().nullable().optional(),
   use_background_image: z.boolean().optional(),
   background_pattern: z.enum(BACKGROUND_PATTERNS).optional(),

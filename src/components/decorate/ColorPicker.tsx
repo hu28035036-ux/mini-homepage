@@ -30,14 +30,17 @@ export function ColorPicker({
   onChange,
   className = '',
   placeholder,
+  solidOnly = false,
 }: {
   id?: string;
   value: string;
   onChange: (next: string) => void;
   className?: string;
   placeholder?: string;
+  /** true면 단색만 허용 (그라데이션 토글 hide). 글자색·포인트색 등 텍스트용. */
+  solidOnly?: boolean;
 }) {
-  const gradient = useMemo(() => parseGradient(value), [value]);
+  const gradient = useMemo(() => (solidOnly ? null : parseGradient(value)), [value, solidOnly]);
   const mode: 'solid' | 'gradient' = gradient ? 'gradient' : 'solid';
 
   function switchToSolid() {
@@ -52,22 +55,24 @@ export function ColorPicker({
 
   return (
     <div className={className}>
-      <div className="flex gap-1 mb-2 text-[11px]">
-        <button
-          type="button"
-          onClick={switchToSolid}
-          className={`px-2 py-1 rounded ${mode === 'solid' ? 'bg-violet-600 text-white' : 'bg-black/5 hover:bg-black/10'}`}
-        >
-          단색
-        </button>
-        <button
-          type="button"
-          onClick={switchToGradient}
-          className={`px-2 py-1 rounded ${mode === 'gradient' ? 'bg-violet-600 text-white' : 'bg-black/5 hover:bg-black/10'}`}
-        >
-          그라데이션
-        </button>
-      </div>
+      {!solidOnly && (
+        <div className="flex gap-1 mb-2 text-[11px]">
+          <button
+            type="button"
+            onClick={switchToSolid}
+            className={`px-2 py-1 rounded ${mode === 'solid' ? 'bg-violet-600 text-white' : 'bg-black/5 hover:bg-black/10'}`}
+          >
+            단색
+          </button>
+          <button
+            type="button"
+            onClick={switchToGradient}
+            className={`px-2 py-1 rounded ${mode === 'gradient' ? 'bg-violet-600 text-white' : 'bg-black/5 hover:bg-black/10'}`}
+          >
+            그라데이션
+          </button>
+        </div>
+      )}
 
       {mode === 'solid' ? (
         <div className="flex items-center gap-2">

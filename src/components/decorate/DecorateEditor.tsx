@@ -307,11 +307,12 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
           </Card>
 
           <Card>
-            <h2 className="text-sm font-bold mb-3">색상 (단색 또는 그라데이션)</h2>
+            <h2 className="text-sm font-bold mb-3">색상</h2>
             <Label htmlFor="point">포인트 색상</Label>
-            <ColorPicker id="point" value={point} onChange={setPoint} className="mb-3" />
+            <ColorPicker id="point" value={point} onChange={setPoint} className="mb-3" solidOnly />
             <Label htmlFor="text">글자 색상</Label>
-            <ColorPicker id="text" value={text} onChange={setText} />
+            <ColorPicker id="text" value={text} onChange={setText} solidOnly />
+            <p className="text-[11px] opacity-60 mt-1">포인트·글자 색상은 단색만 지원.</p>
           </Card>
 
           <Card>
