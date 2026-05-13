@@ -3,8 +3,8 @@
 import { useState, useMemo, useRef, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, Button, GhostButton, Input, Label, ErrorText } from '@/components/ui/primitives';
-import { WidgetBoard, type PreviewData, type DecorateStyle } from '@/components/public/WidgetRenderer';
-import { useTrack } from '@/components/canvas/FreeCanvas';
+import { WidgetBoard, cardClass, type PreviewData, type DecorateStyle } from '@/components/public/WidgetRenderer';
+import { useTrack, fontSizeClass } from '@/components/canvas/FreeCanvas';
 import { PATTERN_LIST, patternImage, patternSize, patternPosition } from '@/lib/canvas/patterns';
 import type { MiniHomepageRow, LayoutMode, LayoutSlot, WidgetKind, CardStyle, FontStyle, FontSize, BackgroundPattern } from '@/types/db';
 
@@ -244,16 +244,27 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
                 />
               </div>
               <div
-                className="mt-3 h-20 rounded border border-gray-200 flex items-center justify-center text-xs opacity-60"
+                className="mt-3 rounded border border-gray-200 p-4 flex flex-col items-center justify-center gap-2"
                 style={{
                   backgroundColor: bg,
                   backgroundImage: pattern === 'none' ? undefined : patternImage(pattern, patternColor),
                   backgroundSize: pattern === 'none' ? undefined : patternSize(pattern),
                   backgroundPosition: pattern === 'none' ? undefined : patternPosition(pattern),
+                  minHeight: '120px',
                 }}
-                aria-label="패턴 미리보기"
+                aria-label="종합 미리보기 (배경 + 무늬 + 카드)"
               >
-                {pattern === 'none' ? '무늬 없음' : ''}
+                <div
+                  className={`${cardClass(card)} px-3 py-2 ${fontSizeClass(fontSize)}`}
+                  style={{ opacity, color: text, minWidth: '60%', textAlign: 'center' }}
+                >
+                  샘플 카드
+                </div>
+                <div className="text-[10px] opacity-60" style={{ color: text }}>
+                  {pattern === 'none' ? '무늬 없음' : PATTERN_LIST.find((p) => p.value === pattern)?.label}
+                  {' · 투명도 '}{Math.round(opacity * 100)}%
+                  {' · '}{fontSize.toUpperCase()}
+                </div>
               </div>
               {useBg && (
                 <p className="text-[11px] text-amber-700 mt-2">⚠ 배경 이미지를 사용 중입니다. 이미지를 끄면(체크 해제) 무늬가 보입니다.</p>
@@ -348,7 +359,16 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
         {!isMobile && (
           <Card className="p-0 overflow-hidden sticky top-4 h-fit max-h-[calc(100vh-2rem)]">
             <div className="px-4 py-2 border-b border-gray-100 text-xs text-gray-500 bg-white">미리보기 (저장 전)</div>
-            <div className="max-h-[calc(100vh-6rem)] overflow-auto">
+            <div
+              className={`max-h-[calc(100vh-6rem)] overflow-auto ${fontSizeClass(fontSize)}`}
+              style={{
+                opacity,
+                backgroundColor: bg,
+                backgroundImage: pattern === 'none' ? undefined : patternImage(pattern, patternColor),
+                backgroundSize: pattern === 'none' ? undefined : patternSize(pattern),
+                backgroundPosition: pattern === 'none' ? undefined : patternPosition(pattern),
+              }}
+            >
               <WidgetBoard style={previewStyle} data={SAMPLE} />
             </div>
           </Card>

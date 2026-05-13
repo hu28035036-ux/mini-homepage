@@ -19,7 +19,7 @@ export interface DecorateStyle {
   layout_slots: LayoutSlot[];
 }
 
-function cardClass(style: CardStyle): string {
+export function cardClass(style: CardStyle): string {
   switch (style) {
     case 'basic':
       return 'bg-white border border-gray-200 rounded-lg';
