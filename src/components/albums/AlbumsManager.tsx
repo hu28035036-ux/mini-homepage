@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, ChangeEvent } from 'react';
 import { Card, Button, GhostButton, DangerButton, Input, Label, ErrorText } from '@/components/ui/primitives';
-import { PhotoLightbox } from '@/components/albums/PhotoLightbox';
+import { PhotoLightbox, type LightboxPhoto } from '@/components/albums/PhotoLightbox';
 import type { AlbumCategoryRow, PhotoRow } from '@/types/db';
 
 async function getJson<T>(url: string): Promise<{ success: boolean; data?: T; message?: string }> {
@@ -14,7 +14,8 @@ export function AlbumsManager() {
   const [categories, setCategories] = useState<AlbumCategoryRow[]>([]);
   const [photos, setPhotos] = useState<PhotoRow[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
-  const [lightbox, setLightbox] = useState<PhotoRow | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const lightboxPhotos: LightboxPhoto[] = photos.map((p) => ({ url: p.image_url, caption: p.caption }));
   const [newCat, setNewCat] = useState('');
   const [err, setErr] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
@@ -156,11 +157,11 @@ export function AlbumsManager() {
           {!selected && <p className="text-sm text-gray-400">카테고리를 선택하세요.</p>}
           {selected && photos.length === 0 && <p className="text-sm text-gray-400">아직 사진이 없습니다.</p>}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {photos.map((p) => (
+            {photos.map((p, idx) => (
               <div key={p.id} className="relative group">
                 <button
                   type="button"
-                  onClick={() => setLightbox(p)}
+                  onClick={() => setLightboxIndex(idx)}
                   className="block w-full"
                   aria-label="사진 크게 보기"
                 >
@@ -179,10 +180,11 @@ export function AlbumsManager() {
       </div>
 
       <PhotoLightbox
-        open={lightbox !== null}
-        url={lightbox?.image_url ?? null}
-        caption={lightbox?.caption ?? null}
-        onClose={() => setLightbox(null)}
+        open={lightboxIndex !== null}
+        photos={lightboxPhotos}
+        index={lightboxIndex ?? 0}
+        onIndexChange={setLightboxIndex}
+        onClose={() => setLightboxIndex(null)}
       />
     </div>
   );

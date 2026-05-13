@@ -2,8 +2,8 @@
 
 import { useState, type ReactNode } from 'react';
 import { FreeCanvas } from '@/components/canvas/FreeCanvas';
-import { PhotoLightbox } from '@/components/albums/PhotoLightbox';
-import { solidFallback } from '@/components/decorate/ColorPicker';
+import { PhotoLightbox, type LightboxPhoto } from '@/components/albums/PhotoLightbox';
+import { textColorOrGradientStyle } from '@/components/decorate/ColorPicker';
 import { patternImage, patternSize, patternPosition } from '@/lib/canvas/patterns';
 
 function isGradient(v: string): boolean {
@@ -28,14 +28,14 @@ export interface PublicData {
 
 export function PublicCanvas({ data }: { data: PublicData }) {
   const { homepage } = data;
-  const [lightbox, setLightbox] = useState<{ image_url: string; caption: string | null } | null>(null);
+  const [lightbox, setLightbox] = useState<{ photos: LightboxPhoto[]; index: number } | null>(null);
 
   const renderBlock = (b: Block): ReactNode => {
     switch (b.kind) {
       case 'title':
         return (
           <div className="h-full flex items-center">
-            <h1 className="text-3xl font-bold leading-tight" style={{ color: solidFallback(homepage.text_color) }}>
+            <h1 className="text-3xl font-bold leading-tight" style={textColorOrGradientStyle(homepage.text_color)}>
               {homepage.title}
             </h1>
           </div>
@@ -55,7 +55,7 @@ export function PublicCanvas({ data }: { data: PublicData }) {
       case 'urls':
         return (
           <div>
-            <h3 className="text-sm font-bold mb-2" style={{ color: solidFallback(homepage.point_color) }}>URL 보관함</h3>
+            <h3 className="text-sm font-bold mb-2" style={textColorOrGradientStyle(homepage.point_color)}>URL 보관함</h3>
             {data.urls.length === 0 ? (
               <p className="text-xs opacity-50">아직 저장된 링크가 없어요.</p>
             ) : (
@@ -75,35 +75,38 @@ export function PublicCanvas({ data }: { data: PublicData }) {
       case 'albums':
         return (
           <div>
-            <h3 className="text-sm font-bold mb-2" style={{ color: solidFallback(homepage.point_color) }}>앨범</h3>
+            <h3 className="text-sm font-bold mb-2" style={textColorOrGradientStyle(homepage.point_color)}>앨범</h3>
             {data.albums.length === 0 ? (
               <p className="text-xs opacity-50">아직 사진이 없어요.</p>
             ) : (
-              data.albums.map((a) => (
-                <div key={a.category} className="mb-3">
-                  <div className="text-xs opacity-70 mb-1">{a.category}</div>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {a.photos.map((p) => (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); setLightbox({ image_url: p.image_url, caption: p.caption }); }}
-                        className="block"
-                        aria-label="사진 크게 보기"
-                      >
-                        <img src={p.image_url} alt={p.caption ?? ''} className="aspect-square w-full object-cover rounded cursor-zoom-in" />
-                      </button>
-                    ))}
+              data.albums.map((a) => {
+                const albumPhotos: LightboxPhoto[] = a.photos.map((p) => ({ url: p.image_url, caption: p.caption }));
+                return (
+                  <div key={a.category} className="mb-3">
+                    <div className="text-xs opacity-70 mb-1">{a.category}</div>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {a.photos.map((p, idx) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setLightbox({ photos: albumPhotos, index: idx }); }}
+                          className="block"
+                          aria-label="사진 크게 보기"
+                        >
+                          <img src={p.image_url} alt={p.caption ?? ''} className="aspect-square w-full object-cover rounded cursor-zoom-in" />
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         );
       case 'memos':
         return (
           <div>
-            <h3 className="text-sm font-bold mb-2" style={{ color: solidFallback(homepage.point_color) }}>메모</h3>
+            <h3 className="text-sm font-bold mb-2" style={textColorOrGradientStyle(homepage.point_color)}>메모</h3>
             {data.memos.length === 0 ? (
               <p className="text-xs opacity-50">아직 메모가 없어요.</p>
             ) : (
@@ -121,7 +124,7 @@ export function PublicCanvas({ data }: { data: PublicData }) {
       case 'custom':
         return (
           <div>
-            {b.customTitle && <h3 className="text-sm font-bold mb-1" style={{ color: solidFallback(homepage.point_color) }}>{b.customTitle}</h3>}
+            {b.customTitle && <h3 className="text-sm font-bold mb-1" style={textColorOrGradientStyle(homepage.point_color)}>{b.customTitle}</h3>}
             <div className="text-xs opacity-80 whitespace-pre-wrap">{b.customContent}</div>
           </div>
         );
@@ -179,8 +182,9 @@ export function PublicCanvas({ data }: { data: PublicData }) {
 
       <PhotoLightbox
         open={lightbox !== null}
-        url={lightbox?.image_url ?? null}
-        caption={lightbox?.caption ?? null}
+        photos={lightbox?.photos ?? []}
+        index={lightbox?.index ?? 0}
+        onIndexChange={(next) => setLightbox((cur) => (cur ? { ...cur, index: next } : cur))}
         onClose={() => setLightbox(null)}
       />
     </main>

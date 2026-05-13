@@ -262,21 +262,12 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
                 ))}
               </select>
               <Label htmlFor="pattern-color">무늬 색상</Label>
-              <div className="flex items-center gap-2">
-                <input
-                  id="pattern-color"
-                  type="color"
-                  value={(patternColor || '#000000').slice(0, 7)}
-                  onChange={(e) => setPatternColor(e.target.value + (patternColor.length === 9 ? patternColor.slice(7) : '22'))}
-                  className="w-10 h-10 rounded border"
-                />
-                <Input
-                  value={patternColor}
-                  onChange={(e) => setPatternColor(e.target.value)}
-                  className="flex-1"
-                  placeholder="#00000022 (끝 2자리: 투명도)"
-                />
-              </div>
+              <ColorPicker
+                id="pattern-color"
+                value={patternColor}
+                onChange={setPatternColor}
+                solidOnly
+              />
               <div
                 className="mt-3 rounded border border-gray-200 p-4 flex flex-col items-center justify-center gap-2"
                 style={{
@@ -290,11 +281,11 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
               >
                 <div
                   className={`${cardClass(card)} px-3 py-2 ${fontSizeClass(fontSize)}`}
-                  style={{ opacity, color: text, minWidth: '60%', textAlign: 'center' }}
+                  style={{ opacity, ...textColorOrGradientStyle(text), minWidth: '60%', textAlign: 'center' }}
                 >
                   샘플 카드
                 </div>
-                <div className="text-[10px] opacity-60" style={{ color: text }}>
+                <div className="text-[10px] opacity-60" style={textColorOrGradientStyle(text)}>
                   {pattern === 'none' ? '무늬 없음' : PATTERN_LIST.find((p) => p.value === pattern)?.label}
                   {' · 투명도 '}{Math.round(opacity * 100)}%
                   {' · '}{fontSize.toUpperCase()}
@@ -309,10 +300,10 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
           <Card>
             <h2 className="text-sm font-bold mb-3">색상</h2>
             <Label htmlFor="point">포인트 색상</Label>
-            <ColorPicker id="point" value={point} onChange={setPoint} className="mb-3" solidOnly />
+            <ColorPicker id="point" value={point} onChange={setPoint} className="mb-3" />
             <Label htmlFor="text">글자 색상</Label>
-            <ColorPicker id="text" value={text} onChange={setText} solidOnly />
-            <p className="text-[11px] opacity-60 mt-1">포인트·글자 색상은 단색만 지원.</p>
+            <ColorPicker id="text" value={text} onChange={setText} />
+            <p className="text-[11px] opacity-60 mt-1">그라데이션은 background-clip:text로 글자 자체에 적용됩니다.</p>
           </Card>
 
           <Card>

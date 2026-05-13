@@ -9,8 +9,8 @@ import { UrlsManager } from '@/components/urls/UrlsManager';
 import { AlbumsManager } from '@/components/albums/AlbumsManager';
 import { MemosManager } from '@/components/memos/MemosManager';
 import { MobileHome } from '@/components/admin/MobileHome';
-import { PhotoLightbox } from '@/components/albums/PhotoLightbox';
-import { solidFallback } from '@/components/decorate/ColorPicker';
+import { PhotoLightbox, type LightboxPhoto } from '@/components/albums/PhotoLightbox';
+import { textColorOrGradientStyle } from '@/components/decorate/ColorPicker';
 import type { Block, Layouts, MiniHomepageRow, PhotoRow, UrlRow, MemoRow, AlbumCategoryRow } from '@/types/db';
 
 const Expand = () => (
@@ -40,7 +40,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
   const [albumCategories, setAlbumCategories] = useState<AlbumCategoryRow[]>([]);
   const [expanded, setExpanded] = useState<ExpandKind>(null);
   const [drawingTarget, setDrawingTarget] = useState<Block | null>(null);
-  const [lightbox, setLightbox] = useState<PhotoRow | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const track = useTrack();
   const router = useRouter();
   // SSR과 client 첫 렌더가 다른 분기로 가는 hydration mismatch 방지.
@@ -139,7 +139,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
       case 'title':
         return (
           <div className="h-full flex items-center">
-            <h1 className="text-3xl font-bold leading-tight" style={{ color: solidFallback(hp.text_color) }}>
+            <h1 className="text-3xl font-bold leading-tight" style={textColorOrGradientStyle(hp.text_color)}>
               {hp.title || '나의 노트'}
             </h1>
           </div>
@@ -159,7 +159,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
       case 'urls':
         return (
           <div>
-            <h3 className="text-sm font-bold mb-2" style={{ color: solidFallback(hp.point_color) }}>URL 보관함</h3>
+            <h3 className="text-sm font-bold mb-2" style={textColorOrGradientStyle(hp.point_color)}>URL 보관함</h3>
             {urls.length === 0 ? (
               <p className="text-xs opacity-50">아직 저장된 링크가 없어요.</p>
             ) : (
@@ -185,16 +185,16 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
       case 'albums':
         return (
           <div>
-            <h3 className="text-sm font-bold mb-2" style={{ color: solidFallback(hp.point_color) }}>앨범</h3>
+            <h3 className="text-sm font-bold mb-2" style={textColorOrGradientStyle(hp.point_color)}>앨범</h3>
             {photos.length === 0 ? (
               <p className="text-xs opacity-50">아직 사진이 없어요.</p>
             ) : (
               <div className="grid grid-cols-3 gap-1.5">
-                {photos.slice(0, 9).map((p) => (
+                {photos.slice(0, 9).map((p, idx) => (
                   <button
                     key={p.id}
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); setLightbox(p); }}
+                    onClick={(e) => { e.stopPropagation(); setLightboxIndex(idx); }}
                     className="block"
                     aria-label="사진 크게 보기"
                   >
@@ -208,7 +208,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
       case 'memos':
         return (
           <div>
-            <h3 className="text-sm font-bold mb-2" style={{ color: solidFallback(hp.point_color) }}>메모</h3>
+            <h3 className="text-sm font-bold mb-2" style={textColorOrGradientStyle(hp.point_color)}>메모</h3>
             {memos.length === 0 ? (
               <p className="text-xs opacity-50">아직 메모가 없어요.</p>
             ) : (
@@ -253,7 +253,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
                 placeholder="제목"
                 maxLength={200}
                 className="w-full bg-transparent outline-none text-sm font-bold mb-1 border-b border-black/10 focus:border-violet-400"
-                style={{ color: solidFallback(hp.point_color) }}
+                style={textColorOrGradientStyle(hp.point_color)}
               />
               <textarea
                 value={b.customContent ?? ''}
@@ -271,7 +271,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
         }
         return (
           <div>
-            {b.customTitle && <h3 className="text-sm font-bold mb-1" style={{ color: solidFallback(hp.point_color) }}>{b.customTitle}</h3>}
+            {b.customTitle && <h3 className="text-sm font-bold mb-1" style={textColorOrGradientStyle(hp.point_color)}>{b.customTitle}</h3>}
             <div className="text-xs opacity-80 whitespace-pre-wrap">{b.customContent}</div>
           </div>
         );
@@ -403,10 +403,11 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
       />
 
       <PhotoLightbox
-        open={lightbox !== null}
-        url={lightbox?.image_url ?? null}
-        caption={lightbox?.caption ?? null}
-        onClose={() => setLightbox(null)}
+        open={lightboxIndex !== null}
+        photos={photos.slice(0, 9).map<LightboxPhoto>((p) => ({ url: p.image_url, caption: p.caption }))}
+        index={lightboxIndex ?? 0}
+        onIndexChange={setLightboxIndex}
+        onClose={() => setLightboxIndex(null)}
       />
     </div>
   );

@@ -2,34 +2,52 @@
 
 import { useEffect, useState } from 'react';
 
+export interface LightboxPhoto {
+  url: string;
+  caption?: string | null;
+}
+
 export function PhotoLightbox({
   open,
-  url,
-  caption,
+  photos,
+  index,
+  onIndexChange,
   onClose,
 }: {
   open: boolean;
-  url: string | null;
-  caption?: string | null;
+  photos: LightboxPhoto[];
+  index: number;
+  onIndexChange: (next: number) => void;
   onClose: () => void;
 }) {
   const [downloading, setDownloading] = useState(false);
 
+  const total = photos.length;
+  const hasPrev = index > 0;
+  const hasNext = index < total - 1;
+  const current = open && index >= 0 && index < total ? photos[index] : null;
+
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      else if (e.key === 'ArrowLeft' && index > 0) onIndexChange(index - 1);
+      else if (e.key === 'ArrowRight' && index < total - 1) onIndexChange(index + 1);
+    };
     window.addEventListener('keydown', onKey);
     document.documentElement.style.overflow = 'hidden';
     return () => {
       window.removeEventListener('keydown', onKey);
       document.documentElement.style.overflow = '';
     };
-  }, [open, onClose]);
+  }, [open, onClose, index, total, onIndexChange]);
 
-  if (!open || !url) return null;
+  if (!open || !current) return null;
+
+  const url = current.url;
+  const caption = current.caption;
 
   async function download() {
-    if (!url) return;
     setDownloading(true);
     try {
       const r = await fetch(url, { mode: 'cors' });
@@ -45,7 +63,6 @@ export function PhotoLightbox({
       setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
     } catch (e) {
       console.error(e);
-      // 일부 cross-origin은 fetch가 차단됨 — 새 탭으로 fallback
       window.open(url, '_blank', 'noopener');
     } finally {
       setDownloading(false);
@@ -68,6 +85,39 @@ export function PhotoLightbox({
       >
         ×
       </button>
+
+      {total > 1 && (
+        <div
+          className="absolute top-3 left-3 px-3 py-1.5 rounded-full bg-white/15 text-white text-xs tabular-nums backdrop-blur"
+          aria-label="사진 위치"
+        >
+          {index + 1} / {total}
+        </div>
+      )}
+
+      {total > 1 && (
+        <button
+          type="button"
+          aria-label="이전 사진"
+          disabled={!hasPrev}
+          onClick={(e) => { e.stopPropagation(); if (hasPrev) onIndexChange(index - 1); }}
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/90 text-gray-900 text-2xl leading-none flex items-center justify-center hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          ‹
+        </button>
+      )}
+
+      {total > 1 && (
+        <button
+          type="button"
+          aria-label="다음 사진"
+          disabled={!hasNext}
+          onClick={(e) => { e.stopPropagation(); if (hasNext) onIndexChange(index + 1); }}
+          className="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/90 text-gray-900 text-2xl leading-none flex items-center justify-center hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          ›
+        </button>
+      )}
 
       <div className="max-w-[95vw] max-h-[90vh] flex flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
         <img

@@ -24,6 +24,23 @@ function buildGradient(angle: number, c1: string, c2: string): string {
   return `linear-gradient(${angle}deg, ${c1}, ${c2})`;
 }
 
+// 단색(#RRGGBB / #RRGGBBAA) → rgb(7자리) + alpha(0~255) 분해.
+function splitHexAlpha(v: string): { rgb: string; alpha: number } {
+  const base = (v || '').slice(0, 7);
+  const rgb = /^#[0-9a-fA-F]{6}$/.test(base) ? base : '#ffffff';
+  if (v && v.length === 9) {
+    const a = parseInt(v.slice(7), 16);
+    return { rgb, alpha: Number.isFinite(a) ? a : 255 };
+  }
+  return { rgb, alpha: 255 };
+}
+
+// rgb + alpha → #RRGGBB 또는 #RRGGBBAA.
+function joinHexAlpha(rgb: string, alpha: number): string {
+  const a = Math.max(0, Math.min(255, Math.round(alpha)));
+  return a === 255 ? rgb : rgb + a.toString(16).padStart(2, '0');
+}
+
 export function ColorPicker({
   id,
   value,
@@ -75,21 +92,41 @@ export function ColorPicker({
       )}
 
       {mode === 'solid' ? (
-        <div className="flex items-center gap-2">
-          <input
-            id={id}
-            type="color"
-            value={(value || '#ffffff').slice(0, 7)}
-            onChange={(e) => onChange(e.target.value + (value.length === 9 ? value.slice(7) : ''))}
-            className="w-10 h-10 rounded border"
-          />
-          <input
-            type="text"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={placeholder ?? '#ffffff'}
-            className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
-          />
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <input
+              id={id}
+              type="color"
+              value={(value || '#ffffff').slice(0, 7)}
+              onChange={(e) => onChange(e.target.value + (value.length === 9 ? value.slice(7) : ''))}
+              className="w-10 h-10 rounded border"
+            />
+            <input
+              type="text"
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              placeholder={placeholder ?? '#ffffff'}
+              className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+            />
+          </div>
+          {(() => {
+            const { rgb, alpha } = splitHexAlpha(value);
+            return (
+              <div className="flex items-center gap-2 text-xs">
+                <span className="w-12 opacity-60">투명도</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={255}
+                  value={alpha}
+                  onChange={(e) => onChange(joinHexAlpha(rgb, parseInt(e.target.value, 10)))}
+                  className="flex-1"
+                  aria-label="투명도"
+                />
+                <span className="tabular-nums w-10 text-right">{Math.round((alpha / 255) * 100)}%</span>
+              </div>
+            );
+          })()}
         </div>
       ) : gradient ? (
         <div className="space-y-2">

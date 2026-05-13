@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback, ReactNode } from 'react';
 import { DndContext, useDraggable, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
+import { textColorOrGradientStyle } from '@/components/decorate/ColorPicker';
 import type { Block, Layouts, CardStyle, FontStyle, FontSize } from '@/types/db';
 
 export function fontSizeClass(s: FontSize): string {
@@ -205,7 +206,7 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
           {onQuickAdd && (block.kind === 'urls' || block.kind === 'albums' || block.kind === 'memos') && (
             <button
               onClick={(e) => { e.stopPropagation(); onQuickAdd(block.kind); }}
-              style={{ color: textColor }}
+              style={textColorOrGradientStyle(textColor)}
               className="text-base leading-none opacity-70 hover:opacity-100 w-7 h-7 rounded hover:bg-black/5 flex items-center justify-center"
               title="새로 추가"
               aria-label="새로 추가"
@@ -216,7 +217,7 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
           {block.kind === 'drawing' && onDraw && (
             <button
               onClick={(e) => { e.stopPropagation(); onDraw(block); }}
-              style={{ color: textColor }}
+              style={textColorOrGradientStyle(textColor)}
               className="text-sm opacity-70 hover:opacity-100 w-7 h-7 rounded hover:bg-black/5 flex items-center justify-center"
               title="그리기"
               aria-label="그림 편집"
