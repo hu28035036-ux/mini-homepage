@@ -22,3 +22,7 @@ export function backgroundPath(userId: string, filename: string): string {
 export function profilePath(userId: string, filename: string): string {
   return `${userId}/profile/${rand()}.${safeExt(filename)}`;
 }
+
+export function drawingPath(userId: string, filename: string): string {
+  return `${userId}/drawings/${rand()}.${safeExt(filename)}`;
+}

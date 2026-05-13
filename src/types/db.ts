@@ -32,7 +32,7 @@ export interface LayoutSlot {
 }
 
 // v2 자유 캔버스 블록
-export type BlockKind = 'title' | 'profile' | 'urls' | 'albums' | 'memos' | 'custom';
+export type BlockKind = 'title' | 'profile' | 'urls' | 'albums' | 'memos' | 'custom' | 'drawing';
 export type FontSize = 'xs' | 'sm' | 'base' | 'lg' | 'xl';
 
 export interface Block {
@@ -49,6 +49,7 @@ export interface Block {
   fontSize?: FontSize;       // 카드별 폰트 크기 오버라이드. 미지정 시 전역값
   customTitle?: string;      // custom 카드 제목 (Step L)
   customContent?: string;    // custom 카드 본문
+  drawingUrl?: string | null; // drawing 카드의 PNG URL (Step M, v0.7)
 }
 
 export interface Layouts {

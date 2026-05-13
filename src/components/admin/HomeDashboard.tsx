@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Modal, IconButton } from '@/components/ui/primitives';
 import { FreeCanvas, defaultBlocks, useTrack } from '@/components/canvas/FreeCanvas';
+import { DrawPad } from '@/components/canvas/DrawPad';
 import { UrlsManager } from '@/components/urls/UrlsManager';
 import { AlbumsManager } from '@/components/albums/AlbumsManager';
 import { MemosManager } from '@/components/memos/MemosManager';
@@ -35,6 +36,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
   const [photos, setPhotos] = useState<PhotoRow[]>([]);
   const [albumCategories, setAlbumCategories] = useState<AlbumCategoryRow[]>([]);
   const [expanded, setExpanded] = useState<ExpandKind>(null);
+  const [drawingTarget, setDrawingTarget] = useState<Block | null>(null);
   const track = useTrack();
 
   async function loadAll() {
@@ -194,6 +196,23 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
             )}
           </div>
         );
+      case 'drawing':
+        return (
+          <div className="h-full flex items-center justify-center">
+            {b.drawingUrl ? (
+              <img
+                src={b.drawingUrl}
+                alt="그림"
+                className="max-w-full max-h-full object-contain rounded"
+              />
+            ) : (
+              <div className="text-center opacity-50">
+                <div className="text-2xl mb-1">🎨</div>
+                <div className="text-xs">{editMode ? '카드를 클릭해 그리기' : '클릭해서 그리기'}</div>
+              </div>
+            )}
+          </div>
+        );
       case 'custom':
         if (editMode) {
           return (
@@ -322,6 +341,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
         renderBlock={renderBlock}
         onExpand={(k) => k !== 'title' && k !== 'profile' && setExpanded(k as ExpandKind)}
         onQuickAdd={quickAdd}
+        onDraw={(block) => setDrawingTarget(block)}
         onExitEdit={() => setEditMode(false)}
       />
 
@@ -334,6 +354,20 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
       <Modal open={expanded === 'memos'} onClose={closeExpanded} title="메모" size="xl">
         <MemosManager />
       </Modal>
+
+      <DrawPad
+        open={drawingTarget !== null}
+        initialUrl={drawingTarget?.drawingUrl ?? null}
+        onClose={() => setDrawingTarget(null)}
+        onSave={(url) => {
+          if (!drawingTarget) return;
+          const next = layouts[track].map((x) =>
+            x.id === drawingTarget.id ? { ...x, drawingUrl: url } : x
+          );
+          handleLayoutsChange({ ...layouts, [track]: next });
+          setDrawingTarget(null);
+        }}
+      />
     </div>
   );
 }

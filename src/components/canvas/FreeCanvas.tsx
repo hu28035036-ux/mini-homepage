@@ -100,10 +100,11 @@ interface DraggableBlockProps {
   onBringForward: (id: string) => void;
   onSendBackward: (id: string) => void;
   onDelete?: (id: string) => void;
+  onDraw?: (block: Block) => void;
   children: ReactNode;
 }
 
-function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity, effectiveFontSize, textColor, onSelect, onChange, onExpand, onQuickAdd, onBringForward, onSendBackward, onDelete, children }: DraggableBlockProps) {
+function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity, effectiveFontSize, textColor, onSelect, onChange, onExpand, onQuickAdd, onBringForward, onSendBackward, onDelete, onDraw, children }: DraggableBlockProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: block.id,
     disabled: !editMode,
@@ -138,9 +139,10 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
   };
 
   // URL 카드는 본문 클릭으로 확대 모달 진입 X (개별 링크 클릭 우선).
-  // 확대(추가/수정/삭제)는 ⛶ / + 버튼으로만 진입.
+  // drawing 카드는 본문 클릭 시 DrawPad 모달 (별도 흐름).
   const expandable = block.kind !== 'title' && block.kind !== 'profile' && !!onExpand;
-  const clickExpands = expandable && block.kind !== 'urls';
+  const clickExpands = expandable && block.kind !== 'urls' && block.kind !== 'drawing';
+  const clickOpensDrawPad = block.kind === 'drawing' && !!onDraw;
   return (
     <div
       ref={setNodeRef}
@@ -150,9 +152,10 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
           onSelect(block.id);
           return;
         }
+        if (clickOpensDrawPad) { onDraw!(block); return; }
         if (clickExpands) onExpand!(block.kind);
       }}
-      className={`absolute ${cardClass(cardStyle)} ${isDragging ? 'shadow-2xl' : ''} ${editMode ? (selected ? 'ring-2 ring-violet-500' : 'ring-1 ring-violet-300/40') : ''} ${!editMode && clickExpands ? 'cursor-zoom-in' : ''}`}
+      className={`absolute ${cardClass(cardStyle)} ${isDragging ? 'shadow-2xl' : ''} ${editMode ? (selected ? 'ring-2 ring-violet-500' : 'ring-1 ring-violet-300/40') : ''} ${!editMode && (clickExpands || clickOpensDrawPad) ? 'cursor-zoom-in' : ''}`}
       style={{
         left: block.x,
         top: block.y,
@@ -172,10 +175,10 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
         {children}
       </div>
 
-      {/* 2. 평소 모드 우상단 액션 — + 새로 추가 (urls/albums/memos), ⛶ 전체보기 */}
+      {/* 2. 평소 모드 우상단 액션 — + 새로 추가 (urls/albums/memos), ⛶ 전체보기, ✎ 그리기(drawing) */}
       {!editMode && block.kind !== 'title' && block.kind !== 'profile' && (
         <div className="absolute top-2 right-2 z-20 flex items-center gap-1">
-          {onQuickAdd && (
+          {onQuickAdd && (block.kind === 'urls' || block.kind === 'albums' || block.kind === 'memos') && (
             <button
               onClick={(e) => { e.stopPropagation(); onQuickAdd(block.kind); }}
               style={{ color: textColor }}
@@ -186,7 +189,18 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
               +
             </button>
           )}
-          {onExpand && (
+          {block.kind === 'drawing' && onDraw && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onDraw(block); }}
+              style={{ color: textColor }}
+              className="text-sm opacity-70 hover:opacity-100 w-7 h-7 rounded hover:bg-black/5 flex items-center justify-center"
+              title="그리기"
+              aria-label="그림 편집"
+            >
+              ✎
+            </button>
+          )}
+          {onExpand && block.kind !== 'urls' && block.kind !== 'drawing' && (
             <button
               onClick={(e) => { e.stopPropagation(); onExpand(block.kind); }}
               className="text-xs opacity-50 hover:opacity-100 w-7 h-7 rounded hover:bg-black/5 flex items-center justify-center"
@@ -255,7 +269,7 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
             >
               숨김
             </button>
-            {block.kind === 'custom' && onDelete && (
+            {(block.kind === 'custom' || block.kind === 'drawing') && onDelete && (
               <button
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
@@ -321,6 +335,7 @@ export interface FreeCanvasProps {
   renderBlock: (block: Block) => ReactNode;
   onExpand?: (kind: Block['kind']) => void;
   onQuickAdd?: (kind: Block['kind']) => void;
+  onDraw?: (block: Block) => void;
   onExitEdit?: () => void;
   /** 공개 페이지 등 visibility=private 필터링 모드 */
   publicViewOnly?: boolean;
@@ -341,6 +356,7 @@ export function FreeCanvas({
   renderBlock,
   onExpand,
   onQuickAdd,
+  onDraw,
   onExitEdit,
   publicViewOnly = false,
   forceTrack,
@@ -370,19 +386,34 @@ export function FreeCanvas({
     applyChange(id, { z: minZ - 1 });
   }
 
+  function newId(prefix: string): string {
+    return (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
+      ? crypto.randomUUID()
+      : `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  }
   function addCustomBlock() {
     if (!onLayoutsChange) return;
     const maxZ = blocks.reduce((m, b) => Math.max(m, b.z ?? 0), 0);
-    const id = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
-      ? crypto.randomUUID()
-      : `custom-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const newBlock: Block = {
-      id,
+      id: newId('custom'),
       kind: 'custom',
       x: 40, y: 40, w: 280, h: 180, z: maxZ + 1,
       visible: true, visibility: 'public',
       customTitle: '새 카드',
       customContent: '내용을 입력하세요',
+    };
+    onLayoutsChange({ ...layouts, [track]: [...blocks, newBlock] });
+  }
+
+  function addDrawingBlock() {
+    if (!onLayoutsChange) return;
+    const maxZ = blocks.reduce((m, b) => Math.max(m, b.z ?? 0), 0);
+    const newBlock: Block = {
+      id: newId('drawing'),
+      kind: 'drawing',
+      x: 60, y: 60, w: 320, h: 240, z: maxZ + 1,
+      visible: true, visibility: 'public',
+      drawingUrl: null,
     };
     onLayoutsChange({ ...layouts, [track]: [...blocks, newBlock] });
   }
@@ -451,13 +482,20 @@ export function FreeCanvas({
   return (
     <DndContext sensors={sensors} onDragEnd={onDragEnd}>
       {editMode && (
-        <div className="sticky top-2 z-50 mx-auto mb-2 flex justify-end" style={{ maxWidth: canvasWidth }}>
+        <div className="sticky top-2 z-50 mx-auto mb-2 flex justify-end gap-2" style={{ maxWidth: canvasWidth }}>
           <button
             onClick={addCustomBlock}
             className="text-xs px-3 py-1.5 rounded-lg bg-violet-600 text-white hover:bg-violet-700 shadow"
-            aria-label="새 카드 추가"
+            aria-label="새 텍스트 카드 추가"
           >
-            + 카드 추가
+            + 텍스트 카드
+          </button>
+          <button
+            onClick={addDrawingBlock}
+            className="text-xs px-3 py-1.5 rounded-lg bg-violet-600 text-white hover:bg-violet-700 shadow"
+            aria-label="새 그림판 카드 추가"
+          >
+            + 그림판
           </button>
         </div>
       )}
@@ -532,6 +570,7 @@ export function FreeCanvas({
             onBringForward={bringForward}
             onSendBackward={sendBackward}
             onDelete={deleteBlock}
+            onDraw={onDraw}
           >
             <div style={{ '--point': pointColor } as React.CSSProperties}>{renderBlock(b)}</div>
           </DraggableBlock>

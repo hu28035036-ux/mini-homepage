@@ -108,6 +108,18 @@ export function PublicCanvas({ data }: { data: PublicData }) {
             <div className="text-xs opacity-80 whitespace-pre-wrap">{b.customContent}</div>
           </div>
         );
+      case 'drawing':
+        return (
+          <div className="h-full flex items-center justify-center">
+            {b.drawingUrl ? (
+              <img
+                src={b.drawingUrl}
+                alt="그림"
+                className="max-w-full max-h-full object-contain rounded"
+              />
+            ) : null}
+          </div>
+        );
     }
   };
 

@@ -22,7 +22,7 @@ const FONT_SIZES = ['xs', 'sm', 'base', 'lg', 'xl'] as const;
 
 const blockSchema = z.object({
   id: z.string().min(1),
-  kind: z.enum(['title', 'profile', 'urls', 'albums', 'memos', 'custom']),
+  kind: z.enum(['title', 'profile', 'urls', 'albums', 'memos', 'custom', 'drawing']),
   x: z.number().finite(),
   y: z.number().finite(),
   w: z.number().min(160).max(4000),
@@ -34,6 +34,7 @@ const blockSchema = z.object({
   fontSize: z.enum(FONT_SIZES).optional(),
   customTitle: z.string().max(200).optional(),
   customContent: z.string().max(5000).optional(),
+  drawingUrl: z.string().url().nullable().optional(),
 });
 
 const layoutsSchema = z.object({

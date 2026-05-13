@@ -1,7 +1,7 @@
 import { requireUser } from '@/lib/auth/guards';
 import { homepagesRepo } from '@/lib/repositories/homepages';
 import { uploadImage } from '@/lib/storage/uploader';
-import { backgroundPath, profilePath } from '@/lib/storage/paths';
+import { backgroundPath, profilePath, drawingPath } from '@/lib/storage/paths';
 import { AppError } from '@/lib/errors/codes';
 import { updateDecorateSchema } from '@/lib/validators/decorate';
 import { parseInput } from './_parse';
@@ -68,5 +68,12 @@ export const decorateService = {
     const url = await uploadImage(file.buffer, file.mime, file.byteSize, path);
     await homepagesRepo.updateProfile(uid, { profile_image_url: url });
     return { profile_image_url: url };
+  },
+
+  async uploadDrawing(file: { buffer: Buffer; mime: string; byteSize: number; filename: string }) {
+    const uid = await requireUser();
+    const path = drawingPath(uid, file.filename);
+    const url = await uploadImage(file.buffer, file.mime, file.byteSize, path);
+    return { drawing_url: url };
   },
 };
