@@ -221,8 +221,7 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
                 id="pattern-select"
                 value={pattern}
                 onChange={(e) => setPattern(e.target.value as BackgroundPattern)}
-                disabled={useBg}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 disabled:opacity-50 mb-2"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 mb-2"
               >
                 {PATTERN_LIST.map((p) => (
                   <option key={p.value} value={p.value}>{p.label}</option>
@@ -235,28 +234,29 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
                   type="color"
                   value={(patternColor || '#000000').slice(0, 7)}
                   onChange={(e) => setPatternColor(e.target.value + (patternColor.length === 9 ? patternColor.slice(7) : '22'))}
-                  disabled={useBg || pattern === 'none'}
-                  className="w-10 h-10 rounded border disabled:opacity-50"
+                  className="w-10 h-10 rounded border"
                 />
                 <Input
                   value={patternColor}
                   onChange={(e) => setPatternColor(e.target.value)}
-                  disabled={useBg || pattern === 'none'}
                   className="flex-1"
                   placeholder="#00000022 (끝 2자리: 투명도)"
                 />
               </div>
-              {pattern !== 'none' && !useBg && (
-                <div
-                  className="mt-2 h-12 rounded border border-gray-200"
-                  style={{
-                    backgroundColor: bg,
-                    backgroundImage: patternImage(pattern, patternColor),
-                    backgroundSize: patternSize(pattern),
-                    backgroundPosition: patternPosition(pattern),
-                  }}
-                  aria-label="패턴 미리보기"
-                />
+              <div
+                className="mt-3 h-20 rounded border border-gray-200 flex items-center justify-center text-xs opacity-60"
+                style={{
+                  backgroundColor: bg,
+                  backgroundImage: pattern === 'none' ? undefined : patternImage(pattern, patternColor),
+                  backgroundSize: pattern === 'none' ? undefined : patternSize(pattern),
+                  backgroundPosition: pattern === 'none' ? undefined : patternPosition(pattern),
+                }}
+                aria-label="패턴 미리보기"
+              >
+                {pattern === 'none' ? '무늬 없음' : ''}
+              </div>
+              {useBg && (
+                <p className="text-[11px] text-amber-700 mt-2">⚠ 배경 이미지를 사용 중입니다. 이미지를 끄면(체크 해제) 무늬가 보입니다.</p>
               )}
             </div>
           </Card>
