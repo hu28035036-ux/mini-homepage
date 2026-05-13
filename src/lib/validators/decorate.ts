@@ -42,10 +42,20 @@ const layoutsSchema = z.object({
   mobile: z.array(blockSchema).max(50),
 });
 
+const BACKGROUND_PATTERNS = [
+  'none', 'dots', 'grid', 'diagonal', 'stripes',
+  'checker', 'crosshatch', 'waves', 'triangles',
+] as const;
+
+// 패턴 색은 alpha 채널 포함 가능 (#RRGGBBAA 8자리 허용)
+const hexAlpha = z.string().regex(/^#[0-9a-fA-F]{3,8}$/, 'DECORATE_INVALID_VALUE');
+
 export const updateDecorateSchema = z.object({
   background_color: hex.optional(),
   background_image_url: z.string().url().nullable().optional(),
   use_background_image: z.boolean().optional(),
+  background_pattern: z.enum(BACKGROUND_PATTERNS).optional(),
+  background_pattern_color: hexAlpha.optional(),
   point_color: hex.optional(),
   text_color: hex.optional(),
   card_style: z.enum(CARD_STYLES).optional(),

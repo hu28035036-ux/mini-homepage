@@ -115,6 +115,8 @@ export const homepagesRepo = {
         | 'background_color'
         | 'background_image_url'
         | 'use_background_image'
+        | 'background_pattern'
+        | 'background_pattern_color'
         | 'point_color'
         | 'text_color'
         | 'card_style'

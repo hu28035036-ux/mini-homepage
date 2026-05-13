@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getCurrentUserId } from '@/lib/auth/guards';
 import { homepageService } from '@/lib/services/homepage';
 import { MenuButton } from '@/components/admin/MenuButton';
+import { patternImage, patternSize, patternPosition } from '@/lib/canvas/patterns';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const uid = await getCurrentUserId();
@@ -11,14 +12,23 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const hp = await homepageService.ensureMine();
 
   // 본인의 노트 스타일을 관리 화면 루트에 적용 (사용자가 주인)
+  // 우선순위: 업로드 이미지 > 패턴 무늬 > 단색
+  const useImage = hp.use_background_image && hp.background_image_url;
+  const usePattern = !useImage && hp.background_pattern && hp.background_pattern !== 'none';
+  const patternImg = usePattern ? patternImage(hp.background_pattern, hp.background_pattern_color) : '';
   const containerStyle: React.CSSProperties = {
     backgroundColor: hp.background_color,
     color: hp.text_color,
-    backgroundImage:
-      hp.use_background_image && hp.background_image_url ? `url(${hp.background_image_url})` : undefined,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundAttachment: 'fixed',
+    backgroundImage: useImage
+      ? `url(${hp.background_image_url})`
+      : (usePattern ? patternImg : undefined),
+    backgroundSize: useImage
+      ? 'cover'
+      : (usePattern ? patternSize(hp.background_pattern) : undefined),
+    backgroundPosition: useImage
+      ? 'center'
+      : (usePattern ? patternPosition(hp.background_pattern) : undefined),
+    backgroundAttachment: useImage ? 'fixed' : undefined,
     // 세로 스크롤바 색을 카드/포인트 색과 통일 (모든 카드 동일)
     ['--scrollbar-track' as string]: hp.background_color,
     ['--scrollbar-thumb' as string]: hp.point_color,

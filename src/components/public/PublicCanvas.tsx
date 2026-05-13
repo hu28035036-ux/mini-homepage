@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { FreeCanvas } from '@/components/canvas/FreeCanvas';
+import { patternImage, patternSize, patternPosition } from '@/lib/canvas/patterns';
 import type { Block, Layouts, MiniHomepageRow } from '@/types/db';
 
 export interface PublicData {
@@ -9,6 +10,7 @@ export interface PublicData {
     MiniHomepageRow,
     | 'title' | 'intro' | 'profile_image_url' | 'slug'
     | 'background_color' | 'background_image_url' | 'use_background_image'
+    | 'background_pattern' | 'background_pattern_color'
     | 'point_color' | 'text_color' | 'card_style' | 'font_style'
     | 'default_card_opacity' | 'default_font_size'
   > & { layouts: Layouts };
@@ -123,16 +125,22 @@ export function PublicCanvas({ data }: { data: PublicData }) {
     }
   };
 
+  const useImage = homepage.use_background_image && homepage.background_image_url;
+  const usePattern = !useImage && homepage.background_pattern && homepage.background_pattern !== 'none';
+  const patternImg = usePattern ? patternImage(homepage.background_pattern, homepage.background_pattern_color) : '';
   const wrapperStyle: React.CSSProperties = {
     backgroundColor: homepage.background_color,
     color: homepage.text_color,
-    backgroundImage:
-      homepage.use_background_image && homepage.background_image_url
-        ? `url(${homepage.background_image_url})`
-        : undefined,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundAttachment: 'fixed',
+    backgroundImage: useImage
+      ? `url(${homepage.background_image_url})`
+      : (usePattern ? patternImg : undefined),
+    backgroundSize: useImage
+      ? 'cover'
+      : (usePattern ? patternSize(homepage.background_pattern) : undefined),
+    backgroundPosition: useImage
+      ? 'center'
+      : (usePattern ? patternPosition(homepage.background_pattern) : undefined),
+    backgroundAttachment: useImage ? 'fixed' : undefined,
     ['--scrollbar-track' as string]: homepage.background_color,
     ['--scrollbar-thumb' as string]: homepage.point_color,
   };

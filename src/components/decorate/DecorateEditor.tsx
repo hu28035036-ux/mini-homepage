@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Card, Button, GhostButton, Input, Label, ErrorText } from '@/components/ui/primitives';
 import { WidgetBoard, type PreviewData, type DecorateStyle } from '@/components/public/WidgetRenderer';
 import { useTrack } from '@/components/canvas/FreeCanvas';
-import type { MiniHomepageRow, LayoutMode, LayoutSlot, WidgetKind, CardStyle, FontStyle, FontSize } from '@/types/db';
+import { PATTERN_LIST, patternImage, patternSize, patternPosition } from '@/lib/canvas/patterns';
+import type { MiniHomepageRow, LayoutMode, LayoutSlot, WidgetKind, CardStyle, FontStyle, FontSize, BackgroundPattern } from '@/types/db';
 
 const CARD_STYLES: { value: CardStyle; label: string }[] = [
   { value: 'basic', label: '기본형' },
@@ -76,6 +77,8 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
   const [bg, setBg] = useState(initial.background_color);
   const [bgUrl, setBgUrl] = useState<string | null>(initial.background_image_url);
   const [useBg, setUseBg] = useState(initial.use_background_image);
+  const [pattern, setPattern] = useState<BackgroundPattern>(initial.background_pattern ?? 'none');
+  const [patternColor, setPatternColor] = useState(initial.background_pattern_color ?? '#00000022');
   const [point, setPoint] = useState(initial.point_color);
   const [text, setText] = useState(initial.text_color);
   const [card, setCard] = useState<CardStyle>(initial.card_style);
@@ -153,6 +156,8 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
         background_color: bg,
         background_image_url: bgUrl,
         use_background_image: useBg,
+        background_pattern: pattern,
+        background_pattern_color: patternColor,
         point_color: point,
         text_color: text,
         card_style: card,
@@ -208,6 +213,52 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
               <input type="checkbox" checked={useBg} onChange={(e) => setUseBg(e.target.checked)} />
               배경 이미지 사용
             </label>
+            <p className="text-[11px] opacity-60 mt-1">이미지를 사용하면 무늬는 가려집니다.</p>
+
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <Label htmlFor="pattern-select">무늬 (배경색 위에 표시)</Label>
+              <select
+                id="pattern-select"
+                value={pattern}
+                onChange={(e) => setPattern(e.target.value as BackgroundPattern)}
+                disabled={useBg}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 disabled:opacity-50 mb-2"
+              >
+                {PATTERN_LIST.map((p) => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))}
+              </select>
+              <Label htmlFor="pattern-color">무늬 색상</Label>
+              <div className="flex items-center gap-2">
+                <input
+                  id="pattern-color"
+                  type="color"
+                  value={(patternColor || '#000000').slice(0, 7)}
+                  onChange={(e) => setPatternColor(e.target.value + (patternColor.length === 9 ? patternColor.slice(7) : '22'))}
+                  disabled={useBg || pattern === 'none'}
+                  className="w-10 h-10 rounded border disabled:opacity-50"
+                />
+                <Input
+                  value={patternColor}
+                  onChange={(e) => setPatternColor(e.target.value)}
+                  disabled={useBg || pattern === 'none'}
+                  className="flex-1"
+                  placeholder="#00000022 (끝 2자리: 투명도)"
+                />
+              </div>
+              {pattern !== 'none' && !useBg && (
+                <div
+                  className="mt-2 h-12 rounded border border-gray-200"
+                  style={{
+                    backgroundColor: bg,
+                    backgroundImage: patternImage(pattern, patternColor),
+                    backgroundSize: patternSize(pattern),
+                    backgroundPosition: patternPosition(pattern),
+                  }}
+                  aria-label="패턴 미리보기"
+                />
+              )}
+            </div>
           </Card>
 
           <Card>

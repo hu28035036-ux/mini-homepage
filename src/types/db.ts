@@ -24,6 +24,11 @@ export type FontStyle =
 export type LayoutMode = 'single' | 'double';
 export type WidgetKind = 'profile' | 'urls' | 'albums' | 'memos' | 'empty';
 
+// v0.7.x 배경 무늬 (마이그 0004)
+export type BackgroundPattern =
+  | 'none' | 'dots' | 'grid' | 'diagonal' | 'stripes'
+  | 'checker' | 'crosshatch' | 'waves' | 'triangles';
+
 // v1 슬롯 (호환 유지)
 export interface LayoutSlot {
   slot: number;
@@ -67,6 +72,8 @@ export interface MiniHomepageRow {
   background_color: string;
   background_image_url: string | null;
   use_background_image: boolean;
+  background_pattern: BackgroundPattern;
+  background_pattern_color: string;
   point_color: string;
   text_color: string;
   card_style: CardStyle;
