@@ -9,6 +9,7 @@ import { UrlsManager } from '@/components/urls/UrlsManager';
 import { AlbumsManager } from '@/components/albums/AlbumsManager';
 import { MemosManager } from '@/components/memos/MemosManager';
 import { MobileHome } from '@/components/admin/MobileHome';
+import { PhotoLightbox } from '@/components/albums/PhotoLightbox';
 import type { Block, Layouts, MiniHomepageRow, PhotoRow, UrlRow, MemoRow, AlbumCategoryRow } from '@/types/db';
 
 const Expand = () => (
@@ -38,6 +39,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
   const [albumCategories, setAlbumCategories] = useState<AlbumCategoryRow[]>([]);
   const [expanded, setExpanded] = useState<ExpandKind>(null);
   const [drawingTarget, setDrawingTarget] = useState<Block | null>(null);
+  const [lightbox, setLightbox] = useState<PhotoRow | null>(null);
   const track = useTrack();
   const router = useRouter();
   // SSR과 client 첫 렌더가 다른 분기로 가는 hydration mismatch 방지.
@@ -188,7 +190,15 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
             ) : (
               <div className="grid grid-cols-3 gap-1.5">
                 {photos.slice(0, 9).map((p) => (
-                  <img key={p.id} src={p.image_url} alt={p.caption ?? ''} className="aspect-square object-cover rounded" />
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setLightbox(p); }}
+                    className="block"
+                    aria-label="사진 크게 보기"
+                  >
+                    <img src={p.image_url} alt={p.caption ?? ''} className="aspect-square w-full object-cover rounded cursor-zoom-in" />
+                  </button>
                 ))}
               </div>
             )}
@@ -389,6 +399,13 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
           handleLayoutsChange({ ...layouts, [track]: next });
           setDrawingTarget(null);
         }}
+      />
+
+      <PhotoLightbox
+        open={lightbox !== null}
+        url={lightbox?.image_url ?? null}
+        caption={lightbox?.caption ?? null}
+        onClose={() => setLightbox(null)}
       />
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, ChangeEvent } from 'react';
 import { Card, Button, GhostButton, DangerButton, Input, Label, ErrorText } from '@/components/ui/primitives';
+import { PhotoLightbox } from '@/components/albums/PhotoLightbox';
 import type { AlbumCategoryRow, PhotoRow } from '@/types/db';
 
 async function getJson<T>(url: string): Promise<{ success: boolean; data?: T; message?: string }> {
@@ -13,6 +14,7 @@ export function AlbumsManager() {
   const [categories, setCategories] = useState<AlbumCategoryRow[]>([]);
   const [photos, setPhotos] = useState<PhotoRow[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState<PhotoRow | null>(null);
   const [newCat, setNewCat] = useState('');
   const [err, setErr] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
@@ -156,9 +158,16 @@ export function AlbumsManager() {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {photos.map((p) => (
               <div key={p.id} className="relative group">
-                <img src={p.image_url} alt={p.caption ?? ''} className="aspect-square w-full object-cover rounded-lg" />
                 <button
-                  onClick={() => deletePhoto(p.id)}
+                  type="button"
+                  onClick={() => setLightbox(p)}
+                  className="block w-full"
+                  aria-label="사진 크게 보기"
+                >
+                  <img src={p.image_url} alt={p.caption ?? ''} className="aspect-square w-full object-cover rounded-lg cursor-zoom-in" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); deletePhoto(p.id); }}
                   className="absolute top-2 right-2 text-xs bg-white/90 text-red-600 rounded px-2 py-0.5 opacity-0 group-hover:opacity-100 transition"
                 >
                   삭제
@@ -168,6 +177,13 @@ export function AlbumsManager() {
           </div>
         </Card>
       </div>
+
+      <PhotoLightbox
+        open={lightbox !== null}
+        url={lightbox?.image_url ?? null}
+        caption={lightbox?.caption ?? null}
+        onClose={() => setLightbox(null)}
+      />
     </div>
   );
 }

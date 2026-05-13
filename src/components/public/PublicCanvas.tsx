@@ -1,7 +1,8 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { FreeCanvas } from '@/components/canvas/FreeCanvas';
+import { PhotoLightbox } from '@/components/albums/PhotoLightbox';
 import { patternImage, patternSize, patternPosition } from '@/lib/canvas/patterns';
 import type { Block, Layouts, MiniHomepageRow } from '@/types/db';
 
@@ -22,6 +23,7 @@ export interface PublicData {
 
 export function PublicCanvas({ data }: { data: PublicData }) {
   const { homepage } = data;
+  const [lightbox, setLightbox] = useState<{ image_url: string; caption: string | null } | null>(null);
 
   const renderBlock = (b: Block): ReactNode => {
     switch (b.kind) {
@@ -77,7 +79,15 @@ export function PublicCanvas({ data }: { data: PublicData }) {
                   <div className="text-xs opacity-70 mb-1">{a.category}</div>
                   <div className="grid grid-cols-3 gap-1.5">
                     {a.photos.map((p) => (
-                      <img key={p.id} src={p.image_url} alt={p.caption ?? ''} className="aspect-square object-cover rounded" />
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setLightbox({ image_url: p.image_url, caption: p.caption }); }}
+                        className="block"
+                        aria-label="사진 크게 보기"
+                      >
+                        <img src={p.image_url} alt={p.caption ?? ''} className="aspect-square w-full object-cover rounded cursor-zoom-in" />
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -158,6 +168,13 @@ export function PublicCanvas({ data }: { data: PublicData }) {
         defaultFontSize={homepage.default_font_size ?? 'base'}
         renderBlock={renderBlock}
         publicViewOnly
+      />
+
+      <PhotoLightbox
+        open={lightbox !== null}
+        url={lightbox?.image_url ?? null}
+        caption={lightbox?.caption ?? null}
+        onClose={() => setLightbox(null)}
       />
     </main>
   );
