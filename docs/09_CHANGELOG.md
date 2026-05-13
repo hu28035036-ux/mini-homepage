@@ -1,6 +1,6 @@
 ---
 상태: Draft
-버전: v0.7
+버전: v0.7.x
 마지막 수정일: 2026-05-13
 문서 목적: 운영 / 변경 이력
 ---
@@ -8,6 +8,21 @@
 # 변경 이력
 
 본 문서는 시간순 변경 기록을 남긴다. 현재 기능 지도는 `docs/19_FEATURE_CATALOG.md`에 있으며, 본 문서는 "언제, 무엇이 바뀌었는지"만 간단히 적는다.
+
+## v0.7.x — 2026-05-13 (배경 무늬·카드 스타일+10·lightbox·그라데이션·모바일 단순화)
+
+이번 세션 14건. 마이그 0004/0005/0006 신규 + 운영 완전 동기화. E2E 35 → 37 passed.
+
+- 🆕 **배경 무늬 8종 + 색상** (마이그 0004) — dots/grid/diagonal/stripes/checker/crosshatch/waves/triangles, alpha 채널 hex 8자리 허용. 이미지 사용 시 패턴 가려짐. 패턴 카드 안에 종합 미리보기(투명도+카드+폰트크기)
+- 🆕 **카드 스타일 10종 추가** (마이그 0005) — sticky(포스트잇 노랑)/mint/pink/sky/notebook(라인)/grid-paper(모눈)/dashed/double-border/ringed/bevel. **사용자 지정 카드 배경색** color picker + alpha. 총 20종
+- 🆕 **사진 lightbox + 다운로드** — PhotoLightbox 컴포넌트 신규. fetch blob a.download (cross-origin fallback). AlbumsManager/HomeDashboard/PublicCanvas 모두 적용
+- 🆕 **배경/카드 배경 그라데이션** (마이그 0006) — ColorPicker 단색/그라데이션 토글 + 두 색 + 각도 slider. 글자/포인트는 단색만(`solidOnly`). `solidFallback`로 옛 데이터 안전 fallback
+- 🐛 **useTrack lazy init** — SSR fallback이 'desktop'이라 모바일이 PC 화면으로 보이던 hydration 회귀
+- 🐛 **HomeDashboard mount 체크** — SSR HTML이 desktop으로 그려져 첫 paint에 캔버스 잘림. mount 전 placeholder
+- 🐛 **MOBILE_BREAKPOINT 768 → 1024** — 갤럭시 폴드6 펼침(884) / 데스크탑 사이트 모드(980) 흡수
+- 🐛 **PC/태블릿 수정 후 화면 즉시 갱신** — `persistLayouts` 끝에 `router.refresh()` + hp 동기화
+- 🐛 **무늬 select disabled 제거** — 이미지 사용 토글과 무관하게 클릭 가능. 안내 문구만 표시
+- 🐛 **모바일 꾸미기 완전 제외** — 햄버거에서 꾸미기 메뉴 hide, /admin/decorate 모바일 진입 시 안내만. 화면 밖 넘침 해소
 
 ## v0.7 — 2026-05-13 (그림판 카드 + 모바일 기록 전용 UI)
 

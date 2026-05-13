@@ -1,16 +1,16 @@
 ---
 상태: Draft
-버전: v0.7
+버전: v0.7.x
 마지막 수정일: 2026-05-13
 문서 목적: 운영 / 현재 상태
 ---
 
-# 현재 상태 — v0.7 (그림판 카드 + 모바일 기록 전용 UI)
+# 현재 상태 — v0.7.x (그라데이션 + 무늬 + 카드 스타일 20종 + lightbox)
 
 ## 1. Phase
 
 - 모든 Phase 0~10 완료. 그 후 **v2 재설계 사이클** 진행 중.
-- 현재 사이클: **v0.6 배포 완료 + 사용자 검증 대기** (12개 Step 일괄 적용)
+- 현재 사이클: **v0.7.x 배포 완료** (이번 세션 14건 누적, 마이그 0004~0006 운영 동기화)
 
 ## 2. 가동 중인 환경
 
@@ -24,19 +24,20 @@
 
 ## 3. 최근 완료 작업 (시간 역순)
 
-- **v0.6** — PWA + z-index ▲▼ + 자동저장 디바운스/화살표/Esc + 투명도/폰트크기 (마이그 0003) + 메모 row 카드형 + 스크롤바 카드색 + 햄버거 메뉴(TopBar 제거) + 비밀번호 변경 + 카드별 + 버튼 + custom 카드 추가/삭제 + TC-ALB-006~010 E2E. 12개 step + 마이그레이션 0003
+- **v0.7.x** — 배경 무늬 8종(마이그 0004) + 카드 스타일 +10종/배경색(마이그 0005) + 사진 lightbox + 배경/카드 그라데이션(마이그 0006) + useTrack lazy init·MOBILE_BREAKPOINT 1024·HomeDashboard mount 체크·router.refresh·모바일 꾸미기 제외. 14 commit
+- **v0.7** — 그림판 카드(DrawPad 모달 + Supabase Storage PNG) + 모바일 리스트 UI(MobileHome) + DecorateEditor 모바일 단순화
+- **v0.6** — PWA + z-index ▲▼ + 자동저장 디바운스/화살표/Esc + 투명도/폰트크기 (마이그 0003) + 메모 row 카드형 + 스크롤바 카드색 + 햄버거 메뉴(TopBar 제거) + 비밀번호 변경 + 카드별 + 버튼 + custom 카드 추가/삭제 + TC-ALB-006~010 E2E. 12 step + 마이그 0003
 - **v0.5.x fix** — DecorateEditor save 후 `router.refresh()` + Tailwind v4 `@source inline` safelist (commit `06547fc`)
 - **v0.5 Phase B** — 자유 캔버스, 폰트 12종, 카드 10종, 드롭다운, 2-track layouts, PublicCanvas (commit `de8d49e`)
-- **v0.5 fix** — 드래그/리사이즈 핸들 stacking 버그 (commit `6cb51b0`)
-- **v0.4 Phase A** — 사이드바 제거, TopBar, 카드 expand 모달, 본인 스타일 동적 적용 (commit `b86fcba` + `2f65f46`)
-- **v0.3 운영 배포** — Vercel + Supabase prod, 환경변수 7개, 자동 배포 흐름 (commit `8e6726e` 외)
+- **v0.4 Phase A** — 사이드바 제거, TopBar, 카드 expand 모달, 본인 스타일 동적 적용
+- **v0.3 운영 배포** — Vercel + Supabase prod
 
 ## 4. 검증 현황
 
 - TypeScript: **0 에러**
 - 빌드: **next build 성공**
-- E2E: **31 passed / 3 skipped / 0 failed** (chromium)
-- 마이그레이션: 0003 로컬 적용. 운영 SQL Editor 적용 필요
+- E2E: **37 passed / 3 skipped / 0 failed** (chromium)
+- 마이그레이션: **0001~0006 로컬·운영 완전 동기화 ✅**
 - 운영 헬스: `/login` 200, `/u/<missing>` 404, `/api/public/<missing>` `HOMEPAGE_PRIVATE_OR_NOT_FOUND`, 보안 헤더 4종 적용
 - 빌드 시크릿 누출: 클라이언트 번들에 `SUPABASE_SERVICE_ROLE_KEY`/`SESSION_SECRET` 없음 (grep 확인)
 - DB 보안 advisors: ERROR 0건 (RLS 활성 + anon 권한 회수 완료)

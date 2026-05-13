@@ -1,11 +1,11 @@
 ---
 상태: Draft
-버전: v0.7
+버전: v0.7.x
 마지막 수정일: 2026-05-13
 문서 목적: 운영 / 세션 인수인계
 ---
 
-# 세션 인수인계 — v0.7 (그림판 카드 + 모바일 기록 전용 UI)
+# 세션 인수인계 — v0.7.x (그라데이션·무늬·lightbox·모바일 단순화)
 
 다음 세션이 곧장 이어받을 수 있도록 **현재 상태 / 환경 / 다음 작업 후보**를 한 곳에 정리한다.
 
@@ -19,11 +19,11 @@
 | GitHub repo | https://github.com/hu28035036-ux/mini-homepage (Private) |
 | Supabase Project | `mini-homepage-prod` (ref `efokjcootdmcrnpnqpce`, Seoul) |
 | Vercel Project | `mini-homepage` (orgId `team_Fej1ZZqXQJPzGwxXB9oGo9AB`, projectId `prj_F0mAKTWVVZ38KBfXYj9qDSlJ46L6`) |
-| 최근 commit | v0.7 그림판 카드 + 모바일 리스트 UI |
-| 마지막 운영 배포 | Vercel 자동 (GitHub master push) — 진행/완료 |
-| E2E | **35 passed / 3 skipped / 0 failed** (chromium) |
+| 최근 commit | `51c1a18 feat(decorate): 글자/포인트 색상은 단색만 (그라데이션 제거)` |
+| 마지막 운영 배포 | Vercel 자동 — 완료, `/login` 200 |
+| E2E | **37 passed / 3 skipped / 0 failed** (chromium) |
 | TypeScript | 0 에러 |
-| 마이그레이션 0003 | 로컬 적용 완료 / 운영 SQL Editor 적용 **필요** |
+| 마이그레이션 | **0001~0006 로컬·운영 완전 동기화** ✅ |
 
 ---
 
@@ -73,7 +73,30 @@
 - **Step K. 카드 클릭 expand** — 카드 본문 클릭 → expand 모달 자동 오픈 (urls 링크는 stopPropagation으로 새 탭 유지)
 - **Step L. custom 카드 추가/삭제** — BlockKind 'custom' + customTitle/Content. 편집 모드 '+ 카드 추가' + 핸들 삭제 버튼
 - **Step D. E2E TC-ALB-006~010** — fixture PNG 2개 + albums.spec.ts. 회귀 갱신
-- 31 passed / 3 skipped / 0 failed
+
+### v0.7 — 그림판 + 모바일 리스트 (commit ~`9c611c6`)
+- **Step M. 그림판 카드** — `BlockKind` 'drawing' + DrawPad 모달(5색 펜·3단 굵기·지우개·되돌리기·전체지우기) + `canvas.toBlob → /api/decorate/drawing` Supabase Storage + DraggableBlock ✎ 버튼
+- **Step N. 모바일 기록 전용 UI** — `useTrack` 분기점 도입, MobileHome 리스트형 폴더, DecorateEditor 모바일 단순화
+
+### v0.7.x — 추가 보강 (이번 세션 분, commit `3a8aae4`~`51c1a18`)
+
+| commit | 내용 |
+|---|---|
+| `3a8aae4` | **배경 무늬 8종** (dots/grid/diagonal/stripes/checker/crosshatch/waves/triangles) + 무늬 색상 (마이그 **0004**) |
+| `623c8cb` | `useTrack` lazy init — 모바일이 PC로 보이던 회귀 fix |
+| `d4919cf` | PC/태블릿 수정 후 화면 즉시 갱신 — `router.refresh()` + hp prop 동기화 |
+| `cdf2c01` | 무늬 select disabled 제거 + 이미지 사용 시 안내 |
+| `314ebdf` | 미리보기에 투명도+무늬+카드+폰트크기 종합 반영 |
+| `2f3f0dd` | 모바일에서 꾸미기 메뉴 제외 + DecorateEditor 모바일 진입 시 안내만 |
+| `4ec02c6` | `MOBILE_BREAKPOINT` 768 → **1024** (갤럭시 폴드6 펼침/안드로이드 데스크탑 모드 흡수) |
+| `25cbd51` | HomeDashboard mount 체크 — SSR HTML이 desktop으로 그려져 캔버스가 잘리던 첫 paint 깜빡임 해소 |
+| `0fdc9ab` | **카드 스타일 10종 추가** (sticky/mint/pink/sky/notebook/grid-paper/dashed/double-border/ringed/bevel) + 카드 배경색 사용자 지정 (마이그 **0005**) |
+| `c25fd3a` | **사진 lightbox** + ⬇ 저장 버튼 (PhotoLightbox 신규) — AlbumsManager/HomeDashboard/PublicCanvas 모두 |
+| `f1ac3f9` | **배경/카드 배경에 그라데이션** 지원 (ColorPicker 신규, 마이그 **0006**) |
+| `62264ea` | solidFallback — 그라데이션 색을 invalid `color`에 박을 때 첫 hex로 fallback |
+| `51c1a18` | 글자/포인트 색상은 단색만 (그라데이션 토글 hide) |
+
+**E2E**: 35 → **37 passed** / 3 skipped / 0 failed
 
 ---
 
@@ -103,7 +126,7 @@ npm run dev
 
 ```powershell
 npx playwright test
-# 기대: 31 passed / 3 skipped / 0 failed (chromium)
+# 기대: 37 passed / 3 skipped / 0 failed (chromium)
 ```
 
 ### 3-3. 배포 (코드 변경 후)
@@ -138,22 +161,42 @@ npx supabase status  # 출력에 anon key 등 표시. legacy JWT는 docker exec 
 
 ---
 
-## 5. 운영 후속 작업 (이번 세션 직후 처리 필요)
+## 5. 운영 후속 작업
 
-1. **마이그레이션 0003을 운영 Supabase에 적용** — Supabase Studio → SQL Editor → `supabase/migrations/0003_card_opacity_font_size.sql` 본문 실행. 컬럼 default 1 / 'base' 이므로 기존 row 무중단 호환.
-2. 운영 헬스 체크 — `https://mini-homepage.vercel.app/manifest.webmanifest` 200, `/admin/settings` 200, 햄버거 메뉴 노출, 메모 자동저장.
-3. 사용자 검증 — 모바일(크롬/삼성인터넷/사파리)·태블릿·PC에서 실제 동작 점검 후 비정상이면 추가 fix.
+- ✅ **마이그레이션 0001~0006 모두 운영 적용 완료** (이전 세션 토큰 `sbp_66a115c7b8eb82788602efb3287efd57a5291876`로 push 진행). 새 세션에서 마이그 추가 시 토큰 재발급 또는 같은 토큰 사용. 사용 후 폐기 권장.
+- 운영 헬스 — `/login` 200, `/manifest.webmanifest` 200.
+- 사용자 실 디바이스 점검 — 안드로이드 크롬·iOS Safari·갤럭시 폴드6 펼침 viewport에서 모바일 리스트 정상 진입(1024 미만)·꾸미기 안내 화면·사진 lightbox·다운로드 작동 여부.
 
 ---
 
-## 6. 다음 작업 후보 (사용자 검증 후 분기)
+## 6. 다음 세션 작업 후보 — 우선순위
 
-- **E. 비밀번호 재설정 흐름** — 이메일 발송 기반 (v0.6에 비밀번호 변경 본인 인증은 추가됨)
-- **F. 휴지통 / 복구 UI** — `deleted_at` 활용
-- **G. 운영 모니터링** — Vercel Analytics + Logflare/Sentry
-- **H. DB 컬럼명 마이그레이션** — `mini_homepages` → `notes` (비용 큼)
-- **I. Playwright multi-viewport** — webkit/mobile 추가 프로젝트 (v0.6 plan 명시했으나 시간상 chromium만 적용)
-- **J. /admin/decorate 안 미리보기 영역(WidgetRenderer)** — v2 자유캔버스에 맞춰 단계적으로 정리
+### A. 사용자 보고 이슈/검증 우선 (시급)
+- 운영에서 **그라데이션 배경·카드 배경**이 실제 의도대로 표시되는지 확인 (Safari/Firefox/Edge 다양한 브라우저)
+- 사진 lightbox **다운로드 버튼**이 모바일/PC에서 실제 파일 저장되는지 (cross-origin fetch 실패 시 새 탭 fallback 동작 확인)
+- 새 카드 스타일 20종 중 **`notebook`(가로 라인)·`grid-paper`(모눈)** 등 Tailwind v4 dynamic class가 제대로 빌드에 포함되었는지 운영에서 시각 확인
+- 모바일 햄버거 메뉴의 `data-public` 속성으로 분기되는 동작 정상 여부
+
+### B. 보강/마무리 작업
+1. **그라데이션 글자 효과 (선택)** — 사용자가 v0.7.x에서 글자/포인트 단색으로 제한했지만, 추후 원하면 `background-clip: text` 트릭으로 그라데이션 글자 가능. 현재는 solidFallback으로 첫 hex만 적용
+2. **DrawPad Storage 고아 파일 정리** — drawing 카드 삭제 시 Supabase Storage의 PNG 자동 cleanup (현재는 누적)
+3. **모바일에서 그림판/custom 카드 보기** — 현재 모바일은 5개 기본 카드만 표시. drawing/custom은 desktop 전용
+4. **사진 lightbox 슬라이드** — 좌우 ← → 키로 이전/다음 사진. 현재는 1장씩 닫고 다시 열기
+5. **알파(투명도) 슬라이더 UI** — 현재 무늬 색·카드 배경에서 alpha는 8자리 hex(`#RRGGBBAA`) 직접 입력만. picker 슬라이더 추가
+6. **패턴 크기/회전** — 현재 8종 고정 크기. 사용자가 셀 크기·회전 각도 조절 가능
+
+### C. 데이터/기능 확장
+7. **비밀번호 재설정 흐름** — 이메일 발송 기반 (현재는 본인 인증 변경만)
+8. **휴지통/복구 UI** — `deleted_at` 활용
+9. **운영 모니터링** — Vercel Analytics / Sentry
+10. **DB 컬럼명 마이그레이션** — `mini_homepages` → `notes` (비용 큼, 마지막에)
+11. **Playwright multi-viewport** — webkit-mobile / webkit-tablet 프로젝트 추가 (현재는 chromium만)
+
+### D. 알려진 한계 — v2에서 해결
+12. iron-session stateless → Redis 서버 사이드 세션 store
+13. Supabase Storage public 버킷 → signed URL 모델
+14. 모바일 터치 드래그·리사이즈 실 디바이스 검증
+15. v1 layout slots 편집기 잔재 (`/admin/decorate` 안 hidden) — 완전 제거 시기 결정
 
 ---
 
@@ -171,44 +214,52 @@ npx supabase status  # 출력에 anon key 등 표시. legacy JWT는 docker exec 
 ## 8. 다음 세션을 위한 §49 형식 진입 지시문 (필요 시 복붙)
 
 ```text
-이번 작업은 v0.5 운영 검토 후속(또는 Phase D PWA)이다.
+이번 작업은 v0.7.x 운영 검증 후속이다. 직전 세션에서 그라데이션 배경/카드 + 사진 lightbox + 카드 스타일 20종 + 모바일 단순화를 완료했다.
 
 반드시 아래 순서로 진행해라.
 
 1. 관련 문서를 먼저 읽어라.
-   - docs/00_MASTER_INDEX.md
+   - docs/11_SESSION_HANDOFF.md (본 문서, 특히 §2 v0.7.x 변경 표, §6 다음 작업 후보)
    - docs/10_CURRENT_STATE.md
-   - docs/11_SESSION_HANDOFF.md (본 문서)
+   - docs/09_CHANGELOG.md
    - docs/00_PRD.md (PRD §7 제외 기능 확인)
-   - docs/01_ARCHITECTURE.md
    - docs/17_MODULEIZATION_GUIDE.md
    - docs/18_ERROR_CODE_RESPONSE_STANDARD.md
-   - docs/harness/05_SECURITY_PRIVACY_HARNESS.md
    - docs/19_FEATURE_CATALOG.md
 
 2. 작업 범위를 사용자에게 확인한다.
+   - §6 후보 A(검증)·B(보강)·C(확장) 중 어느 쪽인지
+   - 운영 실 디바이스에서 발견된 회귀가 있는지
 
-3. 코드 작업 전 typecheck + E2E 기준선 확인:
-   - npx tsc --noEmit (0 에러여야 함)
-   - npx playwright test (26 passed / 3 skipped / 0 failed 기준)
+3. 코드 작업 전 기준선 확인:
+   - npx tsc --noEmit (0 에러)
+   - npx playwright test (37 passed / 3 skipped / 0 failed)
+   - npm run build (성공)
+   - 마이그레이션 0001~0006 운영 동기화 확인 — `SUPABASE_ACCESS_TOKEN=... npx supabase migration list`
 
 4. 단위화/모듈화 기준 준수:
    - lib/services/*, lib/repositories/*, lib/validators/* 분리 유지
    - 응답은 lib/errors/response.ts 헬퍼만 사용
    - repository는 user_id + deleted_at IS NULL 자동 부착
+   - 색상 인라인은 그라데이션 가능성 있음 — backgroundColor/Image 분기 또는 solidFallback 사용 (`src/components/decorate/ColorPicker.tsx`)
 
-5. 구현 후 typecheck 0 에러 + E2E 회귀 통과 확인.
+5. 새 마이그가 필요하면:
+   - `supabase/migrations/000N_*.sql` 추가 → `npx supabase migration up` 로컬 적용 → `SUPABASE_ACCESS_TOKEN=... npx supabase db push` 운영 적용
+   - 토큰 사용 후 폐기 권장 (https://supabase.com/dashboard/account/tokens)
 
-6. git commit (author: hu28035036-ux / hu28035036@gmail.com) + push → Vercel 자동 배포.
+6. 구현 후 typecheck 0 에러 + E2E 회귀 통과 확인.
 
-7. 운영 헬스 체크 → 사용자에게 결과 보고.
+7. git commit (author: hu28035036-ux / hu28035036@gmail.com) + push → Vercel 자동 배포 + `/login` 200 헬스 체크.
+
+8. 사용자에게 결과 보고 (완료/위험/보류).
 
 금지사항:
-- AI/RAG/챗봇 기능 추가 금지 (v1 제외)
+- AI/RAG/챗봇 기능 추가 금지 (PRD §7)
 - SUPABASE_SERVICE_ROLE_KEY를 NEXT_PUBLIC_*로 노출 금지
 - mini_homepages.is_public 기본값 false 변경 금지
 - 자동 삭제 작업(setInterval, cron) 추가 금지
 - 모든 repository 쿼리에 user_id + deleted_at IS NULL 강제 유지
+- 글자/포인트 색상은 단색만 (v0.7.x 사용자 결정). 그라데이션 토글 다시 노출 X
 ```
 
 ---
