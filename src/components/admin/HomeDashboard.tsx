@@ -40,6 +40,10 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
   const [drawingTarget, setDrawingTarget] = useState<Block | null>(null);
   const track = useTrack();
   const router = useRouter();
+  // SSR과 client 첫 렌더가 다른 분기로 가는 hydration mismatch 방지.
+  // mount 전엔 분기 없이 빈 placeholder만 그림 → mount 후 실제 viewport로 분기.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   async function loadAll() {
     const [u, m, p, c] = await Promise.all([
@@ -266,7 +270,12 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
   // 숨김 처리된 블록 다시 보이게 하는 헬퍼
   const hiddenBlocks = layouts[track]?.filter((b) => !b.visible) ?? [];
 
-  // 모바일 (<768px): 리스트형 폴더 구조 (기록 전용)
+  // SSR/hydration 단계에선 빈 placeholder (분기 깜빡임 방지)
+  if (!mounted) {
+    return <div className="min-h-[60vh]" aria-hidden />;
+  }
+
+  // 모바일 (<1024px): 리스트형 폴더 구조 (기록 전용)
   if (track === 'mobile') {
     return (
       <div className="space-y-3">
