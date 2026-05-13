@@ -4,6 +4,10 @@ import { homepageService } from '@/lib/services/homepage';
 import { MenuButton } from '@/components/admin/MenuButton';
 import { patternImage, patternSize, patternPosition } from '@/lib/canvas/patterns';
 
+function isGradient(v: string): boolean {
+  return /^(linear|radial|conic)-gradient\(/.test(v);
+}
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const uid = await getCurrentUserId();
   if (!uid) redirect('/login');
@@ -16,12 +20,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const useImage = hp.use_background_image && hp.background_image_url;
   const usePattern = !useImage && hp.background_pattern && hp.background_pattern !== 'none';
   const patternImg = usePattern ? patternImage(hp.background_pattern, hp.background_pattern_color) : '';
+  const bgIsGradient = isGradient(hp.background_color);
+  // backgroundImage 우선순위: 업로드 이미지 > 패턴 > 그라데이션
+  const computedBgImage = useImage
+    ? `url(${hp.background_image_url})`
+    : (usePattern ? patternImg : (bgIsGradient ? hp.background_color : undefined));
+  const computedBgColor = bgIsGradient ? 'transparent' : hp.background_color;
   const containerStyle: React.CSSProperties = {
-    backgroundColor: hp.background_color,
-    color: hp.text_color,
-    backgroundImage: useImage
-      ? `url(${hp.background_image_url})`
-      : (usePattern ? patternImg : undefined),
+    backgroundColor: computedBgColor,
+    color: isGradient(hp.text_color) ? undefined : hp.text_color,
+    backgroundImage: computedBgImage,
     backgroundSize: useImage
       ? 'cover'
       : (usePattern ? patternSize(hp.background_pattern) : undefined),
@@ -29,9 +37,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       ? 'center'
       : (usePattern ? patternPosition(hp.background_pattern) : undefined),
     backgroundAttachment: useImage ? 'fixed' : undefined,
-    // 세로 스크롤바 색을 카드/포인트 색과 통일 (모든 카드 동일)
-    ['--scrollbar-track' as string]: hp.background_color,
-    ['--scrollbar-thumb' as string]: hp.point_color,
+    // 세로 스크롤바 색은 그라데이션이면 의미 없어 단색만 적용(첫 색 추출 또는 fallback)
+    ['--scrollbar-track' as string]: bgIsGradient ? '#ffffff' : hp.background_color,
+    ['--scrollbar-thumb' as string]: isGradient(hp.point_color) ? '#7c3aed' : hp.point_color,
   };
 
   return (

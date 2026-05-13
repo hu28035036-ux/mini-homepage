@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
-const hex = z.string().regex(/^#[0-9a-fA-F]{3,8}$/, 'DECORATE_INVALID_VALUE');
+// 단색(#hex) 또는 그라데이션(linear/radial/conic-gradient(...)) 문자열 허용
+const colorOrGradient = z.string().regex(
+  /^(#[0-9a-fA-F]{3,8}|(linear|radial|conic)-gradient\([^)]+(\)|\)\s*))$/,
+  'DECORATE_INVALID_VALUE',
+).max(500);
+const hex = colorOrGradient;
 
 const slotSchema = z.object({
   slot: z.number().int().positive(),
@@ -50,8 +55,8 @@ const BACKGROUND_PATTERNS = [
   'checker', 'crosshatch', 'waves', 'triangles',
 ] as const;
 
-// 패턴 색은 alpha 채널 포함 가능 (#RRGGBBAA 8자리 허용)
-const hexAlpha = z.string().regex(/^#[0-9a-fA-F]{3,8}$/, 'DECORATE_INVALID_VALUE');
+// 패턴 색 / 카드 배경색은 단색(#hex+alpha) 또는 그라데이션 둘 다 허용
+const hexAlpha = colorOrGradient;
 
 export const updateDecorateSchema = z.object({
   background_color: hex.optional(),

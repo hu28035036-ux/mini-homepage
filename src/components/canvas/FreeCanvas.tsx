@@ -182,7 +182,11 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
         height: block.h,
         zIndex: isDragging ? 9999 : block.z,
         opacity: isDragging ? Math.min(0.8, effectiveOpacity) : effectiveOpacity,
-        ...(cardBackgroundColor ? { backgroundColor: cardBackgroundColor } : {}),
+        ...(cardBackgroundColor
+          ? /^(linear|radial|conic)-gradient\(/.test(cardBackgroundColor)
+            ? { backgroundImage: cardBackgroundColor, backgroundColor: 'transparent' }
+            : { backgroundColor: cardBackgroundColor }
+          : {}),
         ...transformStyle,
         touchAction: editMode ? 'none' : undefined,
       }}

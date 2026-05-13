@@ -6,6 +6,7 @@ import { Card, Button, GhostButton, Input, Label, ErrorText } from '@/components
 import { WidgetBoard, cardClass, type PreviewData, type DecorateStyle } from '@/components/public/WidgetRenderer';
 import { useTrack, fontSizeClass } from '@/components/canvas/FreeCanvas';
 import { PATTERN_LIST, patternImage, patternSize, patternPosition } from '@/lib/canvas/patterns';
+import { ColorPicker, colorOrGradientStyle, textColorOrGradientStyle } from '@/components/decorate/ColorPicker';
 import type { MiniHomepageRow, LayoutMode, LayoutSlot, WidgetKind, CardStyle, FontStyle, FontSize, BackgroundPattern } from '@/types/db';
 
 const CARD_STYLES: { value: CardStyle; label: string }[] = [
@@ -232,11 +233,8 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
         <div className="space-y-4">
           <Card>
             <h2 className="text-sm font-bold mb-3">배경</h2>
-            <Label htmlFor="bg">배경색</Label>
-            <div className="flex items-center gap-2 mb-3">
-              <input id="bg" type="color" value={bg} onChange={(e) => setBg(e.target.value)} className="w-10 h-10 rounded border" />
-              <Input value={bg} onChange={(e) => setBg(e.target.value)} className="flex-1" />
-            </div>
+            <Label htmlFor="bg">배경색 (단색 또는 그라데이션)</Label>
+            <ColorPicker id="bg" value={bg} onChange={setBg} className="mb-3" />
             <Label>배경 이미지</Label>
             <div className="flex items-center gap-2">
               <label className="inline-flex items-center justify-center cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium bg-gray-100 hover:bg-gray-200">
@@ -309,17 +307,11 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
           </Card>
 
           <Card>
-            <h2 className="text-sm font-bold mb-3">색상</h2>
+            <h2 className="text-sm font-bold mb-3">색상 (단색 또는 그라데이션)</h2>
             <Label htmlFor="point">포인트 색상</Label>
-            <div className="flex items-center gap-2 mb-3">
-              <input id="point" type="color" value={point} onChange={(e) => setPoint(e.target.value)} className="w-10 h-10 rounded border" />
-              <Input value={point} onChange={(e) => setPoint(e.target.value)} className="flex-1" />
-            </div>
+            <ColorPicker id="point" value={point} onChange={setPoint} className="mb-3" />
             <Label htmlFor="text">글자 색상</Label>
-            <div className="flex items-center gap-2">
-              <input id="text" type="color" value={text} onChange={(e) => setText(e.target.value)} className="w-10 h-10 rounded border" />
-              <Input value={text} onChange={(e) => setText(e.target.value)} className="flex-1" />
-            </div>
+            <ColorPicker id="text" value={text} onChange={setText} />
           </Card>
 
           <Card>
@@ -335,37 +327,34 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
               ))}
             </select>
 
-            <Label htmlFor="card-bg">카드 배경색 (사용자 지정)</Label>
-            <div className="flex items-center gap-2">
-              <input
-                id="card-bg"
-                type="color"
-                value={(cardBg || '#ffffff').slice(0, 7)}
-                onChange={(e) => setCardBg(e.target.value)}
-                className="w-10 h-10 rounded border"
-              />
-              <Input
-                value={cardBg}
-                onChange={(e) => setCardBg(e.target.value)}
-                className="flex-1"
-                placeholder="비워두면 스타일 기본색 사용"
-              />
+            <div className="flex items-center justify-between mb-1">
+              <Label htmlFor="card-bg">카드 배경색 (단색/그라데이션)</Label>
               {cardBg && (
                 <button
                   type="button"
                   onClick={() => setCardBg('')}
-                  className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200"
-                  title="기본 색으로 되돌리기"
+                  className="text-xs px-2 py-0.5 rounded bg-gray-100 hover:bg-gray-200"
+                  title="스타일 기본색으로 되돌리기"
                 >
-                  초기화
+                  기본값
                 </button>
               )}
             </div>
-            <p className="text-[11px] opacity-60 mt-1">알파 채널은 끝 2자리 추가(예: #fff8e122 → 13% 불투명도).</p>
+            {cardBg ? (
+              <ColorPicker id="card-bg" value={cardBg} onChange={setCardBg} />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setCardBg('#ffffff')}
+                className="w-full text-xs py-2 rounded border border-dashed border-gray-300 hover:bg-gray-50"
+              >
+                + 사용자 지정 색상 추가 (비워두면 스타일 기본색)
+              </button>
+            )}
 
             <div
               className={`mt-3 ${cardClass(card)} p-3 text-xs`}
-              style={cardBg ? { backgroundColor: cardBg } : undefined}
+              style={cardBg ? colorOrGradientStyle(cardBg) : undefined}
             >
               샘플 카드 — {CARD_STYLES.find((s) => s.value === card)?.label}
             </div>

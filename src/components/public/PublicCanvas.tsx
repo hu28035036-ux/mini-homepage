@@ -4,6 +4,10 @@ import { useState, type ReactNode } from 'react';
 import { FreeCanvas } from '@/components/canvas/FreeCanvas';
 import { PhotoLightbox } from '@/components/albums/PhotoLightbox';
 import { patternImage, patternSize, patternPosition } from '@/lib/canvas/patterns';
+
+function isGradient(v: string): boolean {
+  return /^(linear|radial|conic)-gradient\(/.test(v);
+}
 import type { Block, Layouts, MiniHomepageRow } from '@/types/db';
 
 export interface PublicData {
@@ -138,12 +142,14 @@ export function PublicCanvas({ data }: { data: PublicData }) {
   const useImage = homepage.use_background_image && homepage.background_image_url;
   const usePattern = !useImage && homepage.background_pattern && homepage.background_pattern !== 'none';
   const patternImg = usePattern ? patternImage(homepage.background_pattern, homepage.background_pattern_color) : '';
+  const bgIsGradient = isGradient(homepage.background_color);
+  const computedBgImage = useImage
+    ? `url(${homepage.background_image_url})`
+    : (usePattern ? patternImg : (bgIsGradient ? homepage.background_color : undefined));
   const wrapperStyle: React.CSSProperties = {
-    backgroundColor: homepage.background_color,
-    color: homepage.text_color,
-    backgroundImage: useImage
-      ? `url(${homepage.background_image_url})`
-      : (usePattern ? patternImg : undefined),
+    backgroundColor: bgIsGradient ? 'transparent' : homepage.background_color,
+    color: isGradient(homepage.text_color) ? undefined : homepage.text_color,
+    backgroundImage: computedBgImage,
     backgroundSize: useImage
       ? 'cover'
       : (usePattern ? patternSize(homepage.background_pattern) : undefined),
@@ -151,8 +157,8 @@ export function PublicCanvas({ data }: { data: PublicData }) {
       ? 'center'
       : (usePattern ? patternPosition(homepage.background_pattern) : undefined),
     backgroundAttachment: useImage ? 'fixed' : undefined,
-    ['--scrollbar-track' as string]: homepage.background_color,
-    ['--scrollbar-thumb' as string]: homepage.point_color,
+    ['--scrollbar-track' as string]: bgIsGradient ? '#ffffff' : homepage.background_color,
+    ['--scrollbar-thumb' as string]: isGradient(homepage.point_color) ? '#7c3aed' : homepage.point_color,
   };
 
   return (
