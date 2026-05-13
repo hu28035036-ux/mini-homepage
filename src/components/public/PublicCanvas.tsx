@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import { FreeCanvas } from '@/components/canvas/FreeCanvas';
 import { PhotoLightbox } from '@/components/albums/PhotoLightbox';
+import { solidFallback } from '@/components/decorate/ColorPicker';
 import { patternImage, patternSize, patternPosition } from '@/lib/canvas/patterns';
 
 function isGradient(v: string): boolean {
@@ -34,7 +35,7 @@ export function PublicCanvas({ data }: { data: PublicData }) {
       case 'title':
         return (
           <div className="h-full flex items-center">
-            <h1 className="text-3xl font-bold leading-tight" style={{ color: homepage.text_color }}>
+            <h1 className="text-3xl font-bold leading-tight" style={{ color: solidFallback(homepage.text_color) }}>
               {homepage.title}
             </h1>
           </div>
@@ -54,7 +55,7 @@ export function PublicCanvas({ data }: { data: PublicData }) {
       case 'urls':
         return (
           <div>
-            <h3 className="text-sm font-bold mb-2" style={{ color: homepage.point_color }}>URL 보관함</h3>
+            <h3 className="text-sm font-bold mb-2" style={{ color: solidFallback(homepage.point_color) }}>URL 보관함</h3>
             {data.urls.length === 0 ? (
               <p className="text-xs opacity-50">아직 저장된 링크가 없어요.</p>
             ) : (
@@ -74,7 +75,7 @@ export function PublicCanvas({ data }: { data: PublicData }) {
       case 'albums':
         return (
           <div>
-            <h3 className="text-sm font-bold mb-2" style={{ color: homepage.point_color }}>앨범</h3>
+            <h3 className="text-sm font-bold mb-2" style={{ color: solidFallback(homepage.point_color) }}>앨범</h3>
             {data.albums.length === 0 ? (
               <p className="text-xs opacity-50">아직 사진이 없어요.</p>
             ) : (
@@ -102,7 +103,7 @@ export function PublicCanvas({ data }: { data: PublicData }) {
       case 'memos':
         return (
           <div>
-            <h3 className="text-sm font-bold mb-2" style={{ color: homepage.point_color }}>메모</h3>
+            <h3 className="text-sm font-bold mb-2" style={{ color: solidFallback(homepage.point_color) }}>메모</h3>
             {data.memos.length === 0 ? (
               <p className="text-xs opacity-50">아직 메모가 없어요.</p>
             ) : (
@@ -120,7 +121,7 @@ export function PublicCanvas({ data }: { data: PublicData }) {
       case 'custom':
         return (
           <div>
-            {b.customTitle && <h3 className="text-sm font-bold mb-1" style={{ color: homepage.point_color }}>{b.customTitle}</h3>}
+            {b.customTitle && <h3 className="text-sm font-bold mb-1" style={{ color: solidFallback(homepage.point_color) }}>{b.customTitle}</h3>}
             <div className="text-xs opacity-80 whitespace-pre-wrap">{b.customContent}</div>
           </div>
         );

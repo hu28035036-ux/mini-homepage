@@ -10,6 +10,7 @@ import { AlbumsManager } from '@/components/albums/AlbumsManager';
 import { MemosManager } from '@/components/memos/MemosManager';
 import { MobileHome } from '@/components/admin/MobileHome';
 import { PhotoLightbox } from '@/components/albums/PhotoLightbox';
+import { solidFallback } from '@/components/decorate/ColorPicker';
 import type { Block, Layouts, MiniHomepageRow, PhotoRow, UrlRow, MemoRow, AlbumCategoryRow } from '@/types/db';
 
 const Expand = () => (
@@ -138,7 +139,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
       case 'title':
         return (
           <div className="h-full flex items-center">
-            <h1 className="text-3xl font-bold leading-tight" style={{ color: hp.text_color }}>
+            <h1 className="text-3xl font-bold leading-tight" style={{ color: solidFallback(hp.text_color) }}>
               {hp.title || '나의 노트'}
             </h1>
           </div>
@@ -158,7 +159,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
       case 'urls':
         return (
           <div>
-            <h3 className="text-sm font-bold mb-2" style={{ color: hp.point_color }}>URL 보관함</h3>
+            <h3 className="text-sm font-bold mb-2" style={{ color: solidFallback(hp.point_color) }}>URL 보관함</h3>
             {urls.length === 0 ? (
               <p className="text-xs opacity-50">아직 저장된 링크가 없어요.</p>
             ) : (
@@ -184,7 +185,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
       case 'albums':
         return (
           <div>
-            <h3 className="text-sm font-bold mb-2" style={{ color: hp.point_color }}>앨범</h3>
+            <h3 className="text-sm font-bold mb-2" style={{ color: solidFallback(hp.point_color) }}>앨범</h3>
             {photos.length === 0 ? (
               <p className="text-xs opacity-50">아직 사진이 없어요.</p>
             ) : (
@@ -207,7 +208,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
       case 'memos':
         return (
           <div>
-            <h3 className="text-sm font-bold mb-2" style={{ color: hp.point_color }}>메모</h3>
+            <h3 className="text-sm font-bold mb-2" style={{ color: solidFallback(hp.point_color) }}>메모</h3>
             {memos.length === 0 ? (
               <p className="text-xs opacity-50">아직 메모가 없어요.</p>
             ) : (
@@ -252,7 +253,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
                 placeholder="제목"
                 maxLength={200}
                 className="w-full bg-transparent outline-none text-sm font-bold mb-1 border-b border-black/10 focus:border-violet-400"
-                style={{ color: hp.point_color }}
+                style={{ color: solidFallback(hp.point_color) }}
               />
               <textarea
                 value={b.customContent ?? ''}
@@ -270,7 +271,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
         }
         return (
           <div>
-            {b.customTitle && <h3 className="text-sm font-bold mb-1" style={{ color: hp.point_color }}>{b.customTitle}</h3>}
+            {b.customTitle && <h3 className="text-sm font-bold mb-1" style={{ color: solidFallback(hp.point_color) }}>{b.customTitle}</h3>}
             <div className="text-xs opacity-80 whitespace-pre-wrap">{b.customContent}</div>
           </div>
         );

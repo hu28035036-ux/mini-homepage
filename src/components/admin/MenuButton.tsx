@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTrack } from '@/components/canvas/FreeCanvas';
+import { solidFallback } from '@/components/decorate/ColorPicker';
 
 export function MenuButton({
   slug,
@@ -82,7 +83,7 @@ export function MenuButton({
         aria-label="메뉴 열기"
         onClick={() => setOpen((v) => !v)}
         className="flex items-center justify-center w-11 h-11 rounded-xl bg-white/85 backdrop-blur border border-black/5 shadow-sm hover:bg-white transition"
-        style={{ color: pointColor }}
+        style={{ color: solidFallback(pointColor) }}
       >
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <path d="M4 7h16M4 12h16M4 17h16" />

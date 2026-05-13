@@ -148,6 +148,16 @@ export function colorOrGradientStyle(value: string | null | undefined): React.CS
   return { backgroundColor: value };
 }
 
+/** 그라데이션이면 첫 hex 색을 단색으로 fallback. text color 적용처(CSS color는 그라데이션 미지원)용. */
+export function solidFallback(value: string | null | undefined, fallback = '#000000'): string {
+  if (!value) return fallback;
+  if (isGradient(value)) {
+    const m = value.match(/#[0-9a-fA-F]{3,8}/);
+    return m ? m[0] : fallback;
+  }
+  return value;
+}
+
 /** 텍스트 색상으로 변환:
  *  - 단색이면 { color }
  *  - 그라데이션이면 background-clip: text 트릭 */
