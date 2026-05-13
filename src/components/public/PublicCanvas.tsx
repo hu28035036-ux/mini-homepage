@@ -11,7 +11,7 @@ export interface PublicData {
     | 'title' | 'intro' | 'profile_image_url' | 'slug'
     | 'background_color' | 'background_image_url' | 'use_background_image'
     | 'background_pattern' | 'background_pattern_color'
-    | 'point_color' | 'text_color' | 'card_style' | 'font_style'
+    | 'point_color' | 'text_color' | 'card_style' | 'card_background_color' | 'font_style'
     | 'default_card_opacity' | 'default_font_size'
   > & { layouts: Layouts };
   profile: { nickname: string; intro: string | null; image_url: string | null };
@@ -151,6 +151,7 @@ export function PublicCanvas({ data }: { data: PublicData }) {
         layouts={homepage.layouts}
         editMode={false}
         cardStyle={homepage.card_style}
+        cardBackgroundColor={homepage.card_background_color}
         fontStyle={homepage.font_style}
         pointColor={homepage.point_color}
         defaultOpacity={homepage.default_card_opacity ?? 1}

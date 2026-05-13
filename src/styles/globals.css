@@ -11,6 +11,15 @@
 @source inline("shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)]");
 @source inline("ring-1 ring-inset ring-gray-100");
 @source inline("text-xs text-sm text-base text-lg text-xl");
+/* v0.7.x 카드 스타일 확장 */
+@source inline("bg-yellow-100 border-yellow-200 border-b-2");
+@source inline("bg-emerald-50 border-emerald-200");
+@source inline("bg-pink-50 border-pink-200");
+@source inline("bg-sky-50 border-sky-200");
+@source inline("rounded-sm rounded-md");
+@source inline("border-dashed border-double border-4 border-gray-400");
+@source inline("ring-2 ring-violet-300 ring-offset-2 ring-offset-white/0");
+@source inline("border-t border-l border-white border-b-gray-400 border-r-gray-400 shadow-inner");
 
 /* 한글 친화 웹폰트 — Google Fonts + Pretendard CDN */
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');

@@ -354,6 +354,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
         onLayoutsChange={handleLayoutsChange}
         editMode={editMode}
         cardStyle={hp.card_style}
+        cardBackgroundColor={hp.card_background_color}
         fontStyle={hp.font_style}
         pointColor={hp.point_color}
         textColor={hp.text_color}

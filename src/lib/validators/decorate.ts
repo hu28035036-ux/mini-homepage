@@ -11,6 +11,9 @@ const slotSchema = z.object({
 const CARD_STYLES = [
   'basic', 'rounded', 'shadow', 'transparent',
   'soft', 'bordered', 'glass', 'minimal', 'elevated', 'frame',
+  'sticky', 'mint', 'pink', 'sky',
+  'notebook', 'grid-paper',
+  'dashed', 'double-border', 'ringed', 'bevel',
 ] as const;
 
 const FONT_STYLES = [
@@ -59,6 +62,7 @@ export const updateDecorateSchema = z.object({
   point_color: hex.optional(),
   text_color: hex.optional(),
   card_style: z.enum(CARD_STYLES).optional(),
+  card_background_color: hexAlpha.nullable().optional(),
   font_style: z.enum(FONT_STYLES).optional(),
   default_card_opacity: z.number().min(0).max(1).optional(),
   default_font_size: z.enum(FONT_SIZES).optional(),

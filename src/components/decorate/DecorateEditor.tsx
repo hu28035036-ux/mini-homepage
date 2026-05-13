@@ -19,6 +19,19 @@ const CARD_STYLES: { value: CardStyle; label: string }[] = [
   { value: 'minimal', label: '미니멀 (선만)' },
   { value: 'elevated', label: '들뜬 그림자' },
   { value: 'frame', label: '액자 (이중 테두리)' },
+  // 메모지 시리즈
+  { value: 'sticky', label: '포스트잇 (노랑)' },
+  { value: 'mint', label: '메모지 (민트)' },
+  { value: 'pink', label: '메모지 (파스텔 핑크)' },
+  { value: 'sky', label: '메모지 (스카이)' },
+  // 노트/모눈
+  { value: 'notebook', label: '노트 (라인)' },
+  { value: 'grid-paper', label: '모눈 종이' },
+  // 테두리 변형
+  { value: 'dashed', label: '점선 테두리' },
+  { value: 'double-border', label: '이중선 테두리' },
+  { value: 'ringed', label: '링 테두리 (보라)' },
+  { value: 'bevel', label: '입체 (Bevel)' },
 ];
 
 const FONT_STYLES: { value: FontStyle; label: string }[] = [
@@ -82,6 +95,7 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
   const [point, setPoint] = useState(initial.point_color);
   const [text, setText] = useState(initial.text_color);
   const [card, setCard] = useState<CardStyle>(initial.card_style);
+  const [cardBg, setCardBg] = useState<string>(initial.card_background_color ?? '');
   const [font, setFont] = useState<FontStyle>(initial.font_style);
   const [opacity, setOpacity] = useState<number>(initial.default_card_opacity ?? 1);
   const [fontSize, setFontSize] = useState<FontSize>(initial.default_font_size ?? 'base');
@@ -182,6 +196,7 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
         point_color: point,
         text_color: text,
         card_style: card,
+        card_background_color: cardBg || null,
         font_style: font,
         default_card_opacity: opacity,
         default_font_size: fontSize,
@@ -313,12 +328,47 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
               id="card-select"
               value={card}
               onChange={(e) => setCard(e.target.value as CardStyle)}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 mb-3"
             >
               {CARD_STYLES.map((s) => (
                 <option key={s.value} value={s.value}>{s.label}</option>
               ))}
             </select>
+
+            <Label htmlFor="card-bg">카드 배경색 (사용자 지정)</Label>
+            <div className="flex items-center gap-2">
+              <input
+                id="card-bg"
+                type="color"
+                value={(cardBg || '#ffffff').slice(0, 7)}
+                onChange={(e) => setCardBg(e.target.value)}
+                className="w-10 h-10 rounded border"
+              />
+              <Input
+                value={cardBg}
+                onChange={(e) => setCardBg(e.target.value)}
+                className="flex-1"
+                placeholder="비워두면 스타일 기본색 사용"
+              />
+              {cardBg && (
+                <button
+                  type="button"
+                  onClick={() => setCardBg('')}
+                  className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200"
+                  title="기본 색으로 되돌리기"
+                >
+                  초기화
+                </button>
+              )}
+            </div>
+            <p className="text-[11px] opacity-60 mt-1">알파 채널은 끝 2자리 추가(예: #fff8e122 → 13% 불투명도).</p>
+
+            <div
+              className={`mt-3 ${cardClass(card)} p-3 text-xs`}
+              style={cardBg ? { backgroundColor: cardBg } : undefined}
+            >
+              샘플 카드 — {CARD_STYLES.find((s) => s.value === card)?.label}
+            </div>
           </Card>
 
           <Card>

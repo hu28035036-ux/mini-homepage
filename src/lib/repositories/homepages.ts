@@ -120,6 +120,7 @@ export const homepagesRepo = {
         | 'point_color'
         | 'text_color'
         | 'card_style'
+        | 'card_background_color'
         | 'font_style'
         | 'default_card_opacity'
         | 'default_font_size'

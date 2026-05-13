@@ -11,10 +11,13 @@ export interface UserRow {
   deleted_at: string | null;
 }
 
-// v1+v2 카드 스타일 합집합 (v1 호환 유지)
+// v1+v2 + v0.7.x 카드 스타일 합집합
 export type CardStyle =
   | 'basic' | 'rounded' | 'shadow' | 'transparent'
-  | 'soft' | 'bordered' | 'glass' | 'minimal' | 'elevated' | 'frame';
+  | 'soft' | 'bordered' | 'glass' | 'minimal' | 'elevated' | 'frame'
+  | 'sticky' | 'mint' | 'pink' | 'sky'
+  | 'notebook' | 'grid-paper'
+  | 'dashed' | 'double-border' | 'ringed' | 'bevel';
 
 // v1+v2 폰트 스타일 합집합
 export type FontStyle =
@@ -77,6 +80,7 @@ export interface MiniHomepageRow {
   point_color: string;
   text_color: string;
   card_style: CardStyle;
+  card_background_color: string | null;
   font_style: FontStyle;
   layout_mode: LayoutMode;
   layout_slots: LayoutSlot[];

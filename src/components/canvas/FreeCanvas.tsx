@@ -86,6 +86,19 @@ function cardClass(style: CardStyle): string {
     case 'minimal': return 'bg-transparent border-b border-gray-300';
     case 'elevated': return 'bg-white rounded-2xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)]';
     case 'frame': return 'bg-white rounded-xl border-2 border-gray-200 ring-1 ring-inset ring-gray-100';
+    // v0.7.x — 메모지 시리즈 (포스트잇 느낌)
+    case 'sticky': return 'bg-yellow-100 rounded-sm shadow-md border-b-2 border-yellow-200';
+    case 'mint': return 'bg-emerald-50 rounded-lg shadow-sm border border-emerald-200';
+    case 'pink': return 'bg-pink-50 rounded-lg shadow-sm border border-pink-200';
+    case 'sky': return 'bg-sky-50 rounded-lg shadow-sm border border-sky-200';
+    // 노트/모눈 패턴
+    case 'notebook': return 'bg-white rounded-lg border border-gray-200 [background-image:repeating-linear-gradient(0deg,transparent_0,transparent_27px,rgba(59,130,246,0.18)_27px,rgba(59,130,246,0.18)_28px)]';
+    case 'grid-paper': return 'bg-white rounded-lg border border-gray-200 [background-image:linear-gradient(rgba(0,0,0,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.05)_1px,transparent_1px)] [background-size:20px_20px]';
+    // 테두리 변형
+    case 'dashed': return 'bg-white rounded-lg border-2 border-dashed border-gray-400';
+    case 'double-border': return 'bg-white rounded-lg border-4 border-double border-gray-400';
+    case 'ringed': return 'bg-white rounded-lg ring-2 ring-violet-300 ring-offset-2 ring-offset-white/0';
+    case 'bevel': return 'bg-white rounded-md border-t border-l border-white border-b-2 border-r-2 border-b-gray-400 border-r-gray-400 shadow-inner';
     default: return 'bg-white';
   }
 }
@@ -98,6 +111,7 @@ interface DraggableBlockProps {
   effectiveOpacity: number;
   effectiveFontSize: FontSize;
   textColor?: string;
+  cardBackgroundColor?: string | null;
   onSelect: (id: string) => void;
   onChange: (id: string, patch: Partial<Block>) => void;
   onExpand?: (kind: Block['kind']) => void;
@@ -109,7 +123,7 @@ interface DraggableBlockProps {
   children: ReactNode;
 }
 
-function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity, effectiveFontSize, textColor, onSelect, onChange, onExpand, onQuickAdd, onBringForward, onSendBackward, onDelete, onDraw, children }: DraggableBlockProps) {
+function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity, effectiveFontSize, textColor, cardBackgroundColor, onSelect, onChange, onExpand, onQuickAdd, onBringForward, onSendBackward, onDelete, onDraw, children }: DraggableBlockProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: block.id,
     disabled: !editMode,
@@ -168,6 +182,7 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
         height: block.h,
         zIndex: isDragging ? 9999 : block.z,
         opacity: isDragging ? Math.min(0.8, effectiveOpacity) : effectiveOpacity,
+        ...(cardBackgroundColor ? { backgroundColor: cardBackgroundColor } : {}),
         ...transformStyle,
         touchAction: editMode ? 'none' : undefined,
       }}
@@ -332,6 +347,7 @@ export interface FreeCanvasProps {
   onLayoutsChange?: (next: Layouts) => void;
   editMode: boolean;
   cardStyle: CardStyle;
+  cardBackgroundColor?: string | null;
   fontStyle: FontStyle;
   pointColor: string;
   textColor?: string;
@@ -353,6 +369,7 @@ export function FreeCanvas({
   onLayoutsChange,
   editMode,
   cardStyle,
+  cardBackgroundColor,
   fontStyle,
   pointColor,
   textColor,
@@ -568,6 +585,7 @@ export function FreeCanvas({
             effectiveOpacity={b.opacity ?? defaultOpacity}
             effectiveFontSize={b.fontSize ?? defaultFontSize}
             textColor={textColor}
+            cardBackgroundColor={cardBackgroundColor}
             onSelect={setSelectedId}
             onChange={applyChange}
             onExpand={onExpand}
