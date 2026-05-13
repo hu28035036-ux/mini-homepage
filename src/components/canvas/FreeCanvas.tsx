@@ -17,9 +17,10 @@ export function fontSizeClass(s: FontSize): string {
 export type Track = 'desktop' | 'mobile';
 const CANVAS_WIDTH: Record<Track, number> = { desktop: 1200, mobile: 360 };
 
-/** v0.7: 분기점 768px — 태블릿/PC는 desktop 트랙(자유 캔버스),
- *  모바일(<768)은 mobile 트랙이지만 캔버스 UI 자체를 안 띄움(기록 전용 리스트로 분기). */
-export const MOBILE_BREAKPOINT = 768;
+/** v0.7.1: 분기점 1024px — iPad 가로(1024) 이상은 desktop 자유 캔버스.
+ *  그 미만(폰·갤럭시 폴드 펼침·iPad 세로·안드로이드 데스크탑 사이트 모드 980)은 mobile 리스트.
+ *  사용자 의도: "갤럭시 폴드6 펼친 상태까지를 모바일". */
+export const MOBILE_BREAKPOINT = 1024;
 
 export function useTrack(): Track {
   // SSR fallback은 desktop. 클라이언트 첫 렌더에서는 lazy init으로 즉시 정확한 값.
