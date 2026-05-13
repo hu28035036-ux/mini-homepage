@@ -4,6 +4,7 @@ import { useState, useMemo, useRef, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, Button, GhostButton, Input, Label, ErrorText } from '@/components/ui/primitives';
 import { WidgetBoard, type PreviewData, type DecorateStyle } from '@/components/public/WidgetRenderer';
+import { useTrack } from '@/components/canvas/FreeCanvas';
 import type { MiniHomepageRow, LayoutMode, LayoutSlot, WidgetKind, CardStyle, FontStyle, FontSize } from '@/types/db';
 
 const CARD_STYLES: { value: CardStyle; label: string }[] = [
@@ -88,6 +89,8 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
   const [msg, setMsg] = useState('');
   const bgInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const track = useTrack();
+  const isMobile = track === 'mobile';
 
   // 중복 위젯 감지
   const duplicates = useMemo(() => {
@@ -183,7 +186,7 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
       </div>
       {err && <ErrorText>{err}</ErrorText>}
 
-      <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-4">
+      <div className={isMobile ? "grid grid-cols-1 gap-4" : "grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-4"}>
         {/* 좌측 편집 패널 */}
         <div className="space-y-4">
           <Card>
@@ -290,13 +293,15 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
           {/* v2.1에서 자유 캔버스로 대체 예정. v1 레이아웃 모드/슬롯 편집기는 숨김. */}
         </div>
 
-        {/* 우측 미리보기 */}
-        <Card className="p-0 overflow-hidden sticky top-4 h-fit max-h-[calc(100vh-2rem)]">
-          <div className="px-4 py-2 border-b border-gray-100 text-xs text-gray-500 bg-white">미리보기 (저장 전)</div>
-          <div className="max-h-[calc(100vh-6rem)] overflow-auto">
-            <WidgetBoard style={previewStyle} data={SAMPLE} />
-          </div>
-        </Card>
+        {/* 우측 미리보기 — 모바일에선 안 보임 (자유 캔버스가 모바일에선 미노출) */}
+        {!isMobile && (
+          <Card className="p-0 overflow-hidden sticky top-4 h-fit max-h-[calc(100vh-2rem)]">
+            <div className="px-4 py-2 border-b border-gray-100 text-xs text-gray-500 bg-white">미리보기 (저장 전)</div>
+            <div className="max-h-[calc(100vh-6rem)] overflow-auto">
+              <WidgetBoard style={previewStyle} data={SAMPLE} />
+            </div>
+          </Card>
+        )}
       </div>
     </div>
   );

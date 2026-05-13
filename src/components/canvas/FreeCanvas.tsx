@@ -17,11 +17,15 @@ export function fontSizeClass(s: FontSize): string {
 export type Track = 'desktop' | 'mobile';
 const CANVAS_WIDTH: Record<Track, number> = { desktop: 1200, mobile: 360 };
 
+/** v0.7: 분기점 768px — 태블릿/PC는 desktop 트랙(자유 캔버스),
+ *  모바일(<768)은 mobile 트랙이지만 캔버스 UI 자체를 안 띄움(기록 전용 리스트로 분기). */
+export const MOBILE_BREAKPOINT = 768;
+
 export function useTrack(): Track {
   // SSR-safe — 첫 렌더는 desktop, 마운트 후 실제 viewport 기준 갱신
   const [track, setTrack] = useState<Track>('desktop');
   useEffect(() => {
-    const update = () => setTrack(window.innerWidth >= 1024 ? 'desktop' : 'mobile');
+    const update = () => setTrack(window.innerWidth >= MOBILE_BREAKPOINT ? 'desktop' : 'mobile');
     update();
     window.addEventListener('resize', update);
     return () => window.removeEventListener('resize', update);

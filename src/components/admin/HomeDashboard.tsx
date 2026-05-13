@@ -6,7 +6,8 @@ import { FreeCanvas, defaultBlocks, useTrack } from '@/components/canvas/FreeCan
 import { UrlsManager } from '@/components/urls/UrlsManager';
 import { AlbumsManager } from '@/components/albums/AlbumsManager';
 import { MemosManager } from '@/components/memos/MemosManager';
-import type { Block, Layouts, MiniHomepageRow, PhotoRow, UrlRow, MemoRow } from '@/types/db';
+import { MobileHome } from '@/components/admin/MobileHome';
+import type { Block, Layouts, MiniHomepageRow, PhotoRow, UrlRow, MemoRow, AlbumCategoryRow } from '@/types/db';
 
 const Expand = () => (
   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -32,18 +33,21 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
   const [urls, setUrls] = useState<UrlRow[]>([]);
   const [memos, setMemos] = useState<MemoRow[]>([]);
   const [photos, setPhotos] = useState<PhotoRow[]>([]);
+  const [albumCategories, setAlbumCategories] = useState<AlbumCategoryRow[]>([]);
   const [expanded, setExpanded] = useState<ExpandKind>(null);
   const track = useTrack();
 
   async function loadAll() {
-    const [u, m, p] = await Promise.all([
+    const [u, m, p, c] = await Promise.all([
       fetch('/api/urls').then((r) => r.json()),
       fetch('/api/memos').then((r) => r.json()),
       fetch('/api/albums/photos').then((r) => r.json()),
+      fetch('/api/albums/categories').then((r) => r.json()),
     ]);
     if (u.success) setUrls(u.data.items);
     if (m.success) setMemos(m.data.items);
     if (p.success) setPhotos(p.data.items);
+    if (c.success) setAlbumCategories(c.data.items);
   }
 
   useEffect(() => {
@@ -231,12 +235,40 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
   // 숨김 처리된 블록 다시 보이게 하는 헬퍼
   const hiddenBlocks = layouts[track]?.filter((b) => !b.visible) ?? [];
 
+  // 모바일 (<768px): 리스트형 폴더 구조 (기록 전용)
+  if (track === 'mobile') {
+    return (
+      <div className="space-y-3">
+        <MobileHome
+          hp={hp}
+          counts={{
+            urls: urls.length,
+            photos: photos.length,
+            albumCategories: albumCategories.length,
+            memos: memos.length,
+          }}
+          onOpen={(k) => setExpanded(k)}
+        />
+
+        <Modal open={expanded === 'urls'} onClose={closeExpanded} title="URL 보관함" size="xl">
+          <UrlsManager />
+        </Modal>
+        <Modal open={expanded === 'albums'} onClose={closeExpanded} title="앨범" size="xl">
+          <AlbumsManager />
+        </Modal>
+        <Modal open={expanded === 'memos'} onClose={closeExpanded} title="메모" size="xl">
+          <MemosManager />
+        </Modal>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2 px-1">
         <div className="text-xs opacity-60">
           {editMode ? '편집 모드: 카드를 드래그·리사이즈하세요' : '평소 모드'}
-          <span className="ml-2 opacity-50">({track === 'desktop' ? '데스크탑' : '모바일/태블릿'} 레이아웃)</span>
+          <span className="ml-2 opacity-50">(태블릿/PC 레이아웃)</span>
         </div>
         <div className="flex items-center gap-2">
           {editMode && dirty && (
