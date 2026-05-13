@@ -1,6 +1,6 @@
 ---
 상태: Draft
-버전: v0.6
+버전: v0.7
 마지막 수정일: 2026-05-13
 문서 목적: 운영 / 변경 이력
 ---
@@ -8,6 +8,12 @@
 # 변경 이력
 
 본 문서는 시간순 변경 기록을 남긴다. 현재 기능 지도는 `docs/19_FEATURE_CATALOG.md`에 있으며, 본 문서는 "언제, 무엇이 바뀌었는지"만 간단히 적는다.
+
+## v0.7 — 2026-05-13 (그림판 카드 + 모바일 기록 전용 UI)
+
+- 🆕 **Step N. 분기점 768 + 모바일 기록 전용 UI** — `useTrack` 1024→768, MobileHome 리스트형 폴더(URL/앨범/메모 + 꾸미기/설정/공개 페이지), DecorateEditor 모바일 단순화(미리보기 패널 제거, 1-column)
+- 🆕 **Step M. 그림판 카드** — `BlockKind` 'drawing' 확장, `Block.drawingUrl`. DrawPad 모달 (5색 펜 + 3단 굵기 + 지우개 + 되돌리기 + 전체 지우기 + PNG 저장). canvas.toBlob → `/api/decorate/drawing` multipart → Supabase Storage (`<uid>/drawings/<uuid>.png`) → layouts에 URL 반영. FreeCanvas의 `+ 카드 추가`는 `+ 텍스트 카드` / `+ 그림판` 2개. drawing 카드 우상단 ✎ 또는 카드 본문 클릭 → DrawPad 진입. PublicCanvas에도 렌더
+- 🧪 **E2E TC-MOBILE-001/002/DEC-001 + TC-DRAW-001 신규** — 35 passed / 3 skipped / 0 failed
 
 ## v0.6 — 2026-05-13 (PWA + 카드 관리 + 햄버거 메뉴 + 설정 비밀번호)
 

@@ -1,11 +1,11 @@
 ---
 상태: Draft
-버전: v0.6
+버전: v0.7
 마지막 수정일: 2026-05-13
 문서 목적: 운영 / 세션 인수인계
 ---
 
-# 세션 인수인계 — v0.6 (PWA + 카드 관리 + 햄버거 메뉴 + 비밀번호 변경)
+# 세션 인수인계 — v0.7 (그림판 카드 + 모바일 기록 전용 UI)
 
 다음 세션이 곧장 이어받을 수 있도록 **현재 상태 / 환경 / 다음 작업 후보**를 한 곳에 정리한다.
 
@@ -19,9 +19,9 @@
 | GitHub repo | https://github.com/hu28035036-ux/mini-homepage (Private) |
 | Supabase Project | `mini-homepage-prod` (ref `efokjcootdmcrnpnqpce`, Seoul) |
 | Vercel Project | `mini-homepage` (orgId `team_Fej1ZZqXQJPzGwxXB9oGo9AB`, projectId `prj_F0mAKTWVVZ38KBfXYj9qDSlJ46L6`) |
-| 최근 commit | `27b067d fix(memos): persist 시 draftsRef 사용 — 마지막 입력의 누적 patch 보존` |
+| 최근 commit | v0.7 그림판 카드 + 모바일 리스트 UI |
 | 마지막 운영 배포 | Vercel 자동 (GitHub master push) — 진행/완료 |
-| E2E | **31 passed / 3 skipped / 0 failed** (chromium) |
+| E2E | **35 passed / 3 skipped / 0 failed** (chromium) |
 | TypeScript | 0 에러 |
 | 마이그레이션 0003 | 로컬 적용 완료 / 운영 SQL Editor 적용 **필요** |
 
