@@ -88,21 +88,8 @@ export function MobileHome({
         </li>
       </ul>
 
-      {/* 설정/도구 그룹 */}
+      {/* 설정/도구 그룹 — 꾸미기는 모바일에서 제외 (PC/태블릿 전용) */}
       <ul className="bg-white/80 backdrop-blur rounded-2xl border border-black/5 divide-y divide-black/5 overflow-hidden">
-        <li>
-          <button
-            type="button"
-            onClick={() => router.push('/admin/decorate')}
-            className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-black/5"
-          >
-            <span className="flex items-center gap-3">
-              <span className="text-base" aria-hidden>🎨</span>
-              <span className="text-sm">꾸미기</span>
-            </span>
-            <span aria-hidden className="opacity-50">›</span>
-          </button>
-        </li>
         <li>
           <button
             type="button"
@@ -133,7 +120,7 @@ export function MobileHome({
       </ul>
 
       <p className="text-[11px] opacity-50 text-center px-2">
-        그림판·사용자 카드는 PC/태블릿(가로 768px 이상)에서 배치할 수 있어요.
+        꾸미기·그림판·사용자 카드는 PC/태블릿(가로 768px 이상)에서 배치할 수 있어요.
       </p>
     </div>
   );

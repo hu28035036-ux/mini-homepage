@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTrack } from '@/components/canvas/FreeCanvas';
 
 export function MenuButton({
   slug,
@@ -14,6 +15,8 @@ export function MenuButton({
   pointColor: string;
 }) {
   const router = useRouter();
+  const track = useTrack();
+  const isMobile = track === 'mobile';
   const [open, setOpen] = useState(false);
   const [isPublic, setIsPublic] = useState(initialIsPublic);
   const [toggling, setToggling] = useState(false);
@@ -121,14 +124,16 @@ export function MenuButton({
           >
             홈
           </Link>
-          <Link
-            role="menuitem"
-            href="/admin/decorate"
-            onClick={() => setOpen(false)}
-            className="block px-4 py-2.5 hover:bg-black/5"
-          >
-            꾸미기
-          </Link>
+          {!isMobile && (
+            <Link
+              role="menuitem"
+              href="/admin/decorate"
+              onClick={() => setOpen(false)}
+              className="block px-4 py-2.5 hover:bg-black/5"
+            >
+              꾸미기
+            </Link>
+          )}
           <Link
             role="menuitem"
             href="/admin/settings"

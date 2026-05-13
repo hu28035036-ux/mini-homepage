@@ -95,6 +95,27 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
   const track = useTrack();
   const isMobile = track === 'mobile';
 
+  // 모바일: 꾸미기는 PC/태블릿 전용. 안내 + 홈으로 돌아가기만 노출.
+  if (isMobile) {
+    return (
+      <div className="space-y-4 pt-2">
+        <h1 className="text-xl font-bold">꾸미기</h1>
+        <div className="bg-white/80 backdrop-blur rounded-2xl border border-black/5 p-5 text-sm space-y-3">
+          <p>꾸미기는 PC/태블릿(가로 768px 이상)에서 사용해주세요.</p>
+          <p className="text-xs opacity-70">
+            모바일에서는 기록(URL/앨범/메모) 위주로 사용하고, 꾸미기는 큰 화면에서 진행하는 게 편해요.
+          </p>
+          <button
+            onClick={() => router.push('/admin')}
+            className="text-xs px-3 py-1.5 rounded-lg bg-violet-600 text-white hover:bg-violet-700"
+          >
+            홈으로 돌아가기
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // 중복 위젯 감지
   const duplicates = useMemo(() => {
     const seen = new Map<string, number>();

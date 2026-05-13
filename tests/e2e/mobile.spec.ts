@@ -25,26 +25,27 @@ test.describe('모바일 기록 전용 UI (TC-MOBILE)', () => {
     await expect(page.getByRole('button', { name: '+ 새 메모' })).toBeVisible();
   });
 
-  test('TC-MOBILE-DEC-001 모바일 꾸미기 페이지는 미리보기 패널 미노출 + 패턴 select 노출', async ({ page }) => {
+  test('TC-MOBILE-DEC-001 모바일 꾸미기 페이지는 안내만 노출 (폼 미노출)', async ({ page }) => {
     await signupAndLogin(page, 'mobile-decorate');
     await page.goto('/admin/decorate');
 
-    await expect(page.getByText('미리보기 (저장 전)')).toHaveCount(0);
-    await expect(page.locator('#card-select')).toBeVisible();
-    await expect(page.locator('#font-select')).toBeVisible();
-    await expect(page.locator('#opacity')).toBeVisible();
-    await expect(page.locator('#font-size')).toBeVisible();
-    await expect(page.locator('#pattern-select')).toBeVisible();
+    // 모바일은 안내 화면. 폼 컨트롤 미노출.
+    await expect(page.locator('#card-select')).toHaveCount(0);
+    await expect(page.locator('#pattern-select')).toHaveCount(0);
+    await expect(page.getByText('PC/태블릿')).toBeVisible();
+    await expect(page.getByRole('button', { name: '홈으로 돌아가기' })).toBeVisible();
   });
 
-  test('TC-MOBILE-003 햄버거 메뉴 노출 + 메뉴 항목 클릭 시 페이지 이동', async ({ page }) => {
+  test('TC-MOBILE-003 햄버거 메뉴 노출 + 모바일에서 꾸미기 항목 hide', async ({ page }) => {
     await signupAndLogin(page, 'mobile-hamburger');
     await page.goto('/admin');
 
     await page.getByRole('button', { name: '메뉴 열기' }).click();
-    await page.getByRole('menuitem', { name: '꾸미기' }).click();
-    await page.waitForURL(/\/admin\/decorate/);
-    await expect(page.locator('#card-select')).toBeVisible();
+    // 모바일에서는 꾸미기 메뉴가 hide
+    await expect(page.getByRole('menuitem', { name: '꾸미기' })).toHaveCount(0);
+    // 설정은 노출
+    await page.getByRole('menuitem', { name: '설정' }).click();
+    await page.waitForURL(/\/admin\/settings/);
   });
 
   test('TC-MOBILE-004 설정 페이지 모바일 진입 정상', async ({ page }) => {
