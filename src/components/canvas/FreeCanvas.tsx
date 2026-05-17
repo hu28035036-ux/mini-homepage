@@ -4,7 +4,8 @@ import { useEffect, useRef, useState, useCallback, ReactNode } from 'react';
 import { DndContext, useDraggable, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { textColorOrGradientStyle } from '@/components/decorate/ColorPicker';
 import { CardHeader } from '@/components/canvas/CardHeader';
-import type { Block, Layouts, CardStyle, FontStyle, FontSize } from '@/types/db';
+import { CardCategoryManager } from '@/components/canvas/CardCategoryManager';
+import type { Block, Layouts, CardStyle, FontStyle, FontSize, CardCategory } from '@/types/db';
 
 export function fontSizeClass(s: FontSize): string {
   switch (s) {
@@ -115,6 +116,8 @@ interface DraggableBlockProps {
   textColor?: string;
   pointColor: string;
   cardBackgroundColor?: string | null;
+  categoryName?: string;
+  dimmed?: boolean;
   onSelect: (id: string) => void;
   onChange: (id: string, patch: Partial<Block>) => void;
   onExpand?: (kind: Block['kind']) => void;
@@ -126,7 +129,7 @@ interface DraggableBlockProps {
   children: ReactNode;
 }
 
-function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity, effectiveFontSize, textColor, pointColor, cardBackgroundColor, onSelect, onChange, onExpand, onQuickAdd, onBringForward, onSendBackward, onDelete, onDraw, children }: DraggableBlockProps) {
+function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity, effectiveFontSize, textColor, pointColor, cardBackgroundColor, categoryName, dimmed, onSelect, onChange, onExpand, onQuickAdd, onBringForward, onSendBackward, onDelete, onDraw, children }: DraggableBlockProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: block.id,
     disabled: !editMode,
@@ -185,7 +188,7 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
         width: block.w,
         height: block.h,
         zIndex: isDragging ? 9999 : block.z,
-        opacity: isDragging ? Math.min(0.8, effectiveOpacity) : effectiveOpacity,
+        opacity: dimmed ? 0.2 : (isDragging ? Math.min(0.8, effectiveOpacity) : effectiveOpacity),
         ...(cardBackgroundColor
           ? /^(linear|radial|conic)-gradient\(/.test(cardBackgroundColor)
             ? { backgroundImage: cardBackgroundColor, backgroundColor: 'transparent' }
@@ -201,7 +204,7 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
         style={editMode ? { pointerEvents: 'none' } : undefined}
       >
         {block.kind !== 'title' && (
-          <CardHeader block={block} editMode={editMode} onChange={onChange} textColor={pointColor} />
+          <CardHeader block={block} editMode={editMode} onChange={onChange} textColor={pointColor} categoryName={categoryName} />
         )}
         {children}
       </div>
@@ -373,6 +376,10 @@ export interface FreeCanvasProps {
   publicViewOnly?: boolean;
   /** 강제 트랙(공개 페이지의 클라이언트 hydration용) */
   forceTrack?: Track;
+  /** 카드 카테고리 목록 */
+  cardCategories?: CardCategory[];
+  /** 카테고리 추가/삭제 후 부모가 목록 재조회 */
+  onReloadCategories?: () => void;
 }
 
 export function FreeCanvas({
@@ -393,8 +400,12 @@ export function FreeCanvas({
   onExitEdit,
   publicViewOnly = false,
   forceTrack,
+  cardCategories = [],
+  onReloadCategories,
 }: FreeCanvasProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showCatManager, setShowCatManager] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState('');
   const detectedTrack = useTrack();
   const track = forceTrack ?? detectedTrack;
   const canvasWidth = CANVAS_WIDTH[track];
@@ -516,6 +527,24 @@ export function FreeCanvas({
     <DndContext sensors={sensors} onDragEnd={onDragEnd}>
       {editMode && (
         <div className="sticky top-2 z-50 mx-auto mb-2 flex justify-end gap-2" style={{ maxWidth: canvasWidth }}>
+          {cardCategories.length > 0 && (
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              aria-label="카테고리 필터"
+              className="text-xs rounded-lg border border-violet-200 px-2 py-1.5"
+            >
+              <option value="">전체 카테고리</option>
+              {cardCategories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          )}
+          <button
+            onClick={() => setShowCatManager(true)}
+            className="text-xs px-3 py-1.5 rounded-lg bg-black/5 hover:bg-black/10"
+            aria-label="카테고리 관리"
+          >
+            카테고리 관리
+          </button>
           <button
             onClick={addCustomBlock}
             className="text-xs px-3 py-1.5 rounded-lg bg-violet-600 text-white hover:bg-violet-700 shadow"
@@ -573,6 +602,20 @@ export function FreeCanvas({
               <option value="xl">XL</option>
             </select>
           </label>
+          {cardCategories.length > 0 && (
+            <label className="flex items-center gap-1.5">
+              <span className="opacity-60">카테고리</span>
+              <select
+                value={selectedBlock.categoryId ?? ''}
+                onChange={(e) => applyChange(selectedBlock.id, { categoryId: e.target.value || undefined })}
+                className="rounded border border-gray-200 px-1 py-0.5 text-xs"
+                aria-label="카드 카테고리"
+              >
+                <option value="">없음</option>
+                {cardCategories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </label>
+          )}
           <button
             onClick={() => setSelectedId(null)}
             className="text-[11px] px-2 py-0.5 rounded bg-gray-100 hover:bg-gray-200"
@@ -586,7 +629,10 @@ export function FreeCanvas({
         className={`relative mx-auto font-${fontStyle} ${editMode ? 'bg-[radial-gradient(circle,rgba(0,0,0,0.04)_1px,transparent_1px)] [background-size:24px_24px]' : ''}`}
         style={{ width: canvasWidth, minHeight, maxWidth: '100%', color: 'inherit' }}
       >
-        {visibleBlocks.map((b) => (
+        {visibleBlocks.map((b) => {
+          const categoryName = cardCategories.find((c) => c.id === b.categoryId)?.name;
+          const dimmed = editMode && !!categoryFilter && b.categoryId !== categoryFilter;
+          return (
           <DraggableBlock
             key={b.id}
             block={b}
@@ -598,6 +644,8 @@ export function FreeCanvas({
             textColor={textColor}
             pointColor={pointColor}
             cardBackgroundColor={cardBackgroundColor}
+            categoryName={categoryName}
+            dimmed={dimmed}
             onSelect={setSelectedId}
             onChange={applyChange}
             onExpand={onExpand}
@@ -609,8 +657,15 @@ export function FreeCanvas({
           >
             <div style={{ '--point': pointColor } as React.CSSProperties}>{renderBlock(b)}</div>
           </DraggableBlock>
-        ))}
+          );
+        })}
       </div>
+      <CardCategoryManager
+        open={showCatManager}
+        onClose={() => setShowCatManager(false)}
+        categories={cardCategories}
+        onChanged={() => onReloadCategories?.()}
+      />
     </DndContext>
   );
 }

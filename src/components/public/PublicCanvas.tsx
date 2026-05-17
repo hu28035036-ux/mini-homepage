@@ -18,7 +18,7 @@ export interface PublicData {
     | 'background_color' | 'background_image_url' | 'use_background_image'
     | 'background_pattern' | 'background_pattern_color'
     | 'point_color' | 'text_color' | 'card_style' | 'card_background_color' | 'font_style'
-    | 'default_card_opacity' | 'default_font_size'
+    | 'default_card_opacity' | 'default_font_size' | 'card_categories'
   > & { layouts: Layouts };
   profile: { nickname: string; intro: string | null; image_url: string | null };
   urls: Array<{ id: string; title: string; url: string; created_at: string }>;
@@ -173,6 +173,7 @@ export function PublicCanvas({ data }: { data: PublicData }) {
         defaultOpacity={homepage.default_card_opacity ?? 1}
         defaultFontSize={homepage.default_font_size ?? 'base'}
         renderBlock={renderBlock}
+        cardCategories={homepage.card_categories}
         publicViewOnly
       />
 

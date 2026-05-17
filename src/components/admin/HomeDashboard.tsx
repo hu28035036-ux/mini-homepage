@@ -11,7 +11,7 @@ import { MemosManager } from '@/components/memos/MemosManager';
 import { MobileHome } from '@/components/admin/MobileHome';
 import { PhotoLightbox, type LightboxPhoto } from '@/components/albums/PhotoLightbox';
 import { textColorOrGradientStyle } from '@/components/decorate/ColorPicker';
-import type { Block, Layouts, MiniHomepageRow, PhotoRow, UrlRow, MemoRow, AlbumCategoryRow } from '@/types/db';
+import type { Block, Layouts, MiniHomepageRow, PhotoRow, UrlRow, MemoRow, AlbumCategoryRow, CardCategory } from '@/types/db';
 
 const Expand = () => (
   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -38,6 +38,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
   const [memos, setMemos] = useState<MemoRow[]>([]);
   const [photos, setPhotos] = useState<PhotoRow[]>([]);
   const [albumCategories, setAlbumCategories] = useState<AlbumCategoryRow[]>([]);
+  const [cardCategories, setCardCategories] = useState<CardCategory[]>([]);
   const [expanded, setExpanded] = useState<ExpandKind>(null);
   const [drawingTarget, setDrawingTarget] = useState<Block | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -49,16 +50,18 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
   useEffect(() => { setMounted(true); }, []);
 
   async function loadAll() {
-    const [u, m, p, c] = await Promise.all([
+    const [u, m, p, c, cc] = await Promise.all([
       fetch('/api/urls').then((r) => r.json()),
       fetch('/api/memos').then((r) => r.json()),
       fetch('/api/albums/photos').then((r) => r.json()),
       fetch('/api/albums/categories').then((r) => r.json()),
+      fetch('/api/cards/categories').then((r) => r.json()),
     ]);
     if (u.success) setUrls(u.data.items);
     if (m.success) setMemos(m.data.items);
     if (p.success) setPhotos(p.data.items);
     if (c.success) setAlbumCategories(c.data.items);
+    if (cc.success) setCardCategories(cc.data.items);
   }
 
   useEffect(() => {
@@ -359,6 +362,8 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
         defaultOpacity={hp.default_card_opacity ?? 1}
         defaultFontSize={hp.default_font_size ?? 'base'}
         renderBlock={renderBlock}
+        cardCategories={cardCategories}
+        onReloadCategories={loadAll}
         onExpand={(k) => k !== 'title' && k !== 'profile' && setExpanded(k as ExpandKind)}
         onQuickAdd={quickAdd}
         onDraw={(block) => setDrawingTarget(block)}
