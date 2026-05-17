@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Modal, IconButton } from '@/components/ui/primitives';
-import { FreeCanvas, defaultBlocks, useTrack } from '@/components/canvas/FreeCanvas';
+import { FreeCanvas, defaultBlocks, normalizeBlock, useTrack } from '@/components/canvas/FreeCanvas';
 import { DrawPad } from '@/components/canvas/DrawPad';
 import { UrlsManager } from '@/components/urls/UrlsManager';
 import { AlbumsManager } from '@/components/albums/AlbumsManager';
@@ -24,8 +24,8 @@ type ExpandKind = 'urls' | 'albums' | 'memos' | null;
 function ensureLayouts(hp: MiniHomepageRow): Layouts {
   const layouts = hp.layouts ?? { desktop: [], mobile: [] };
   return {
-    desktop: layouts.desktop && layouts.desktop.length > 0 ? layouts.desktop : defaultBlocks('desktop'),
-    mobile: layouts.mobile && layouts.mobile.length > 0 ? layouts.mobile : defaultBlocks('mobile'),
+    desktop: (layouts.desktop && layouts.desktop.length > 0 ? layouts.desktop : defaultBlocks('desktop')).map(normalizeBlock),
+    mobile: (layouts.mobile && layouts.mobile.length > 0 ? layouts.mobile : defaultBlocks('mobile')).map(normalizeBlock),
   };
 }
 

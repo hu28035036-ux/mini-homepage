@@ -43,9 +43,10 @@ export function DrawPad({
     ctx.fillRect(0, 0, cv.width, cv.height);
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
+    // 지우개는 흰 종이를 복원(흰색 칠하기). destination-out은 배경까지 투명하게 뚫어
+    // 저장 PNG에 투명 영역이 생기고 그 사이로 카드 배경이 비치므로 쓰지 않는다.
     for (const s of strokesRef.current) {
-      ctx.globalCompositeOperation = s.erase ? 'destination-out' : 'source-over';
-      ctx.strokeStyle = s.color;
+      ctx.strokeStyle = s.erase ? '#ffffff' : s.color;
       ctx.lineWidth = s.width;
       if (s.points.length === 0) continue;
       ctx.beginPath();
@@ -55,7 +56,6 @@ export function DrawPad({
       }
       ctx.stroke();
     }
-    ctx.globalCompositeOperation = 'source-over';
   };
 
   // 초기 PNG 로드(기존 그림이 있으면)
