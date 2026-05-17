@@ -51,20 +51,33 @@ export function defaultBlocks(track: Track): Block[] {
   });
   if (track === 'desktop') {
     return [
-      base('title',   40, 20,  400, 80),
-      base('profile', 40, 110, 300, 240),
-      base('urls',    360, 110, 400, 320),
-      base('albums',  780, 110, 400, 320),
-      base('memos',   40, 450, 720, 240),
+      base('title',   40, 20,  400, 90),
+      base('profile', 40, 130, 300, 240),
+      base('urls',    360, 130, 400, 320),
+      base('albums',  780, 130, 400, 320),
+      base('memos',   40, 470, 720, 240),
     ];
   }
   return [
-    base('title',   20, 20,  320, 80),
-    base('profile', 20, 90,  320, 200),
-    base('urls',    20, 300, 320, 240),
-    base('albums',  20, 550, 320, 240),
-    base('memos',   20, 800, 320, 240),
+    base('title',   20, 20,  320, 90),
+    base('profile', 20, 130, 320, 200),
+    base('urls',    20, 350, 320, 240),
+    base('albums',  20, 610, 320, 240),
+    base('memos',   20, 870, 320, 240),
   ];
+}
+
+/** layouts 로드 시 검증 스키마(blockSchema)가 요구하는 값으로 보정.
+ *  위치(x, y)는 손대지 않아 자유 배치를 유지하고, 크기·z·표시 필드만 규칙 안으로 끌어들인다. */
+export function normalizeBlock(b: Block): Block {
+  return {
+    ...b,
+    w: Math.min(4000, Math.max(160, b.w)),
+    h: Math.min(4000, Math.max(80, b.h)),
+    z: Number.isInteger(b.z) ? b.z : 0,
+    visible: b.visible ?? true,
+    visibility: b.visibility ?? 'public',
+  };
 }
 
 function clampBlock(b: Block, canvasWidth: number): Block {
@@ -111,6 +124,7 @@ interface DraggableBlockProps {
   editMode: boolean;
   cardStyle: CardStyle;
   selected: boolean;
+  outOfBounds: boolean;
   effectiveOpacity: number;
   effectiveFontSize: FontSize;
   textColor?: string;
@@ -129,7 +143,7 @@ interface DraggableBlockProps {
   children: ReactNode;
 }
 
-function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity, effectiveFontSize, textColor, pointColor, cardBackgroundColor, categoryName, dimmed, onSelect, onChange, onExpand, onQuickAdd, onBringForward, onSendBackward, onDelete, onDraw, children }: DraggableBlockProps) {
+function DraggableBlock({ block, editMode, cardStyle, selected, outOfBounds, effectiveOpacity, effectiveFontSize, textColor, pointColor, cardBackgroundColor, categoryName, dimmed, onSelect, onChange, onExpand, onQuickAdd, onBringForward, onSendBackward, onDelete, onDraw, children }: DraggableBlockProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: block.id,
     disabled: !editMode,
@@ -171,7 +185,6 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
   return (
     <div
       ref={setNodeRef}
-      data-block-fontsize={effectiveFontSize}
       data-block-kind={block.kind}
       onClick={() => {
         if (editMode) {
@@ -181,7 +194,7 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
         if (clickOpensDrawPad) { onDraw!(block); return; }
         if (clickExpands) onExpand!(block.kind);
       }}
-      className={`absolute ${cardClass(cardStyle)} ${isDragging ? 'shadow-2xl' : ''} ${editMode ? (selected ? 'ring-2 ring-violet-500' : 'ring-1 ring-violet-300/40') : ''} ${!editMode && (clickExpands || clickOpensDrawPad) ? 'cursor-zoom-in' : ''}`}
+      className={`absolute ${cardClass(cardStyle)} ${isDragging ? 'shadow-2xl' : ''} ${editMode ? (outOfBounds ? 'ring-2 ring-rose-500' : selected ? 'ring-2 ring-violet-500' : 'ring-1 ring-violet-300/40') : ''} ${!editMode && (clickExpands || clickOpensDrawPad) ? 'cursor-zoom-in' : ''}`}
       style={{
         left: block.x,
         top: block.y,
@@ -199,7 +212,9 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
       }}
     >
       {/* 1. 내부 콘텐츠 — 핸들 아래에 깔리도록 먼저 작성 + 편집 모드 OFF는 인터랙티브, ON일 때는 pointer-events: none(드래그 우선) */}
+      {/* data-block-fontsize는 본문 div에만 — 편집 핸들/액션 버튼은 카드 폰트크기 cascade에서 제외 */}
       <div
+        data-block-fontsize={effectiveFontSize}
         className={`absolute inset-x-0 bottom-0 ${editMode ? 'top-8' : 'top-0'} overflow-auto p-4`}
         style={editMode ? { pointerEvents: 'none' } : undefined}
       >
@@ -255,7 +270,10 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
           className="absolute inset-x-0 top-0 h-8 z-30 cursor-grab active:cursor-grabbing select-none flex items-center justify-between px-3 text-[10px] text-gray-700 bg-violet-50 border-b border-violet-200 rounded-t"
           aria-label="드래그 핸들"
         >
-          <span className="font-medium">⋮⋮ {block.kind}</span>
+          <span className="font-medium">
+            ⋮⋮ {block.kind}
+            {outOfBounds && <span className="ml-1 text-rose-600" title="편집 범위를 벗어났습니다">⚠</span>}
+          </span>
           <div className="flex items-center gap-1.5">
             <button
               onPointerDown={(e) => e.stopPropagation()}
@@ -626,7 +644,7 @@ export function FreeCanvas({
         </div>
       )}
       <div
-        className={`relative mx-auto font-${fontStyle} ${editMode ? 'bg-[radial-gradient(circle,rgba(0,0,0,0.04)_1px,transparent_1px)] [background-size:24px_24px]' : ''}`}
+        className={`relative mx-auto font-${fontStyle} ${editMode ? 'bg-[radial-gradient(circle,rgba(0,0,0,0.04)_1px,transparent_1px)] [background-size:24px_24px] outline-dashed outline-2 outline-violet-300' : ''}`}
         style={{ width: canvasWidth, minHeight, maxWidth: '100%', color: 'inherit' }}
       >
         {visibleBlocks.map((b) => {
@@ -639,6 +657,7 @@ export function FreeCanvas({
             editMode={editMode}
             cardStyle={cardStyle}
             selected={selectedId === b.id}
+            outOfBounds={b.x < 0 || b.y < 0 || b.x + b.w > canvasWidth}
             effectiveOpacity={b.opacity ?? defaultOpacity}
             effectiveFontSize={b.fontSize ?? defaultFontSize}
             textColor={textColor}

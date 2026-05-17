@@ -34,10 +34,11 @@ function drawFreehand(ctx: Ctx, el: FreehandElement) {
   ctx.lineCap = el.pen === 'highlighter' ? 'butt' : 'round';
 
   if (el.erase) {
-    // 픽셀 지우개 — destination-out 으로 알파 제거
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.strokeStyle = 'rgba(0,0,0,1)';
-    ctx.fillStyle = 'rgba(0,0,0,1)';
+    // 픽셀 지우개 — destination-out 은 저장 PNG에 투명 구멍을 내 카드 배경이 비치므로
+    // 흰 종이를 덧칠하는 방식으로 지운다 (캔버스 배경은 항상 흰색)
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = '#ffffff';
+    ctx.fillStyle = '#ffffff';
     ctx.lineWidth = el.width;
     if (pts.length === 1) dot(ctx, pts[0], el.width);
     else strokePolyline(ctx, pts);
