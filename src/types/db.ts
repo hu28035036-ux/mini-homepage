@@ -55,14 +55,21 @@ export interface Block {
   visibility: 'public' | 'private'; // 공개 페이지 노출 여부
   opacity?: number;          // 카드별 투명도 오버라이드 (0~1). 미지정 시 전역값
   fontSize?: FontSize;       // 카드별 폰트 크기 오버라이드. 미지정 시 전역값
-  customTitle?: string;      // custom 카드 제목 (Step L)
+  customTitle?: string;      // 전 카드 종류 공통 헤더(이름). 빈 값이면 종류별 기본명
   customContent?: string;    // custom 카드 본문
   drawingUrl?: string | null; // drawing 카드의 PNG URL (Step M, v0.7)
+  categoryId?: string;       // 카드 카테고리 id (mini_homepages.card_categories 참조)
 }
 
 export interface Layouts {
   desktop: Block[];   // ≥ 1024px
   mobile:  Block[];   // < 1024px (태블릿 포함, 태블릿은 폭만 자동 확대)
+}
+
+// 카드 카테고리 — mini_homepages.card_categories JSONB 배열 (마이그 0007)
+export interface CardCategory {
+  id: string;
+  name: string;
 }
 
 export interface MiniHomepageRow {
@@ -85,6 +92,7 @@ export interface MiniHomepageRow {
   layout_mode: LayoutMode;
   layout_slots: LayoutSlot[];
   layouts: Layouts;
+  card_categories: CardCategory[];
   default_card_opacity: number;
   default_font_size: FontSize;
   is_public: boolean;

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Modal, IconButton } from '@/components/ui/primitives';
-import { FreeCanvas, defaultBlocks, useTrack } from '@/components/canvas/FreeCanvas';
+import { FreeCanvas, defaultBlocks, normalizeBlock, useTrack } from '@/components/canvas/FreeCanvas';
 import { DrawPad } from '@/components/canvas/DrawPad';
 import { UrlsManager } from '@/components/urls/UrlsManager';
 import { AlbumsManager } from '@/components/albums/AlbumsManager';
@@ -11,7 +11,7 @@ import { MemosManager } from '@/components/memos/MemosManager';
 import { MobileHome } from '@/components/admin/MobileHome';
 import { PhotoLightbox, type LightboxPhoto } from '@/components/albums/PhotoLightbox';
 import { textColorOrGradientStyle } from '@/components/decorate/ColorPicker';
-import type { Block, Layouts, MiniHomepageRow, PhotoRow, UrlRow, MemoRow, AlbumCategoryRow } from '@/types/db';
+import type { Block, Layouts, MiniHomepageRow, PhotoRow, UrlRow, MemoRow, AlbumCategoryRow, CardCategory } from '@/types/db';
 
 const Expand = () => (
   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -24,8 +24,8 @@ type ExpandKind = 'urls' | 'albums' | 'memos' | null;
 function ensureLayouts(hp: MiniHomepageRow): Layouts {
   const layouts = hp.layouts ?? { desktop: [], mobile: [] };
   return {
-    desktop: layouts.desktop && layouts.desktop.length > 0 ? layouts.desktop : defaultBlocks('desktop'),
-    mobile: layouts.mobile && layouts.mobile.length > 0 ? layouts.mobile : defaultBlocks('mobile'),
+    desktop: (layouts.desktop && layouts.desktop.length > 0 ? layouts.desktop : defaultBlocks('desktop')).map(normalizeBlock),
+    mobile: (layouts.mobile && layouts.mobile.length > 0 ? layouts.mobile : defaultBlocks('mobile')).map(normalizeBlock),
   };
 }
 
@@ -38,6 +38,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
   const [memos, setMemos] = useState<MemoRow[]>([]);
   const [photos, setPhotos] = useState<PhotoRow[]>([]);
   const [albumCategories, setAlbumCategories] = useState<AlbumCategoryRow[]>([]);
+  const [cardCategories, setCardCategories] = useState<CardCategory[]>([]);
   const [expanded, setExpanded] = useState<ExpandKind>(null);
   const [drawingTarget, setDrawingTarget] = useState<Block | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -49,16 +50,18 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
   useEffect(() => { setMounted(true); }, []);
 
   async function loadAll() {
-    const [u, m, p, c] = await Promise.all([
+    const [u, m, p, c, cc] = await Promise.all([
       fetch('/api/urls').then((r) => r.json()),
       fetch('/api/memos').then((r) => r.json()),
       fetch('/api/albums/photos').then((r) => r.json()),
       fetch('/api/albums/categories').then((r) => r.json()),
+      fetch('/api/cards/categories').then((r) => r.json()),
     ]);
     if (u.success) setUrls(u.data.items);
     if (m.success) setMemos(m.data.items);
     if (p.success) setPhotos(p.data.items);
     if (c.success) setAlbumCategories(c.data.items);
+    if (cc.success) setCardCategories(cc.data.items);
   }
 
   useEffect(() => {
@@ -97,6 +100,8 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
   }, [router]);
 
   function handleLayoutsChange(next: Layouts) {
+    // ref 동기 갱신 — 편집 직후 '레이아웃 저장' 클릭이 useEffect 갱신보다 빨라도 최신값 저장
+    layoutsRef.current = next;
     setLayouts(next);
     setDirty(true);
     if (saveTimer.current) clearTimeout(saveTimer.current);
@@ -159,7 +164,6 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
       case 'urls':
         return (
           <div>
-            <h3 className="text-sm font-bold mb-2" style={textColorOrGradientStyle(hp.point_color)}>URL 보관함</h3>
             {urls.length === 0 ? (
               <p className="text-xs opacity-50">아직 저장된 링크가 없어요.</p>
             ) : (
@@ -185,7 +189,6 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
       case 'albums':
         return (
           <div>
-            <h3 className="text-sm font-bold mb-2" style={textColorOrGradientStyle(hp.point_color)}>앨범</h3>
             {photos.length === 0 ? (
               <p className="text-xs opacity-50">아직 사진이 없어요.</p>
             ) : (
@@ -208,7 +211,6 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
       case 'memos':
         return (
           <div>
-            <h3 className="text-sm font-bold mb-2" style={textColorOrGradientStyle(hp.point_color)}>메모</h3>
             {memos.length === 0 ? (
               <p className="text-xs opacity-50">아직 메모가 없어요.</p>
             ) : (
@@ -244,17 +246,6 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
         if (editMode) {
           return (
             <div style={{ pointerEvents: 'auto' }} onPointerDown={(e) => e.stopPropagation()}>
-              <input
-                value={b.customTitle ?? ''}
-                onChange={(e) => {
-                  const next = layouts[track].map((x) => (x.id === b.id ? { ...x, customTitle: e.target.value } : x));
-                  handleLayoutsChange({ ...layouts, [track]: next });
-                }}
-                placeholder="제목"
-                maxLength={200}
-                className="w-full bg-transparent outline-none text-sm font-bold mb-1 border-b border-black/10 focus:border-violet-400"
-                style={textColorOrGradientStyle(hp.point_color)}
-              />
               <textarea
                 value={b.customContent ?? ''}
                 onChange={(e) => {
@@ -271,7 +262,6 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
         }
         return (
           <div>
-            {b.customTitle && <h3 className="text-sm font-bold mb-1" style={textColorOrGradientStyle(hp.point_color)}>{b.customTitle}</h3>}
             <div className="text-xs opacity-80 whitespace-pre-wrap">{b.customContent}</div>
           </div>
         );
@@ -372,6 +362,8 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
         defaultOpacity={hp.default_card_opacity ?? 1}
         defaultFontSize={hp.default_font_size ?? 'base'}
         renderBlock={renderBlock}
+        cardCategories={cardCategories}
+        onReloadCategories={loadAll}
         onExpand={(k) => k !== 'title' && k !== 'profile' && setExpanded(k as ExpandKind)}
         onQuickAdd={quickAdd}
         onDraw={(block) => setDrawingTarget(block)}

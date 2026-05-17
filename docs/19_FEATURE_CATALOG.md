@@ -1,7 +1,7 @@
 ---
 상태: Approved
-버전: v0.1
-마지막 수정일: 2026-05-12
+버전: v0.8
+마지막 수정일: 2026-05-18
 문서 목적: 구현 관리 / 기능 목록 (단일 소스)
 ---
 
@@ -99,3 +99,13 @@
 | AI 요약/RAG/챗봇 | Deprecated/Excluded | PRD §7. 추후 도입 시 `docs/ai/` 신규 |
 | URL 썸네일 자동 가져오기 | Deprecated/Excluded | PRD §7 |
 | 알림/결제 | Deprecated/Excluded | PRD §7 |
+
+## 11. 카드 이름 · 카테고리 · 그림판 (v0.8 자유 캔버스)
+
+| 기능 | 설명 | 위치 | API | 테이블 | 권한 | TC | 상태 | 테스트 |
+|---|---|---|---|---|---|---|---|---|
+| 카드 이름(헤더) 편집 | 편집 모드에서 전 카드 종류의 이름 수정, 빈 값이면 종류별 기본명. 공개 페이지 반영 | `components/canvas/CardHeader.tsx`, `FreeCanvas` | `PUT /api/decorate` (layouts) | mini_homepages | 본인 | TC-CARDNAME-001~006 | Active | Passing |
+| 카드 카테고리 | 추가/삭제 관리 모달, 모든 카드에 지정, 헤더 라벨, 편집 필터, 공개 라벨 | `components/canvas/CardCategoryManager.tsx`, `services/cardCategories.ts` | `GET/POST /api/cards/categories`, `DELETE /api/cards/categories/[id]` | mini_homepages (`card_categories` JSONB, 마이그 0007) | 본인 | TC-CARDCAT-001~014 | Active | Passing |
+| 그림판 (펜·도형·지우개) | 펜 5종·도형 6종·픽셀/객체 지우개·대표색 7+팔레트·굵기 1~100 슬라이더 | `components/canvas/DrawPad/*` | `POST /api/decorate/drawing` | mini_homepages (`layouts.drawingUrl`) | 본인 | TC-DRAW-010~017 | Active | Passing |
+
+> 위 TC는 단독 e2e 실행 시 전건 통과. 전체 60건 일괄 실행은 dev 서버 콜드 컴파일 부하로 간헐 timeout — 환경 이슈, 회귀 아님.

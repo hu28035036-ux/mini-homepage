@@ -19,6 +19,7 @@ export const ERROR_CODES = {
   URL_INVALID_FORMAT: { status: 400, message: '올바른 URL 형식이 아닙니다.' },
 
   ALBUM_CATEGORY_DUPLICATE: { status: 409, message: '이미 사용 중인 카테고리 이름입니다.' },
+  CARD_CATEGORY_DUPLICATE: { status: 409, message: '이미 사용 중인 카테고리 이름입니다.' },
   PHOTO_INVALID_MIME: { status: 400, message: '지원하지 않는 이미지 형식입니다.' },
 
   DECORATE_INVALID_VALUE: { status: 400, message: '꾸미기 설정 값이 올바르지 않습니다.' },

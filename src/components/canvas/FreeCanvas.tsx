@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState, useCallback, ReactNode } from 'react';
 import { DndContext, useDraggable, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { textColorOrGradientStyle } from '@/components/decorate/ColorPicker';
-import type { Block, Layouts, CardStyle, FontStyle, FontSize } from '@/types/db';
+import { CardHeader } from '@/components/canvas/CardHeader';
+import { CardCategoryManager } from '@/components/canvas/CardCategoryManager';
+import type { Block, Layouts, CardStyle, FontStyle, FontSize, CardCategory } from '@/types/db';
 
 export function fontSizeClass(s: FontSize): string {
   switch (s) {
@@ -49,20 +51,33 @@ export function defaultBlocks(track: Track): Block[] {
   });
   if (track === 'desktop') {
     return [
-      base('title',   40, 20,  400, 70),
-      base('profile', 40, 110, 300, 240),
-      base('urls',    360, 110, 400, 320),
-      base('albums',  780, 110, 400, 320),
-      base('memos',   40, 450, 720, 240),
+      base('title',   40, 20,  400, 90),
+      base('profile', 40, 130, 300, 240),
+      base('urls',    360, 130, 400, 320),
+      base('albums',  780, 130, 400, 320),
+      base('memos',   40, 470, 720, 240),
     ];
   }
   return [
-    base('title',   20, 20,  320, 60),
-    base('profile', 20, 90,  320, 200),
-    base('urls',    20, 300, 320, 240),
-    base('albums',  20, 550, 320, 240),
-    base('memos',   20, 800, 320, 240),
+    base('title',   20, 20,  320, 90),
+    base('profile', 20, 130, 320, 200),
+    base('urls',    20, 350, 320, 240),
+    base('albums',  20, 610, 320, 240),
+    base('memos',   20, 870, 320, 240),
   ];
+}
+
+/** layouts 로드 시 검증 스키마(blockSchema)가 요구하는 값으로 보정.
+ *  위치(x, y)는 손대지 않아 자유 배치를 유지하고, 크기·z·표시 필드만 규칙 안으로 끌어들인다. */
+export function normalizeBlock(b: Block): Block {
+  return {
+    ...b,
+    w: Math.min(4000, Math.max(160, b.w)),
+    h: Math.min(4000, Math.max(80, b.h)),
+    z: Number.isInteger(b.z) ? b.z : 0,
+    visible: b.visible ?? true,
+    visibility: b.visibility ?? 'public',
+  };
 }
 
 function clampBlock(b: Block, canvasWidth: number): Block {
@@ -109,10 +124,14 @@ interface DraggableBlockProps {
   editMode: boolean;
   cardStyle: CardStyle;
   selected: boolean;
+  outOfBounds: boolean;
   effectiveOpacity: number;
   effectiveFontSize: FontSize;
   textColor?: string;
+  pointColor: string;
   cardBackgroundColor?: string | null;
+  categoryName?: string;
+  dimmed?: boolean;
   onSelect: (id: string) => void;
   onChange: (id: string, patch: Partial<Block>) => void;
   onExpand?: (kind: Block['kind']) => void;
@@ -124,7 +143,7 @@ interface DraggableBlockProps {
   children: ReactNode;
 }
 
-function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity, effectiveFontSize, textColor, cardBackgroundColor, onSelect, onChange, onExpand, onQuickAdd, onBringForward, onSendBackward, onDelete, onDraw, children }: DraggableBlockProps) {
+function DraggableBlock({ block, editMode, cardStyle, selected, outOfBounds, effectiveOpacity, effectiveFontSize, textColor, pointColor, cardBackgroundColor, categoryName, dimmed, onSelect, onChange, onExpand, onQuickAdd, onBringForward, onSendBackward, onDelete, onDraw, children }: DraggableBlockProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: block.id,
     disabled: !editMode,
@@ -166,7 +185,7 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
   return (
     <div
       ref={setNodeRef}
-      data-block-fontsize={effectiveFontSize}
+      data-block-kind={block.kind}
       onClick={() => {
         if (editMode) {
           onSelect(block.id);
@@ -175,14 +194,14 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
         if (clickOpensDrawPad) { onDraw!(block); return; }
         if (clickExpands) onExpand!(block.kind);
       }}
-      className={`absolute ${cardClass(cardStyle)} ${isDragging ? 'shadow-2xl' : ''} ${editMode ? (selected ? 'ring-2 ring-violet-500' : 'ring-1 ring-violet-300/40') : ''} ${!editMode && (clickExpands || clickOpensDrawPad) ? 'cursor-zoom-in' : ''}`}
+      className={`absolute ${cardClass(cardStyle)} ${isDragging ? 'shadow-2xl' : ''} ${editMode ? (outOfBounds ? 'ring-2 ring-rose-500' : selected ? 'ring-2 ring-violet-500' : 'ring-1 ring-violet-300/40') : ''} ${!editMode && (clickExpands || clickOpensDrawPad) ? 'cursor-zoom-in' : ''}`}
       style={{
         left: block.x,
         top: block.y,
         width: block.w,
         height: block.h,
         zIndex: isDragging ? 9999 : block.z,
-        opacity: isDragging ? Math.min(0.8, effectiveOpacity) : effectiveOpacity,
+        opacity: dimmed ? 0.2 : (isDragging ? Math.min(0.8, effectiveOpacity) : effectiveOpacity),
         ...(cardBackgroundColor
           ? /^(linear|radial|conic)-gradient\(/.test(cardBackgroundColor)
             ? { backgroundImage: cardBackgroundColor, backgroundColor: 'transparent' }
@@ -193,10 +212,15 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
       }}
     >
       {/* 1. 내부 콘텐츠 — 핸들 아래에 깔리도록 먼저 작성 + 편집 모드 OFF는 인터랙티브, ON일 때는 pointer-events: none(드래그 우선) */}
+      {/* data-block-fontsize는 본문 div에만 — 편집 핸들/액션 버튼은 카드 폰트크기 cascade에서 제외 */}
       <div
+        data-block-fontsize={effectiveFontSize}
         className={`absolute inset-x-0 bottom-0 ${editMode ? 'top-8' : 'top-0'} overflow-auto p-4`}
         style={editMode ? { pointerEvents: 'none' } : undefined}
       >
+        {block.kind !== 'title' && (
+          <CardHeader block={block} editMode={editMode} onChange={onChange} textColor={pointColor} categoryName={categoryName} />
+        )}
         {children}
       </div>
 
@@ -246,7 +270,10 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
           className="absolute inset-x-0 top-0 h-8 z-30 cursor-grab active:cursor-grabbing select-none flex items-center justify-between px-3 text-[10px] text-gray-700 bg-violet-50 border-b border-violet-200 rounded-t"
           aria-label="드래그 핸들"
         >
-          <span className="font-medium">⋮⋮ {block.kind}</span>
+          <span className="font-medium">
+            ⋮⋮ {block.kind}
+            {outOfBounds && <span className="ml-1 text-rose-600" title="편집 범위를 벗어났습니다">⚠</span>}
+          </span>
           <div className="flex items-center gap-1.5">
             <button
               onPointerDown={(e) => e.stopPropagation()}
@@ -367,6 +394,10 @@ export interface FreeCanvasProps {
   publicViewOnly?: boolean;
   /** 강제 트랙(공개 페이지의 클라이언트 hydration용) */
   forceTrack?: Track;
+  /** 카드 카테고리 목록 */
+  cardCategories?: CardCategory[];
+  /** 카테고리 추가/삭제 후 부모가 목록 재조회 */
+  onReloadCategories?: () => void;
 }
 
 export function FreeCanvas({
@@ -387,8 +418,12 @@ export function FreeCanvas({
   onExitEdit,
   publicViewOnly = false,
   forceTrack,
+  cardCategories = [],
+  onReloadCategories,
 }: FreeCanvasProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showCatManager, setShowCatManager] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState('');
   const detectedTrack = useTrack();
   const track = forceTrack ?? detectedTrack;
   const canvasWidth = CANVAS_WIDTH[track];
@@ -510,6 +545,24 @@ export function FreeCanvas({
     <DndContext sensors={sensors} onDragEnd={onDragEnd}>
       {editMode && (
         <div className="sticky top-2 z-50 mx-auto mb-2 flex justify-end gap-2" style={{ maxWidth: canvasWidth }}>
+          {cardCategories.length > 0 && (
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              aria-label="카테고리 필터"
+              className="text-xs rounded-lg border border-violet-200 px-2 py-1.5"
+            >
+              <option value="">전체 카테고리</option>
+              {cardCategories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          )}
+          <button
+            onClick={() => setShowCatManager(true)}
+            className="text-xs px-3 py-1.5 rounded-lg bg-black/5 hover:bg-black/10"
+            aria-label="카테고리 관리"
+          >
+            카테고리 관리
+          </button>
           <button
             onClick={addCustomBlock}
             className="text-xs px-3 py-1.5 rounded-lg bg-violet-600 text-white hover:bg-violet-700 shadow"
@@ -567,6 +620,20 @@ export function FreeCanvas({
               <option value="xl">XL</option>
             </select>
           </label>
+          {cardCategories.length > 0 && (
+            <label className="flex items-center gap-1.5">
+              <span className="opacity-60">카테고리</span>
+              <select
+                value={selectedBlock.categoryId ?? ''}
+                onChange={(e) => applyChange(selectedBlock.id, { categoryId: e.target.value || undefined })}
+                className="rounded border border-gray-200 px-1 py-0.5 text-xs"
+                aria-label="카드 카테고리"
+              >
+                <option value="">없음</option>
+                {cardCategories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </label>
+          )}
           <button
             onClick={() => setSelectedId(null)}
             className="text-[11px] px-2 py-0.5 rounded bg-gray-100 hover:bg-gray-200"
@@ -577,20 +644,27 @@ export function FreeCanvas({
         </div>
       )}
       <div
-        className={`relative mx-auto font-${fontStyle} ${editMode ? 'bg-[radial-gradient(circle,rgba(0,0,0,0.04)_1px,transparent_1px)] [background-size:24px_24px]' : ''}`}
+        className={`relative mx-auto font-${fontStyle} ${editMode ? 'bg-[radial-gradient(circle,rgba(0,0,0,0.04)_1px,transparent_1px)] [background-size:24px_24px] outline-dashed outline-2 outline-violet-300' : ''}`}
         style={{ width: canvasWidth, minHeight, maxWidth: '100%', color: 'inherit' }}
       >
-        {visibleBlocks.map((b) => (
+        {visibleBlocks.map((b) => {
+          const categoryName = cardCategories.find((c) => c.id === b.categoryId)?.name;
+          const dimmed = editMode && !!categoryFilter && b.categoryId !== categoryFilter;
+          return (
           <DraggableBlock
             key={b.id}
             block={b}
             editMode={editMode}
             cardStyle={cardStyle}
             selected={selectedId === b.id}
+            outOfBounds={b.x < 0 || b.y < 0 || b.x + b.w > canvasWidth}
             effectiveOpacity={b.opacity ?? defaultOpacity}
             effectiveFontSize={b.fontSize ?? defaultFontSize}
             textColor={textColor}
+            pointColor={pointColor}
             cardBackgroundColor={cardBackgroundColor}
+            categoryName={categoryName}
+            dimmed={dimmed}
             onSelect={setSelectedId}
             onChange={applyChange}
             onExpand={onExpand}
@@ -602,8 +676,15 @@ export function FreeCanvas({
           >
             <div style={{ '--point': pointColor } as React.CSSProperties}>{renderBlock(b)}</div>
           </DraggableBlock>
-        ))}
+          );
+        })}
       </div>
+      <CardCategoryManager
+        open={showCatManager}
+        onClose={() => setShowCatManager(false)}
+        categories={cardCategories}
+        onChanged={() => onReloadCategories?.()}
+      />
     </DndContext>
   );
 }

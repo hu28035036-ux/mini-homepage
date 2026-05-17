@@ -18,7 +18,7 @@ export interface PublicData {
     | 'background_color' | 'background_image_url' | 'use_background_image'
     | 'background_pattern' | 'background_pattern_color'
     | 'point_color' | 'text_color' | 'card_style' | 'card_background_color' | 'font_style'
-    | 'default_card_opacity' | 'default_font_size'
+    | 'default_card_opacity' | 'default_font_size' | 'card_categories'
   > & { layouts: Layouts };
   profile: { nickname: string; intro: string | null; image_url: string | null };
   urls: Array<{ id: string; title: string; url: string; created_at: string }>;
@@ -55,7 +55,6 @@ export function PublicCanvas({ data }: { data: PublicData }) {
       case 'urls':
         return (
           <div>
-            <h3 className="text-sm font-bold mb-2" style={textColorOrGradientStyle(homepage.point_color)}>URL 보관함</h3>
             {data.urls.length === 0 ? (
               <p className="text-xs opacity-50">아직 저장된 링크가 없어요.</p>
             ) : (
@@ -75,7 +74,6 @@ export function PublicCanvas({ data }: { data: PublicData }) {
       case 'albums':
         return (
           <div>
-            <h3 className="text-sm font-bold mb-2" style={textColorOrGradientStyle(homepage.point_color)}>앨범</h3>
             {data.albums.length === 0 ? (
               <p className="text-xs opacity-50">아직 사진이 없어요.</p>
             ) : (
@@ -106,7 +104,6 @@ export function PublicCanvas({ data }: { data: PublicData }) {
       case 'memos':
         return (
           <div>
-            <h3 className="text-sm font-bold mb-2" style={textColorOrGradientStyle(homepage.point_color)}>메모</h3>
             {data.memos.length === 0 ? (
               <p className="text-xs opacity-50">아직 메모가 없어요.</p>
             ) : (
@@ -124,7 +121,6 @@ export function PublicCanvas({ data }: { data: PublicData }) {
       case 'custom':
         return (
           <div>
-            {b.customTitle && <h3 className="text-sm font-bold mb-1" style={textColorOrGradientStyle(homepage.point_color)}>{b.customTitle}</h3>}
             <div className="text-xs opacity-80 whitespace-pre-wrap">{b.customContent}</div>
           </div>
         );
@@ -177,6 +173,7 @@ export function PublicCanvas({ data }: { data: PublicData }) {
         defaultOpacity={homepage.default_card_opacity ?? 1}
         defaultFontSize={homepage.default_font_size ?? 'base'}
         renderBlock={renderBlock}
+        cardCategories={homepage.card_categories}
         publicViewOnly
       />
 
