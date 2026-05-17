@@ -42,6 +42,7 @@ const blockSchema = z.object({
   customTitle: z.string().max(200).optional(),
   customContent: z.string().max(5000).optional(),
   drawingUrl: z.string().url().nullable().optional(),
+  categoryId: z.string().optional(),
 });
 
 const layoutsSchema = z.object({
@@ -56,6 +57,11 @@ const BACKGROUND_PATTERNS = [
 
 // 패턴 색 / 카드 배경색은 단색(#hex+alpha) 또는 그라데이션 둘 다 허용
 const hexAlpha = colorOrGradient;
+
+// 카드 카테고리 목록 (마이그 0007)
+const cardCategoriesSchema = z.array(
+  z.object({ id: z.string().min(1), name: z.string().min(1).max(30) }),
+).max(50);
 
 export const updateDecorateSchema = z.object({
   background_color: colorOrGradient.optional(),
@@ -73,6 +79,7 @@ export const updateDecorateSchema = z.object({
   layout_mode: z.enum(['single', 'double']).optional(),
   layout_slots: z.array(slotSchema).optional(),
   layouts: layoutsSchema.optional(),
+  card_categories: cardCategoriesSchema.optional(),
 });
 
 export type UpdateDecorateInput = z.infer<typeof updateDecorateSchema>;
