@@ -97,6 +97,8 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
   }, [router]);
 
   function handleLayoutsChange(next: Layouts) {
+    // ref 동기 갱신 — 편집 직후 '레이아웃 저장' 클릭이 useEffect 갱신보다 빨라도 최신값 저장
+    layoutsRef.current = next;
     setLayouts(next);
     setDirty(true);
     if (saveTimer.current) clearTimeout(saveTimer.current);

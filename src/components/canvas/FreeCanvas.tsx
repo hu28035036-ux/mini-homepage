@@ -50,7 +50,7 @@ export function defaultBlocks(track: Track): Block[] {
   });
   if (track === 'desktop') {
     return [
-      base('title',   40, 20,  400, 70),
+      base('title',   40, 20,  400, 80),
       base('profile', 40, 110, 300, 240),
       base('urls',    360, 110, 400, 320),
       base('albums',  780, 110, 400, 320),
@@ -58,7 +58,7 @@ export function defaultBlocks(track: Track): Block[] {
     ];
   }
   return [
-    base('title',   20, 20,  320, 60),
+    base('title',   20, 20,  320, 80),
     base('profile', 20, 90,  320, 200),
     base('urls',    20, 300, 320, 240),
     base('albums',  20, 550, 320, 240),
