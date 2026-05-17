@@ -159,7 +159,6 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
       case 'urls':
         return (
           <div>
-            <h3 className="text-sm font-bold mb-2" style={textColorOrGradientStyle(hp.point_color)}>URL 보관함</h3>
             {urls.length === 0 ? (
               <p className="text-xs opacity-50">아직 저장된 링크가 없어요.</p>
             ) : (
@@ -185,7 +184,6 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
       case 'albums':
         return (
           <div>
-            <h3 className="text-sm font-bold mb-2" style={textColorOrGradientStyle(hp.point_color)}>앨범</h3>
             {photos.length === 0 ? (
               <p className="text-xs opacity-50">아직 사진이 없어요.</p>
             ) : (
@@ -208,7 +206,6 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
       case 'memos':
         return (
           <div>
-            <h3 className="text-sm font-bold mb-2" style={textColorOrGradientStyle(hp.point_color)}>메모</h3>
             {memos.length === 0 ? (
               <p className="text-xs opacity-50">아직 메모가 없어요.</p>
             ) : (
@@ -244,17 +241,6 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
         if (editMode) {
           return (
             <div style={{ pointerEvents: 'auto' }} onPointerDown={(e) => e.stopPropagation()}>
-              <input
-                value={b.customTitle ?? ''}
-                onChange={(e) => {
-                  const next = layouts[track].map((x) => (x.id === b.id ? { ...x, customTitle: e.target.value } : x));
-                  handleLayoutsChange({ ...layouts, [track]: next });
-                }}
-                placeholder="제목"
-                maxLength={200}
-                className="w-full bg-transparent outline-none text-sm font-bold mb-1 border-b border-black/10 focus:border-violet-400"
-                style={textColorOrGradientStyle(hp.point_color)}
-              />
               <textarea
                 value={b.customContent ?? ''}
                 onChange={(e) => {
@@ -271,7 +257,6 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
         }
         return (
           <div>
-            {b.customTitle && <h3 className="text-sm font-bold mb-1" style={textColorOrGradientStyle(hp.point_color)}>{b.customTitle}</h3>}
             <div className="text-xs opacity-80 whitespace-pre-wrap">{b.customContent}</div>
           </div>
         );

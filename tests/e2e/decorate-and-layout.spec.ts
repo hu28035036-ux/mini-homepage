@@ -95,3 +95,51 @@ test.describe('꾸미기 + 레이아웃 (TC-DEC / TC-LAYOUT)', () => {
     await expect(page.locator('input[name="mode"][value="double"]')).toBeChecked();
   });
 });
+
+test.describe('카드 이름 수정 (TC-CARDNAME) — Phase 1 Step 1.1', () => {
+  test('TC-CARDNAME-001 편집 모드에서 기본 카드(URL) 헤더 input 노출 + 이름 변경 (행동 1·2)', async ({ page }) => {
+    await signupAndLogin(page, 'cardname-basic');
+    await page.goto('/admin');
+
+    await page.getByRole('button', { name: '편집', exact: true }).click();
+
+    const urlsHeader = page.locator('[data-block-kind="urls"] input[aria-label="카드 이름"]');
+    await expect(urlsHeader).toBeVisible();
+    await expect(urlsHeader).toHaveAttribute('placeholder', 'URL 보관함');
+
+    await urlsHeader.fill('내 링크 모음');
+    await expect(urlsHeader).toHaveValue('내 링크 모음');
+  });
+
+  test('TC-CARDNAME-002 커스텀 카드 추가 후 이름 변경 (행동 3)', async ({ page }) => {
+    await signupAndLogin(page, 'cardname-custom');
+    await page.goto('/admin');
+
+    await page.getByRole('button', { name: '편집', exact: true }).click();
+    await page.getByRole('button', { name: '새 텍스트 카드 추가' }).click();
+
+    const customHeader = page.locator('[data-block-kind="custom"] input[aria-label="카드 이름"]');
+    await expect(customHeader).toBeVisible();
+    await expect(customHeader).toHaveValue('새 카드');
+
+    await customHeader.fill('나의 일기장');
+    await expect(customHeader).toHaveValue('나의 일기장');
+  });
+
+  test('TC-CARDNAME-003 이름을 비우면 기본명으로 표시 (행동 4)', async ({ page }) => {
+    await signupAndLogin(page, 'cardname-fallback');
+    await page.goto('/admin');
+
+    await page.getByRole('button', { name: '편집', exact: true }).click();
+    const urlsHeader = page.locator('[data-block-kind="urls"] input[aria-label="카드 이름"]');
+    await urlsHeader.fill('임시 이름');
+    await urlsHeader.fill('');
+
+    await page.getByRole('button', { name: '편집 끝' }).click();
+
+    // view 모드: 빈 customTitle → 기본명 'URL 보관함' 헤딩 표시
+    await expect(
+      page.locator('[data-block-kind="urls"]').getByRole('heading', { name: 'URL 보관함' }),
+    ).toBeVisible();
+  });
+});

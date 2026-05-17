@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback, ReactNode } from 'react';
 import { DndContext, useDraggable, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { textColorOrGradientStyle } from '@/components/decorate/ColorPicker';
+import { CardHeader } from '@/components/canvas/CardHeader';
 import type { Block, Layouts, CardStyle, FontStyle, FontSize } from '@/types/db';
 
 export function fontSizeClass(s: FontSize): string {
@@ -112,6 +113,7 @@ interface DraggableBlockProps {
   effectiveOpacity: number;
   effectiveFontSize: FontSize;
   textColor?: string;
+  pointColor: string;
   cardBackgroundColor?: string | null;
   onSelect: (id: string) => void;
   onChange: (id: string, patch: Partial<Block>) => void;
@@ -124,7 +126,7 @@ interface DraggableBlockProps {
   children: ReactNode;
 }
 
-function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity, effectiveFontSize, textColor, cardBackgroundColor, onSelect, onChange, onExpand, onQuickAdd, onBringForward, onSendBackward, onDelete, onDraw, children }: DraggableBlockProps) {
+function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity, effectiveFontSize, textColor, pointColor, cardBackgroundColor, onSelect, onChange, onExpand, onQuickAdd, onBringForward, onSendBackward, onDelete, onDraw, children }: DraggableBlockProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: block.id,
     disabled: !editMode,
@@ -167,6 +169,7 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
     <div
       ref={setNodeRef}
       data-block-fontsize={effectiveFontSize}
+      data-block-kind={block.kind}
       onClick={() => {
         if (editMode) {
           onSelect(block.id);
@@ -197,6 +200,9 @@ function DraggableBlock({ block, editMode, cardStyle, selected, effectiveOpacity
         className={`absolute inset-x-0 bottom-0 ${editMode ? 'top-8' : 'top-0'} overflow-auto p-4`}
         style={editMode ? { pointerEvents: 'none' } : undefined}
       >
+        {block.kind !== 'title' && (
+          <CardHeader block={block} editMode={editMode} onChange={onChange} textColor={pointColor} />
+        )}
         {children}
       </div>
 
@@ -590,6 +596,7 @@ export function FreeCanvas({
             effectiveOpacity={b.opacity ?? defaultOpacity}
             effectiveFontSize={b.fontSize ?? defaultFontSize}
             textColor={textColor}
+            pointColor={pointColor}
             cardBackgroundColor={cardBackgroundColor}
             onSelect={setSelectedId}
             onChange={applyChange}
