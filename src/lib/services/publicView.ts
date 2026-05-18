@@ -1,11 +1,10 @@
 import { homepagesRepo } from '@/lib/repositories/homepages';
 import { urlsRepo } from '@/lib/repositories/urls';
-import { albumCategoriesRepo } from '@/lib/repositories/albumCategories';
 import { photosRepo } from '@/lib/repositories/photos';
 import { memosRepo } from '@/lib/repositories/memos';
 import { usersRepo } from '@/lib/repositories/users';
 import { AppError } from '@/lib/errors/codes';
-import type { MiniHomepageRow, PhotoRow } from '@/types/db';
+import type { MiniHomepageRow } from '@/types/db';
 
 /**
  * 공개 미니홈피 조회.
@@ -17,30 +16,27 @@ export async function loadPublicHomepage(slug: string) {
   const hp = await homepagesRepo.findPublicBySlug(slug);
   if (!hp) throw new AppError('HOMEPAGE_PRIVATE_OR_NOT_FOUND');
 
-  const [owner, urls, categories, photos, memos] = await Promise.all([
+  const [owner, urls, photos, memos] = await Promise.all([
     usersRepo.findByIdActive(hp.user_id),
     urlsRepo.listByUser(hp.user_id, hp.id),
-    albumCategoriesRepo.listByUser(hp.user_id, hp.id),
     photosRepo.listByUser(hp.user_id, hp.id),
     memosRepo.listByUser(hp.user_id, hp.id),
   ]);
   if (!owner) throw new AppError('HOMEPAGE_PRIVATE_OR_NOT_FOUND');
 
-  // 카테고리별 사진 그룹
-  const albums = categories.map((c) => ({
-    category: c.name,
-    photos: photos
-      .filter((p: PhotoRow) => p.category_id === c.id)
-      .slice(0, 6)
-      .map((p) => ({ id: p.id, image_url: p.image_url, caption: p.caption })),
-  }));
-
+  // v0.9: 카드별 표시 카테고리 필터링을 위해 항목에 category_id를 그대로 실어 보낸다.
   return {
     homepage: stripHomepage(hp),
     profile: { nickname: owner.nickname, intro: hp.intro, image_url: hp.profile_image_url },
-    urls: urls.slice(0, 12).map((u) => ({ id: u.id, title: u.title, url: u.url, created_at: u.created_at })),
-    albums,
-    memos: memos.slice(0, 6).map((m) => ({ id: m.id, title: m.title, content: m.content, created_at: m.created_at })),
+    urls: urls.slice(0, 30).map((u) => ({
+      id: u.id, title: u.title, url: u.url, created_at: u.created_at, category_id: u.category_id,
+    })),
+    photos: photos.slice(0, 60).map((p) => ({
+      id: p.id, image_url: p.image_url, caption: p.caption, category_id: p.category_id, created_at: p.created_at,
+    })),
+    memos: memos.slice(0, 30).map((m) => ({
+      id: m.id, title: m.title, content: m.content, created_at: m.created_at, category_id: m.category_id,
+    })),
   };
 }
 

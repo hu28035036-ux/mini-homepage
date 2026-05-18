@@ -44,6 +44,9 @@ const blockSchema = z.object({
   customContent: z.string().max(5000).optional(),
   drawingUrl: z.string().url().nullable().optional(),
   categoryId: z.string().optional(),
+  albumCategoryId: z.string().optional(),
+  memoCategoryId: z.string().optional(),
+  urlCategoryId: z.string().optional(),
 });
 
 const layoutsSchema = z.object({

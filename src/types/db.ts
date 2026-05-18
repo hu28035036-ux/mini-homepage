@@ -60,6 +60,10 @@ export interface Block {
   customContent?: string;    // custom 카드 본문
   drawingUrl?: string | null; // drawing 카드의 PNG URL (Step M, v0.7)
   categoryId?: string;       // 카드 카테고리 id (mini_homepages.card_categories 참조)
+  // v0.9: 카드별 "표시할 카테고리" 선택 (해당 종류 카드에만 의미)
+  albumCategoryId?: string;  // albums 카드가 보여줄 앨범 카테고리. 미지정 시 최근 업로드 카테고리
+  memoCategoryId?: string;   // memos 카드가 보여줄 메모 카테고리. 미지정 시 전체
+  urlCategoryId?: string;    // urls 카드가 보여줄 URL 카테고리. 미지정 시 전체
 }
 
 export interface Layouts {

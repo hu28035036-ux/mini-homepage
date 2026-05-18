@@ -408,6 +408,10 @@ export interface FreeCanvasProps {
   cardCategories?: CardCategory[];
   /** 카테고리 추가/삭제 후 부모가 목록 재조회 */
   onReloadCategories?: () => void;
+  /** v0.9: 앨범/메모/URL 카드의 "표시할 카테고리" 선택지 */
+  albumCategories?: { id: string; name: string }[];
+  memoCategories?: { id: string; name: string }[];
+  urlCategories?: { id: string; name: string }[];
 }
 
 export function FreeCanvas({
@@ -430,6 +434,9 @@ export function FreeCanvas({
   forceTrack,
   cardCategories = [],
   onReloadCategories,
+  albumCategories = [],
+  memoCategories = [],
+  urlCategories = [],
 }: FreeCanvasProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showCatManager, setShowCatManager] = useState(false);
@@ -661,6 +668,48 @@ export function FreeCanvas({
               >
                 <option value="">없음</option>
                 {cardCategories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </label>
+          )}
+          {selectedBlock.kind === 'albums' && albumCategories.length > 0 && (
+            <label className="flex items-center gap-1.5">
+              <span className="opacity-60">표시 앨범</span>
+              <select
+                value={selectedBlock.albumCategoryId ?? ''}
+                onChange={(e) => applyChange(selectedBlock.id, { albumCategoryId: e.target.value || undefined })}
+                className="rounded border border-gray-200 px-1 py-0.5 text-xs"
+                aria-label="앨범 카드 표시 카테고리"
+              >
+                <option value="">최근 업로드</option>
+                {albumCategories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </label>
+          )}
+          {selectedBlock.kind === 'memos' && memoCategories.length > 0 && (
+            <label className="flex items-center gap-1.5">
+              <span className="opacity-60">표시 분류</span>
+              <select
+                value={selectedBlock.memoCategoryId ?? ''}
+                onChange={(e) => applyChange(selectedBlock.id, { memoCategoryId: e.target.value || undefined })}
+                className="rounded border border-gray-200 px-1 py-0.5 text-xs"
+                aria-label="메모 카드 표시 카테고리"
+              >
+                <option value="">전체</option>
+                {memoCategories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </label>
+          )}
+          {selectedBlock.kind === 'urls' && urlCategories.length > 0 && (
+            <label className="flex items-center gap-1.5">
+              <span className="opacity-60">표시 분류</span>
+              <select
+                value={selectedBlock.urlCategoryId ?? ''}
+                onChange={(e) => applyChange(selectedBlock.id, { urlCategoryId: e.target.value || undefined })}
+                className="rounded border border-gray-200 px-1 py-0.5 text-xs"
+                aria-label="URL 카드 표시 카테고리"
+              >
+                <option value="">전체</option>
+                {urlCategories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </label>
           )}

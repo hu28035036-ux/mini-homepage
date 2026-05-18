@@ -41,9 +41,11 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
   const [photos, setPhotos] = useState<PhotoRow[]>([]);
   const [albumCategories, setAlbumCategories] = useState<AlbumCategoryRow[]>([]);
   const [cardCategories, setCardCategories] = useState<CardCategory[]>([]);
+  const [memoCategories, setMemoCategories] = useState<CardCategory[]>([]);
+  const [urlCategories, setUrlCategories] = useState<CardCategory[]>([]);
   const [expanded, setExpanded] = useState<ExpandKind>(null);
   const [drawingTarget, setDrawingTarget] = useState<Block | null>(null);
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [lightbox, setLightbox] = useState<{ photos: LightboxPhoto[]; index: number } | null>(null);
   const track = useTrack();
   const router = useRouter();
   // SSR과 client 첫 렌더가 다른 분기로 가는 hydration mismatch 방지.
@@ -63,18 +65,22 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
   }, [router]);
 
   async function loadAll() {
-    const [u, m, p, c, cc] = await Promise.all([
+    const [u, m, p, c, cc, mc, uc] = await Promise.all([
       fetch('/api/urls').then((r) => r.json()),
       fetch('/api/memos').then((r) => r.json()),
       fetch('/api/albums/photos').then((r) => r.json()),
       fetch('/api/albums/categories').then((r) => r.json()),
       fetch('/api/cards/categories').then((r) => r.json()),
+      fetch('/api/memos/categories').then((r) => r.json()),
+      fetch('/api/urls/categories').then((r) => r.json()),
     ]);
     if (u.success) setUrls(u.data.items);
     if (m.success) setMemos(m.data.items);
     if (p.success) setPhotos(p.data.items);
     if (c.success) setAlbumCategories(c.data.items);
     if (cc.success) setCardCategories(cc.data.items);
+    if (mc.success) setMemoCategories(mc.data.items);
+    if (uc.success) setUrlCategories(uc.data.items);
   }
 
   useEffect(() => {
@@ -174,14 +180,15 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
             {hp.intro && <div className="text-sm opacity-70 mt-1 line-clamp-3">{hp.intro}</div>}
           </div>
         );
-      case 'urls':
+      case 'urls': {
+        const shownUrls = b.urlCategoryId ? urls.filter((u) => u.category_id === b.urlCategoryId) : urls;
         return (
           <div>
-            {urls.length === 0 ? (
+            {shownUrls.length === 0 ? (
               <p className="text-xs opacity-50">아직 저장된 링크가 없어요.</p>
             ) : (
               <ul className="space-y-2">
-                {urls.slice(0, 6).map((u) => (
+                {shownUrls.slice(0, 6).map((u) => (
                   <li key={u.id} className="text-sm">
                     <a
                       href={u.url}
@@ -199,18 +206,25 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
             )}
           </div>
         );
-      case 'albums':
+      }
+      case 'albums': {
+        // 표시 카테고리: 미지정 시 최근 업로드 카테고리 (#6)
+        const sorted = [...photos].sort((a, b2) => b2.created_at.localeCompare(a.created_at));
+        const recentCatId = sorted[0]?.category_id ?? null;
+        const showCatId = b.albumCategoryId ?? recentCatId;
+        const shownPhotos = showCatId ? photos.filter((p) => p.category_id === showCatId) : photos;
+        const lbPhotos = shownPhotos.slice(0, 9).map<LightboxPhoto>((p) => ({ url: p.image_url, caption: p.caption }));
         return (
           <div>
-            {photos.length === 0 ? (
+            {shownPhotos.length === 0 ? (
               <p className="text-xs opacity-50">아직 사진이 없어요.</p>
             ) : (
               <div className="grid grid-cols-3 gap-1.5">
-                {photos.slice(0, 9).map((p, idx) => (
+                {shownPhotos.slice(0, 9).map((p, idx) => (
                   <button
                     key={p.id}
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); setLightboxIndex(idx); }}
+                    onClick={(e) => { e.stopPropagation(); setLightbox({ photos: lbPhotos, index: idx }); }}
                     className="block"
                     aria-label="사진 크게 보기"
                   >
@@ -221,14 +235,16 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
             )}
           </div>
         );
-      case 'memos':
+      }
+      case 'memos': {
+        const shownMemos = b.memoCategoryId ? memos.filter((m) => m.category_id === b.memoCategoryId) : memos;
         return (
           <div>
-            {memos.length === 0 ? (
+            {shownMemos.length === 0 ? (
               <p className="text-xs opacity-50">아직 메모가 없어요.</p>
             ) : (
               <ul className="divide-y divide-black/5">
-                {memos.slice(0, 4).map((m) => (
+                {shownMemos.slice(0, 4).map((m) => (
                   <li key={m.id} className="text-sm py-1.5 first:pt-0 last:pb-0">
                     <div className="font-medium truncate">{m.title}</div>
                   </li>
@@ -237,6 +253,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
             )}
           </div>
         );
+      }
       case 'drawing':
         return (
           <div className="h-full flex items-center justify-center">
@@ -373,6 +390,9 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
         renderBlock={renderBlock}
         cardCategories={cardCategories}
         onReloadCategories={loadAll}
+        albumCategories={albumCategories}
+        memoCategories={memoCategories}
+        urlCategories={urlCategories}
         onExpand={(k) => k !== 'title' && k !== 'profile' && setExpanded(k as ExpandKind)}
         onQuickAdd={quickAdd}
         onDraw={(block) => setDrawingTarget(block)}
@@ -404,11 +424,11 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
       />
 
       <PhotoLightbox
-        open={lightboxIndex !== null}
-        photos={photos.slice(0, 9).map<LightboxPhoto>((p) => ({ url: p.image_url, caption: p.caption }))}
-        index={lightboxIndex ?? 0}
-        onIndexChange={setLightboxIndex}
-        onClose={() => setLightboxIndex(null)}
+        open={lightbox !== null}
+        photos={lightbox?.photos ?? []}
+        index={lightbox?.index ?? 0}
+        onIndexChange={(next) => setLightbox((c) => (c ? { ...c, index: next } : c))}
+        onClose={() => setLightbox(null)}
       />
     </div>
   );

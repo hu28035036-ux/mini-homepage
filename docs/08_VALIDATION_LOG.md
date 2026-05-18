@@ -248,3 +248,32 @@
 ### 5. 남은 위험 요소
 - (없음 — Step 5에서 카드별 표시 카테고리 선택 연결 예정)
 
+---
+
+## v0.9 Step 5 — 카드별 카테고리 표시 (2026-05-19)
+
+### 1. 범위
+- #5 앨범 카드 표시 카테고리 선택 / #6 미지정 시 최근 업로드 카테고리 / 메모·URL 카드 표시 필터.
+- Block에 `albumCategoryId`·`memoCategoryId`·`urlCategoryId` 표시 필드(layouts JSONB, DB 컬럼 아님).
+- FreeCanvas 선택 카드 floating 컨트롤에 종류별 표시 카테고리 드롭다운.
+- HomeDashboard·PublicCanvas renderBlock 필터링, publicView가 항목에 category_id 동봉
+  (공개 페이지 albums는 카테고리 그룹 구조 → 평면 photos 리스트로 변경).
+
+### 2. 실행 명령
+- `npx tsc --noEmit` → 0 에러 / `npm run build` → 성공
+- `npx playwright test` (전체 스위트)
+
+### 3. 테스트 결과
+- 통과 96 / 스킵 3 / 실패 0.
+- 신규 사용자 행동 E2E: `tests/e2e/step5-card-category-display.spec.ts` TC-S5-001~006 (6건).
+  1. 앨범 카드 표시 카테고리 선택 → 사진 필터 2. 미지정 시 최근 업로드 카테고리
+  3. 메모 카드 카테고리 필터 4. URL 카드 카테고리 필터
+  5. 공개 페이지 동일 필터 6. "전체" 선택 시 전체 표시.
+
+### 4. 실패 및 수정 내역
+- (없음)
+
+### 5. 남은 위험 요소
+- 공개 페이지 앨범 카드는 카테고리명 소제목을 더 이상 표시하지 않음(카드 헤더로 대체).
+  카드별 단일 카테고리 표시 모델로 전환된 결과.
+

@@ -21,9 +21,9 @@ export interface PublicData {
     | 'default_card_opacity' | 'default_font_size' | 'card_categories'
   > & { layouts: Layouts };
   profile: { nickname: string; intro: string | null; image_url: string | null };
-  urls: Array<{ id: string; title: string; url: string; created_at: string }>;
-  albums: Array<{ category: string; photos: Array<{ id: string; image_url: string; caption: string | null }> }>;
-  memos: Array<{ id: string; title: string; content: string; created_at: string }>;
+  urls: Array<{ id: string; title: string; url: string; created_at: string; category_id: string | null }>;
+  photos: Array<{ id: string; image_url: string; caption: string | null; category_id: string | null; created_at: string }>;
+  memos: Array<{ id: string; title: string; content: string; created_at: string; category_id: string | null }>;
 }
 
 export function PublicCanvas({ data }: { data: PublicData }) {
@@ -52,14 +52,15 @@ export function PublicCanvas({ data }: { data: PublicData }) {
             {data.profile.intro && <div className="text-sm opacity-70 mt-1 line-clamp-3">{data.profile.intro}</div>}
           </div>
         );
-      case 'urls':
+      case 'urls': {
+        const shown = b.urlCategoryId ? data.urls.filter((u) => u.category_id === b.urlCategoryId) : data.urls;
         return (
           <div>
-            {data.urls.length === 0 ? (
+            {shown.length === 0 ? (
               <p className="text-xs opacity-50">아직 저장된 링크가 없어요.</p>
             ) : (
               <ul className="space-y-2">
-                {data.urls.slice(0, 8).map((u) => (
+                {shown.slice(0, 8).map((u) => (
                   <li key={u.id} className="text-sm">
                     <a href={u.url} target="_blank" rel="noopener noreferrer" className="block hover:underline">
                       <div className="font-medium truncate">{u.title}</div>
@@ -71,44 +72,45 @@ export function PublicCanvas({ data }: { data: PublicData }) {
             )}
           </div>
         );
-      case 'albums':
+      }
+      case 'albums': {
+        // 표시 카테고리: 미지정 시 최근 업로드 카테고리 (#6)
+        const sorted = [...data.photos].sort((a, b2) => b2.created_at.localeCompare(a.created_at));
+        const recentCatId = sorted[0]?.category_id ?? null;
+        const showCatId = b.albumCategoryId ?? recentCatId;
+        const shown = showCatId ? data.photos.filter((p) => p.category_id === showCatId) : data.photos;
+        const lb: LightboxPhoto[] = shown.slice(0, 9).map((p) => ({ url: p.image_url, caption: p.caption }));
         return (
           <div>
-            {data.albums.length === 0 ? (
+            {shown.length === 0 ? (
               <p className="text-xs opacity-50">아직 사진이 없어요.</p>
             ) : (
-              data.albums.map((a) => {
-                const albumPhotos: LightboxPhoto[] = a.photos.map((p) => ({ url: p.image_url, caption: p.caption }));
-                return (
-                  <div key={a.category} className="mb-3">
-                    <div className="text-xs opacity-70 mb-1">{a.category}</div>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {a.photos.map((p, idx) => (
-                        <button
-                          key={p.id}
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); setLightbox({ photos: albumPhotos, index: idx }); }}
-                          className="block"
-                          aria-label="사진 크게 보기"
-                        >
-                          <img src={p.image_url} alt={p.caption ?? ''} className="aspect-square w-full object-cover rounded cursor-zoom-in" />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })
+              <div className="grid grid-cols-3 gap-1.5">
+                {shown.slice(0, 9).map((p, idx) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setLightbox({ photos: lb, index: idx }); }}
+                    className="block"
+                    aria-label="사진 크게 보기"
+                  >
+                    <img src={p.image_url} alt={p.caption ?? ''} className="aspect-square w-full object-cover rounded cursor-zoom-in" />
+                  </button>
+                ))}
+              </div>
             )}
           </div>
         );
-      case 'memos':
+      }
+      case 'memos': {
+        const shown = b.memoCategoryId ? data.memos.filter((m) => m.category_id === b.memoCategoryId) : data.memos;
         return (
           <div>
-            {data.memos.length === 0 ? (
+            {shown.length === 0 ? (
               <p className="text-xs opacity-50">아직 메모가 없어요.</p>
             ) : (
               <ul className="divide-y divide-black/5">
-                {data.memos.slice(0, 6).map((m) => (
+                {shown.slice(0, 6).map((m) => (
                   <li key={m.id} className="text-sm py-2 first:pt-0 last:pb-0">
                     <div className="font-medium truncate">{m.title}</div>
                   </li>
@@ -117,6 +119,7 @@ export function PublicCanvas({ data }: { data: PublicData }) {
             )}
           </div>
         );
+      }
       case 'custom':
         return (
           <div>
