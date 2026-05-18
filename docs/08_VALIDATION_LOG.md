@@ -135,3 +135,31 @@
 - [ ] 자동 테스트 — Phase 10에서 추가 예정
 - [ ] 실제 Supabase 환경에서 1사이클 통과 — 사용자 환경에서 실행 후 확인
 
+---
+
+## v0.9 Step 1 — UI/배치 개편 (2026-05-18)
+
+### 1. 범위
+- #1 캔버스 폭 desktop 1200→1680 / #4 편집 진입 메뉴화(`?edit=1`) / #7 메모 카드 제목만 / #9 평소모드 안내 메뉴 이동.
+
+### 2. 실행 명령
+- `npx tsc --noEmit` → 0 에러
+- `npm run build` → 성공
+- `npx playwright test` (Step 1 영향 범위 + 전체 회귀)
+
+### 3. 테스트 결과
+- 통과 71 / 스킵 3 / 실패 0.
+- 신규 사용자 행동 E2E: `tests/e2e/step1-ui-layout.spec.ts` TC-S1-001~006 (6건) 전부 통과.
+  1. 메뉴 "편집"으로 편집 모드 진입 2. "편집 끝"으로 평소 모드 복귀
+  3. 홈에 평소모드 안내 텍스트 없음 4. 메뉴에 현재 레이아웃 표시
+  5. 메모 카드 제목만 표시 6. 편집 캔버스 폭 1680px.
+- 회귀: canvas-edit/card-categories/decorate-and-layout/drawing/albums/auth/
+  fonts-and-cards/homepage-and-crud/mobile/public-page/race-regression/user-isolation 전부 통과.
+
+### 4. 실패 및 수정 내역
+- TC-CANVAS-005가 캔버스 폭 변경(1200→1680)으로 1차 실패 — 옛 1200 경계를 하드코딩.
+  테스트의 카드 이동량을 새 폭(1680) 기준으로 갱신(±100칸) 후 통과.
+
+### 5. 남은 위험 요소
+- 편집 진입이 `?edit=1` 쿼리파라미터 기반 — 모바일 트랙에는 캔버스가 없어 메뉴 "편집" 항목을 `!isMobile`로 숨김.
+

@@ -18,7 +18,8 @@ export function fontSizeClass(s: FontSize): string {
 }
 
 export type Track = 'desktop' | 'mobile';
-const CANVAS_WIDTH: Record<Track, number> = { desktop: 1200, mobile: 360 };
+// desktop 캔버스는 v0.9에서 1200 → 1680 (40% 확대). mobile은 폰 화면 폭 유지.
+const CANVAS_WIDTH: Record<Track, number> = { desktop: 1680, mobile: 360 };
 
 /** v0.7.1: 분기점 1024px — iPad 가로(1024) 이상은 desktop 자유 캔버스.
  *  그 미만(폰·갤럭시 폴드 펼침·iPad 세로·안드로이드 데스크탑 사이트 모드 980)은 mobile 리스트.

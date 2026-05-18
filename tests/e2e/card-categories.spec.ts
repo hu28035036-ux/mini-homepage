@@ -67,8 +67,7 @@ test.describe('카드 카테고리 API (TC-CARDCAT) — Phase 3', () => {
 
   test('TC-CARDCAT-010 모달에서 카테고리 추가·삭제 (행동 1·2 UI)', async ({ page }) => {
     await signupAndLogin(page, 'cardcat-ui-mgr');
-    await page.goto('/admin');
-    await page.getByRole('button', { name: '편집', exact: true }).click();
+    await page.goto('/admin?edit=1');
     await page.getByRole('button', { name: '카테고리 관리' }).click();
 
     await page.getByLabel('새 카테고리 이름').fill('여행');
@@ -81,8 +80,7 @@ test.describe('카드 카테고리 API (TC-CARDCAT) — Phase 3', () => {
 
   test('TC-CARDCAT-011 카드에 카테고리 지정 → 헤더 라벨 표시 (행동 4·5)', async ({ page }) => {
     await signupAndLogin(page, 'cardcat-ui-assign');
-    await page.goto('/admin');
-    await page.getByRole('button', { name: '편집', exact: true }).click();
+    await page.goto('/admin?edit=1');
 
     await page.getByRole('button', { name: '카테고리 관리' }).click();
     await page.getByLabel('새 카테고리 이름').fill('일상');
@@ -97,8 +95,7 @@ test.describe('카드 카테고리 API (TC-CARDCAT) — Phase 3', () => {
 
   test('TC-CARDCAT-012 편집 필터 — 비일치 카드 흐려짐 (행동 6)', async ({ page }) => {
     await signupAndLogin(page, 'cardcat-ui-filter');
-    await page.goto('/admin');
-    await page.getByRole('button', { name: '편집', exact: true }).click();
+    await page.goto('/admin?edit=1');
 
     await page.getByRole('button', { name: '카테고리 관리' }).click();
     await page.getByLabel('새 카테고리 이름').fill('특별');
@@ -118,8 +115,7 @@ test.describe('카드 카테고리 API (TC-CARDCAT) — Phase 3', () => {
   test('TC-CARDCAT-013 카테고리 라벨이 공개 페이지에 노출 (행동 8)', async ({ page, browser }) => {
     await signupAndLogin(page, 'cardcat-ui-public');
     const slug = await getCurrentSlug(page);
-    await page.goto('/admin');
-    await page.getByRole('button', { name: '편집', exact: true }).click();
+    await page.goto('/admin?edit=1');
 
     await page.getByRole('button', { name: '카테고리 관리' }).click();
     await page.getByLabel('새 카테고리 이름').fill('공개분류');
@@ -147,8 +143,7 @@ test.describe('카드 카테고리 API (TC-CARDCAT) — Phase 3', () => {
 
   test('TC-CARDCAT-014 카테고리 삭제 시 카드 라벨 사라짐 (행동 9)', async ({ page }) => {
     await signupAndLogin(page, 'cardcat-ui-del');
-    await page.goto('/admin');
-    await page.getByRole('button', { name: '편집', exact: true }).click();
+    await page.goto('/admin?edit=1');
 
     await page.getByRole('button', { name: '카테고리 관리' }).click();
     await page.getByLabel('새 카테고리 이름').fill('임시분류');

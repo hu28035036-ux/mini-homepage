@@ -99,9 +99,7 @@ test.describe('꾸미기 + 레이아웃 (TC-DEC / TC-LAYOUT)', () => {
 test.describe('카드 이름 수정 (TC-CARDNAME) — Phase 1 Step 1.1', () => {
   test('TC-CARDNAME-001 편집 모드에서 기본 카드(URL) 헤더 input 노출 + 이름 변경 (행동 1·2)', async ({ page }) => {
     await signupAndLogin(page, 'cardname-basic');
-    await page.goto('/admin');
-
-    await page.getByRole('button', { name: '편집', exact: true }).click();
+    await page.goto('/admin?edit=1');
 
     const urlsHeader = page.locator('[data-block-kind="urls"] input[aria-label="카드 이름"]');
     await expect(urlsHeader).toBeVisible();
@@ -113,9 +111,7 @@ test.describe('카드 이름 수정 (TC-CARDNAME) — Phase 1 Step 1.1', () => {
 
   test('TC-CARDNAME-002 커스텀 카드 추가 후 이름 변경 (행동 3)', async ({ page }) => {
     await signupAndLogin(page, 'cardname-custom');
-    await page.goto('/admin');
-
-    await page.getByRole('button', { name: '편집', exact: true }).click();
+    await page.goto('/admin?edit=1');
     await page.getByRole('button', { name: '새 텍스트 카드 추가' }).click();
 
     const customHeader = page.locator('[data-block-kind="custom"] input[aria-label="카드 이름"]');
@@ -128,9 +124,7 @@ test.describe('카드 이름 수정 (TC-CARDNAME) — Phase 1 Step 1.1', () => {
 
   test('TC-CARDNAME-003 이름을 비우면 기본명으로 표시 (행동 4)', async ({ page }) => {
     await signupAndLogin(page, 'cardname-fallback');
-    await page.goto('/admin');
-
-    await page.getByRole('button', { name: '편집', exact: true }).click();
+    await page.goto('/admin?edit=1');
     const urlsHeader = page.locator('[data-block-kind="urls"] input[aria-label="카드 이름"]');
     await urlsHeader.fill('임시 이름');
     await urlsHeader.fill('');
@@ -145,16 +139,13 @@ test.describe('카드 이름 수정 (TC-CARDNAME) — Phase 1 Step 1.1', () => {
 
   test('TC-CARDNAME-004 카드 이름 저장 후 새로고침 시 유지 (행동 5)', async ({ page }) => {
     await signupAndLogin(page, 'cardname-persist');
-    await page.goto('/admin');
-
-    await page.getByRole('button', { name: '편집', exact: true }).click();
+    await page.goto('/admin?edit=1');
     await page.locator('[data-block-kind="urls"] input[aria-label="카드 이름"]').fill('즐겨찾기 링크');
 
     await page.getByRole('button', { name: '레이아웃 저장' }).click();
     await expect(page.getByRole('button', { name: '레이아웃 저장' })).toBeHidden();
 
-    await page.reload();
-    await page.getByRole('button', { name: '편집', exact: true }).click();
+    await page.goto('/admin?edit=1');
     await expect(
       page.locator('[data-block-kind="urls"] input[aria-label="카드 이름"]'),
     ).toHaveValue('즐겨찾기 링크');
@@ -164,8 +155,7 @@ test.describe('카드 이름 수정 (TC-CARDNAME) — Phase 1 Step 1.1', () => {
     await signupAndLogin(page, 'cardname-public');
     const slug = await getCurrentSlug(page);
 
-    await page.goto('/admin');
-    await page.getByRole('button', { name: '편집', exact: true }).click();
+    await page.goto('/admin?edit=1');
     await page.locator('[data-block-kind="urls"] input[aria-label="카드 이름"]').fill('나의 링크집');
     await page.getByRole('button', { name: '레이아웃 저장' }).click();
     await expect(page.getByRole('button', { name: '레이아웃 저장' })).toBeHidden();
@@ -189,10 +179,9 @@ test.describe('카드 이름 수정 (TC-CARDNAME) — Phase 1 Step 1.1', () => {
 
   test('TC-CARDNAME-006 customTitle 200자 초과는 거부 (행동 7)', async ({ page }) => {
     await signupAndLogin(page, 'cardname-maxlen');
-    await page.goto('/admin');
 
     // UI: 헤더 input은 maxlength 200
-    await page.getByRole('button', { name: '편집', exact: true }).click();
+    await page.goto('/admin?edit=1');
     await expect(
       page.locator('[data-block-kind="urls"] input[aria-label="카드 이름"]'),
     ).toHaveAttribute('maxlength', '200');

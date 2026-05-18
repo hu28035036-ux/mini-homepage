@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Modal, IconButton } from '@/components/ui/primitives';
 import { FreeCanvas, defaultBlocks, normalizeBlock, useTrack } from '@/components/canvas/FreeCanvas';
 import { DrawPad } from '@/components/canvas/DrawPad';
@@ -30,8 +30,10 @@ function ensureLayouts(hp: MiniHomepageRow): Layouts {
 }
 
 export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
+  const searchParams = useSearchParams();
   const [layouts, setLayouts] = useState<Layouts>(() => ensureLayouts(hp));
-  const [editMode, setEditMode] = useState(false);
+  // 편집 진입은 메뉴의 "편집"(/admin?edit=1)을 통해서만 (#4).
+  const [editMode, setEditMode] = useState(() => searchParams.get('edit') === '1');
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [urls, setUrls] = useState<UrlRow[]>([]);
@@ -48,6 +50,17 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
   // mount 전엔 분기 없이 빈 placeholder만 그림 → mount 후 실제 viewport로 분기.
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
+
+  // 메뉴 "편집" 링크(/admin?edit=1)로 진입 시 — 클라이언트 네비게이션 포함 — 편집 모드 동기화
+  useEffect(() => {
+    if (searchParams.get('edit') === '1') setEditMode(true);
+  }, [searchParams]);
+
+  // 편집 종료: 편집 모드 해제 + URL의 edit 파라미터 제거
+  const exitEdit = useCallback(() => {
+    setEditMode(false);
+    router.replace('/admin');
+  }, [router]);
 
   async function loadAll() {
     const [u, m, p, c, cc] = await Promise.all([
@@ -218,7 +231,6 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
                 {memos.slice(0, 4).map((m) => (
                   <li key={m.id} className="text-sm py-1.5 first:pt-0 last:pb-0">
                     <div className="font-medium truncate">{m.title}</div>
-                    <div className="opacity-60 text-xs line-clamp-2 whitespace-pre-wrap">{m.content}</div>
                   </li>
                 ))}
               </ul>
@@ -306,31 +318,28 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2 px-1">
-        <div className="text-xs opacity-60">
-          {editMode ? '편집 모드: 카드를 드래그·리사이즈하세요' : '평소 모드'}
-          <span className="ml-2 opacity-50">(태블릿/PC 레이아웃)</span>
-        </div>
-        <div className="flex items-center gap-2">
-          {editMode && dirty && (
+      {editMode && (
+        <div className="flex items-center justify-between gap-2 px-1">
+          <div className="text-xs opacity-60">편집 모드: 카드를 드래그·리사이즈하세요</div>
+          <div className="flex items-center gap-2">
+            {dirty && (
+              <button
+                onClick={saveLayouts}
+                disabled={saving}
+                className="text-xs px-3 py-1.5 rounded-lg bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-50"
+              >
+                {saving ? '저장 중...' : '레이아웃 저장'}
+              </button>
+            )}
             <button
-              onClick={saveLayouts}
-              disabled={saving}
-              className="text-xs px-3 py-1.5 rounded-lg bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-50"
+              onClick={exitEdit}
+              className="text-xs px-3 py-1.5 rounded-lg bg-violet-600 text-white transition"
             >
-              {saving ? '저장 중...' : '레이아웃 저장'}
+              편집 끝
             </button>
-          )}
-          <button
-            onClick={() => setEditMode((v) => !v)}
-            className={`text-xs px-3 py-1.5 rounded-lg transition ${
-              editMode ? 'bg-violet-600 text-white' : 'bg-black/5 hover:bg-black/10'
-            }`}
-          >
-            {editMode ? '편집 끝' : '편집'}
-          </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {editMode && hiddenBlocks.length > 0 && (
         <div className="px-1 text-xs opacity-70 flex items-center gap-2 flex-wrap">
@@ -367,7 +376,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
         onExpand={(k) => k !== 'title' && k !== 'profile' && setExpanded(k as ExpandKind)}
         onQuickAdd={quickAdd}
         onDraw={(block) => setDrawingTarget(block)}
-        onExitEdit={() => setEditMode(false)}
+        onExitEdit={exitEdit}
       />
 
       <Modal open={expanded === 'urls'} onClose={closeExpanded} title="URL 보관함" size="xl">

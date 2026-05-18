@@ -117,6 +117,10 @@ export function MenuButton({
 
           <div className="h-px bg-black/5" />
 
+          <div role="none" className="px-4 py-2 text-[11px] text-gray-400">
+            현재 레이아웃: {isMobile ? '모바일' : '태블릿/PC'}
+          </div>
+
           <Link
             role="menuitem"
             href="/admin"
@@ -125,6 +129,16 @@ export function MenuButton({
           >
             홈
           </Link>
+          {!isMobile && (
+            <Link
+              role="menuitem"
+              href="/admin?edit=1"
+              onClick={() => setOpen(false)}
+              className="block px-4 py-2.5 hover:bg-black/5"
+            >
+              편집
+            </Link>
+          )}
           {!isMobile && (
             <Link
               role="menuitem"

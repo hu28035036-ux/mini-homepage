@@ -111,7 +111,6 @@ export function PublicCanvas({ data }: { data: PublicData }) {
                 {data.memos.slice(0, 6).map((m) => (
                   <li key={m.id} className="text-sm py-2 first:pt-0 last:pb-0">
                     <div className="font-medium truncate">{m.title}</div>
-                    <p className="opacity-60 text-xs line-clamp-3 whitespace-pre-wrap">{m.content}</p>
                   </li>
                 ))}
               </ul>

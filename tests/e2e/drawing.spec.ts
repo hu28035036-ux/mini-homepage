@@ -50,8 +50,7 @@ test.describe('그림판 카드 업로드 (TC-DRAW)', () => {
 
 /** 그림판 카드 추가 후 DrawPad 모달 오픈 */
 async function openDrawPad(page: Page) {
-  await page.goto('/admin');
-  await page.getByRole('button', { name: '편집', exact: true }).click();
+  await page.goto('/admin?edit=1');
   await page.getByRole('button', { name: '새 그림판 카드 추가' }).click();
   await page.getByRole('button', { name: '편집 끝' }).click();
   await page.locator('[data-block-kind="drawing"]').click();

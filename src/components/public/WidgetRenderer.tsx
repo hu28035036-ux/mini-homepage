@@ -132,7 +132,6 @@ function MemosWidget({ data, point }: { data: PreviewData['memos']; point: strin
         {data.map((m) => (
           <li key={m.id}>
             <div className="text-sm font-medium">{m.title}</div>
-            <p className="text-xs opacity-70 line-clamp-2 whitespace-pre-wrap">{m.content}</p>
           </li>
         ))}
       </ul>

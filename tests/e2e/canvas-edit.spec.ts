@@ -30,11 +30,12 @@ function collectAlerts(page: Page): string[] {
 
 async function gotoAdminCanvas(page: Page) {
   await page.goto('/admin');
-  await expect(page.getByRole('button', { name: '편집', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: '메뉴 열기' })).toBeVisible();
 }
 
 async function enterEditMode(page: Page) {
-  await page.getByRole('button', { name: '편집', exact: true }).click();
+  // v0.9: 편집 진입은 메뉴의 "편집"(/admin?edit=1)을 통해서만
+  await page.goto('/admin?edit=1');
   await expect(page.getByText('편집 모드: 카드를 드래그·리사이즈하세요')).toBeVisible();
 }
 
@@ -227,10 +228,10 @@ test.describe('자유 캔버스 편집 (TC-CANVAS)', () => {
 
     const urlsRoot = cardRoot(page, 'urls');
 
-    // #12 urls 카드(x=360,w=400)를 오른쪽으로 이동 → x+w>1200 → 경고 ring + ⚠
+    // #12 urls 카드(x=360,w=400)를 오른쪽으로 이동 → x+w>1680(v0.9 캔버스 폭) → 경고 ring + ⚠
     await selectCard(page, 'urls');
     let put = waitDecoratePut(page);
-    await pressArrow(page, 'Shift+ArrowRight', 50); // x 360 → 860, x+w=1260 > 1200
+    await pressArrow(page, 'Shift+ArrowRight', 100); // x 360 → 1360, x+w=1760 > 1680
     expect((await put).ok()).toBeTruthy();
     await page.waitForTimeout(500);
     await expect(urlsRoot).toHaveClass(/ring-rose-500/);
@@ -238,7 +239,7 @@ test.describe('자유 캔버스 편집 (TC-CANVAS)', () => {
 
     // #13 다시 캔버스 안으로 → 경고 해제
     put = waitDecoratePut(page);
-    await pressArrow(page, 'Shift+ArrowLeft', 50);
+    await pressArrow(page, 'Shift+ArrowLeft', 100);
     expect((await put).ok()).toBeTruthy();
     await page.waitForTimeout(500);
     await expect(urlsRoot).not.toHaveClass(/ring-rose-500/);
