@@ -11,38 +11,21 @@
 
 ---
 
-## 0. ⚠️ 다음 세션 최우선 작업 — production 마이그레이션 0007 적용
+## 0. ✅ production 마이그레이션 0007 적용 완료 (2026-05-18)
 
-**유일한 미완료 작업.** v0.8 코드는 master 머지·Vercel 배포 완료됐고, 보고된 버그
-2건(편집 버튼 사라짐 / 카드 위치 롤백)도 배포 서버에서 수정 확인됨. **그러나
-production Supabase에 마이그레이션 0007이 적용되지 않아 카드 카테고리 기능이
-동작하지 않는다** (`POST /api/cards/categories` → 500).
+직전 세션의 유일한 미완료 작업이던 **production 마이그레이션 0007(`card_categories`)
+적용이 완료됐다.** Supabase 대시보드 SQL Editor에서 DDL 실행 + `schema_migrations`에
+`0007` 히스토리 행 기록까지 마쳤다.
 
-- 증상: 배포 서버에서 카테고리 추가 시 500 (`card_categories` 컬럼 없음).
-- 영향 범위: 카드 카테고리 기능만. 편집 버튼·레이아웃 저장은 정상(컬럼 불필요).
-- 로컬 Supabase에는 이미 적용됨. **production(`mini-homepage-prod`, ref
-  `efokjcootdmcrnpnqpce`)에만 미적용.**
+- production(`mini-homepage-prod`, ref `efokjcootdmcrnpnqpce`) `mini_homepages`에
+  `card_categories jsonb not null default '[]'` 컬럼 + check 제약 적용 확인.
+- `supabase_migrations.schema_migrations`에 `0007 card_categories` 행 기록 확인 →
+  향후 `supabase db push`가 0007을 미적용으로 오인하지 않음.
+- 운영 헬스: `/login` 200, `/manifest.webmanifest` 200.
+- 마이그 파일 원본: `supabase/migrations/0007_card_categories.sql`.
 
-**적용 방법 (둘 중 하나):**
-
-1. Supabase 대시보드 → SQL Editor에서 실행:
-   ```sql
-   alter table public.mini_homepages
-     add column if not exists card_categories jsonb not null default '[]'::jsonb;
-   alter table public.mini_homepages
-     drop constraint if exists mini_homepages_card_categories_check;
-   alter table public.mini_homepages
-     add constraint mini_homepages_card_categories_check
-     check (jsonb_typeof(card_categories) = 'array');
-   ```
-2. 또는 CLI: `supabase link --project-ref efokjcootdmcrnpnqpce` 후 `supabase db push`
-   (production DB 비밀번호 필요).
-
-**적용 후 검증:** 배포 서버에서 로그인 → `POST /api/cards/categories {"name":"테스트"}`
-가 201을 반환하는지 확인. 마이그 파일 원본: `supabase/migrations/0007_card_categories.sql`.
-
-> 정리 필요(선택): 검증 중 production에 테스트 계정 `deploy-verify-1779091730@example.test`
-> 1개가 생성됨. 삭제 UI가 없어 남아 있음.
+> 미해결(선택): production 테스트 계정 `deploy-verify-1779091730@example.test` 1개가
+> 검증 중 생성돼 남아 있음. 사용자 결정으로 **그대로 두기로 함**(삭제 UI 없음).
 
 ---
 
@@ -58,7 +41,7 @@ production Supabase에 마이그레이션 0007이 적용되지 않아 카드 카
 | 마지막 운영 배포 | Vercel 자동 — v0.8 배포 완료, `/login` 200, `/admin` 200 |
 | E2E | 신규 24건(카드이름6·그림판9·카테고리9) 단독 통과. 전체 60건 일괄은 부하로 간헐 timeout(환경) |
 | TypeScript | 0 에러, build OK |
-| 마이그레이션 | 0001~0006 로컬·운영 동기화 ✅ / **0007 로컬만 적용, 운영 미적용** ⚠️ (§0 참고) |
+| 마이그레이션 | 0001~0007 로컬·운영 동기화 ✅ (2026-05-18 0007 운영 적용 완료) |
 
 ---
 
@@ -301,4 +284,5 @@ npx supabase status  # 출력에 anon key 등 표시. legacy JWT는 docker exec 
 
 ## 9. 마지막 업데이트
 
-2026-05-13. 다음 세션은 사용자 피드백(폰트/카드 적용 확인)을 받은 후 Phase D 또는 추가 fix로 분기.
+2026-05-18. production 마이그레이션 0007 적용 완료(§0). 미해결 작업 없음 —
+다음 세션은 §6 작업 후보(A 검증 / B 보강 / C 확장) 중에서 사용자와 범위를 정해 분기.
