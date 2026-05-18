@@ -75,6 +75,15 @@
 - `create unique index idx_homepage_slug_public on mini_homepages(slug) where deleted_at is null;`
 - `create unique index idx_homepage_user on mini_homepages(user_id) where deleted_at is null;`
 
+> **마이그레이션 추가 컬럼 (0002~0009)**: 위 표는 v0.1 기준이며, 이후 마이그로 다음
+> 컬럼이 `mini_homepages`에 추가됨 — `layouts jsonb`(0002),
+> `default_card_opacity numeric`·`default_font_size`(0003, v0.9 마이그 0008에서
+> text enum→**integer pt(6~96, 기본 12)**), `background_pattern`·
+> `background_pattern_color`(0004), `card_background_color`(0005),
+> `card_categories jsonb`(0007), `memo_categories jsonb`·`url_categories jsonb`(0009,
+> 각 `[{id,name}]` 배열, 신규 테이블 없이 메모·URL 카테고리 보관). `card_style`·
+> `font_style` enum도 v0.5에서 확장됨. 상세는 `supabase/migrations/`.
+
 ### 3-3. `urls`
 
 | 컬럼 | 타입 | 제약 | 비고 |
@@ -84,6 +93,7 @@
 | `homepage_id` | uuid | not null, fk mini_homepages(id) | |
 | `title` | text | not null | 길이 1~100 |
 | `url` | text | not null | http(s):// 형식 검증은 service에서 |
+| `category_id` | text | nullable | `mini_homepages.url_categories[].id` 참조 (느슨, FK 없음, 마이그 0009) |
 | `created_at`, `updated_at`, `deleted_at` | timestamptz | | |
 
 인덱스:
@@ -129,6 +139,7 @@
 | `homepage_id` | uuid | not null, fk mini_homepages(id) | |
 | `title` | text | not null | 길이 1~100 |
 | `content` | text | not null | 길이 1~10000 |
+| `category_id` | text | nullable | `mini_homepages.memo_categories[].id` 참조 (느슨, FK 없음, 마이그 0009) |
 | `created_at`, `updated_at`, `deleted_at` | timestamptz | | |
 
 인덱스:

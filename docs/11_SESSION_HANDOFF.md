@@ -1,31 +1,29 @@
 ---
 상태: Draft
-버전: v0.8
-마지막 수정일: 2026-05-18
+버전: v0.9
+마지막 수정일: 2026-05-19
 문서 목적: 운영 / 세션 인수인계
 ---
 
-# 세션 인수인계 — v0.8 (카드 이름·카테고리·그림판 개편)
+# 세션 인수인계 — v0.9 (카드 편집·카테고리 개편)
 
 다음 세션이 곧장 이어받을 수 있도록 **현재 상태 / 환경 / 다음 작업 후보**를 한 곳에 정리한다.
 
 ---
 
-## 0. ✅ production 마이그레이션 0007 적용 완료 (2026-05-18)
+## 0. ⚠️ 다음 세션 최우선 작업 — production 마이그레이션 0008·0009 적용
 
-직전 세션의 유일한 미완료 작업이던 **production 마이그레이션 0007(`card_categories`)
-적용이 완료됐다.** Supabase 대시보드 SQL Editor에서 DDL 실행 + `schema_migrations`에
-`0007` 히스토리 행 기록까지 마쳤다.
+**v0.9 코드(10개 수정 요청, Step 1~5)는 구현·검증 완료. master 머지 시 Vercel 자동
+배포된다. 그러나 production Supabase에 마이그 0008·0009가 적용돼야 글자 크기 pt·메모/URL
+카테고리 기능이 정상 동작한다.**
 
-- production(`mini-homepage-prod`, ref `efokjcootdmcrnpnqpce`) `mini_homepages`에
-  `card_categories jsonb not null default '[]'` 컬럼 + check 제약 적용 확인.
-- `supabase_migrations.schema_migrations`에 `0007 card_categories` 행 기록 확인 →
-  향후 `supabase db push`가 0007을 미적용으로 오인하지 않음.
-- 운영 헬스: `/login` 200, `/manifest.webmanifest` 200.
-- 마이그 파일 원본: `supabase/migrations/0007_card_categories.sql`.
-
-> 미해결(선택): production 테스트 계정 `deploy-verify-1779091730@example.test` 1개가
-> 검증 중 생성돼 남아 있음. 사용자 결정으로 **그대로 두기로 함**(삭제 UI 없음).
+- 0008: `mini_homepages.default_font_size` text+check → integer(pt 6~96, 기본 12).
+- 0009: `mini_homepages`에 `memo_categories`·`url_categories` jsonb, `memos`·`urls`에
+  `category_id text`.
+- 자동 권한 분류기가 MCP DB 쓰기를 차단하므로 **Supabase 대시보드 SQL Editor에서
+  직접 실행** + `schema_migrations`에 `0008`·`0009` 히스토리 행 기록(0007 적용 절차 동일).
+- 마이그 파일 원본: `supabase/migrations/0008_font_size_pt.sql`,
+  `0009_memo_url_categories.sql`.
 
 ---
 
@@ -37,11 +35,10 @@
 | GitHub repo | https://github.com/hu28035036-ux/mini-homepage (Private) |
 | Supabase Project | `mini-homepage-prod` (ref `efokjcootdmcrnpnqpce`, Seoul) |
 | Vercel Project | `mini-homepage` (orgId `team_Fej1ZZqXQJPzGwxXB9oGo9AB`, projectId `prj_F0mAKTWVVZ38KBfXYj9qDSlJ46L6`) |
-| 최근 commit | `b169857 Merge pull request #1` (v0.8 — 카드 이름·카테고리·그림판) |
-| 마지막 운영 배포 | Vercel 자동 — v0.8 배포 완료, `/login` 200, `/admin` 200 |
-| E2E | 신규 24건(카드이름6·그림판9·카테고리9) 단독 통과. 전체 60건 일괄은 부하로 간헐 timeout(환경) |
+| 최근 작업 | v0.9 — 카드 편집·카테고리 개편 (10개 수정 요청, Step 1~6) |
+| E2E | 전체 96 passed / 3 skipped / 0 failed. v0.9 신규 30건(step1~5 각 6건) |
 | TypeScript | 0 에러, build OK |
-| 마이그레이션 | 0001~0007 로컬·운영 동기화 ✅ (2026-05-18 0007 운영 적용 완료) |
+| 마이그레이션 | 0001~0007 로컬·운영 동기화 ✅ / **0008·0009 로컬 적용, 운영 미적용** ⚠️ (§0) |
 
 ---
 
@@ -284,5 +281,6 @@ npx supabase status  # 출력에 anon key 등 표시. legacy JWT는 docker exec 
 
 ## 9. 마지막 업데이트
 
-2026-05-18. production 마이그레이션 0007 적용 완료(§0). 미해결 작업 없음 —
-다음 세션은 §6 작업 후보(A 검증 / B 보강 / C 확장) 중에서 사용자와 범위를 정해 분기.
+2026-05-19. v0.9 카드 편집·카테고리 개편 — 10개 수정 요청을 Step 1~5로 구현·검증 완료
+(전체 E2E 96 passed). 마이그 0008·0009 로컬 적용. **다음 세션 최우선: production에
+0008·0009 적용(§0).** 이후 §6 작업 후보 중 분기.

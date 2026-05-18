@@ -1,7 +1,7 @@
 ---
 상태: Approved
-버전: v0.8
-마지막 수정일: 2026-05-18
+버전: v0.9
+마지막 수정일: 2026-05-19
 문서 목적: 구현 관리 / 기능 목록 (단일 소스)
 ---
 
@@ -109,3 +109,15 @@
 | 그림판 (펜·도형·지우개) | 펜 5종·도형 6종·픽셀/객체 지우개·대표색 7+팔레트·굵기 1~100 슬라이더 | `components/canvas/DrawPad/*` | `POST /api/decorate/drawing` | mini_homepages (`layouts.drawingUrl`) | 본인 | TC-DRAW-010~017 | Active | Passing |
 
 > 위 TC는 단독 e2e 실행 시 전건 통과. 전체 60건 일괄 실행은 dev 서버 콜드 컴파일 부하로 간헐 timeout — 환경 이슈, 회귀 아님.
+
+## 12. v0.9 카드 편집 · 카테고리 개편
+
+| 기능 | 설명 | 위치 | API | 테이블 | 권한 | TC | 상태 | 테스트 |
+|---|---|---|---|---|---|---|---|---|
+| 캔버스 폭 확대 | desktop 자유 캔버스 1200→1680px (40%) | `components/canvas/FreeCanvas.tsx` | — | — | 본인 | TC-S1-006 | Active | Passing |
+| 편집 진입 메뉴화 | 홈 "편집" 버튼 제거, 햄버거 메뉴 "편집"(`/admin?edit=1`) 진입, 메뉴에 현재 레이아웃 표시 | `components/admin/MenuButton.tsx`, `HomeDashboard.tsx` | — | — | 본인 | TC-S1-001~004 | Active | Passing |
+| 메모 카드 제목만 | 홈·공개·위젯 메모 카드 본문 미리보기 제거 | `HomeDashboard.tsx`, `PublicCanvas.tsx`, `WidgetRenderer.tsx` | — | — | 공개/본인 | TC-S1-005 | Active | Passing |
+| 글자 크기 pt | enum(xs~xl) → pt 정수. 카드별/전역 직접 입력 + 프리셋(9·12·16·20·28pt) | `FreeCanvas.tsx`, `DecorateEditor.tsx`, `styles/globals.css` | `PUT /api/decorate` | mini_homepages (`default_font_size` integer, 마이그 0008) | 본인 | TC-S2-001~006 | Active | Passing |
+| 메모 카테고리 | 카테고리 추가/이름수정/삭제 + 메모별 지정 | `components/categories/CategoryBar.tsx`, `MemosManager.tsx`, `services/memoCategories.ts` | `GET/POST /api/memos/categories`, `PATCH/DELETE .../[id]` | mini_homepages (`memo_categories` JSONB), memos (`category_id`, 마이그 0009) | 본인 | TC-S3-001~004, TC-S4-001~004·006 | Active | Passing |
+| URL 카테고리 | 카테고리 추가/이름수정/삭제 + URL별 지정 | `CategoryBar.tsx`, `UrlsManager.tsx`, `services/urlCategories.ts` | `GET/POST /api/urls/categories`, `PATCH/DELETE .../[id]` | mini_homepages (`url_categories` JSONB), urls (`category_id`, 마이그 0009) | 본인 | TC-S3-005~006, TC-S4-005~006 | Active | Passing |
+| 카드별 표시 카테고리 | 앨범/메모/URL 카드가 표시할 카테고리 선택. 앨범 미지정 시 최근 업로드 카테고리. 공개 페이지 동일 필터 | `FreeCanvas.tsx`, `HomeDashboard.tsx`, `PublicCanvas.tsx` | `PUT /api/decorate` (layouts) | mini_homepages (`layouts`의 `albumCategoryId`·`memoCategoryId`·`urlCategoryId`) | 공개/본인 | TC-S5-001~006 | Active | Passing |
