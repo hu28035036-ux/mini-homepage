@@ -58,14 +58,36 @@ test.describe('v0.9 Step 1 — UI/배치 개편 (TC-S1)', () => {
     await expect(page.getByText('메모본문SECRET내용')).toHaveCount(0);
   });
 
-  test('TC-S1-006 편집 캔버스 폭이 1680px로 확대 (행동 6)', async ({ page }) => {
+  test('TC-S1-006 편집 캔버스 폭이 1982px (콘텐츠 1680 + 왼쪽 여유 302) (행동 6)', async ({ page }) => {
     await signupAndLogin(page, 's1-canvas');
     await page.goto('/admin?edit=1');
     await expect(page.getByText('편집 모드: 카드를 드래그·리사이즈하세요')).toBeVisible();
 
-    // 카드 루트의 부모 = 자유 캔버스 div. 인라인 style width = 1680px.
+    // 카드 루트의 부모 = 자유 캔버스 div. 인라인 style width = 콘텐츠 1680 + 왼쪽 여유 302.
     const canvas = page.locator('[data-block-kind="urls"]').locator('xpath=..');
     const width = await canvas.evaluate((el) => (el as HTMLElement).style.width);
-    expect(width).toBe('1680px');
+    expect(width).toBe('1982px');
+  });
+
+  test('TC-S1-007 카드를 왼쪽 여유 구역(302px)으로 이동 가능 (행동 7)', async ({ page }) => {
+    await signupAndLogin(page, 's1-leftzone');
+    await page.goto('/admin?edit=1');
+    await expect(page.getByText('편집 모드: 카드를 드래그·리사이즈하세요')).toBeVisible();
+
+    const urlsRoot = page.locator('[data-block-kind="urls"]');
+    // 기본 urls 카드(x=360)는 왼쪽 여유 구역만큼 밀려 렌더: left = 360 + 302
+    expect(await urlsRoot.evaluate((el) => (el as HTMLElement).style.left)).toBe('662px');
+
+    // 카드 선택 후 왼쪽으로 충분히 이동 → 여유 구역 안으로 (rendered left 0)
+    await page.getByText('⋮⋮ urls', { exact: false }).click();
+    await expect(page.locator('[aria-label="카드 글자 크기(pt)"]')).toBeVisible();
+    for (let i = 0; i < 100; i++) {
+      await page.keyboard.press('Shift+ArrowLeft');
+      await page.waitForTimeout(15);
+    }
+    await page.waitForTimeout(400);
+    expect(await urlsRoot.evaluate((el) => (el as HTMLElement).style.left)).toBe('0px');
+    // 왼쪽 여유 구역은 정상 배치 영역 — 범위 이탈 경고(rose ring) 없음
+    await expect(urlsRoot).not.toHaveClass(/ring-rose-500/);
   });
 });

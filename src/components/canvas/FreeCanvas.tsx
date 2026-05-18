@@ -21,8 +21,11 @@ export function toPt(v: number | string | undefined | null, fallback: number): n
 export const FONT_SIZE_PRESETS = [9, 12, 16, 20, 28] as const;
 
 export type Track = 'desktop' | 'mobile';
-// desktop 캔버스는 v0.9에서 1200 → 1680 (40% 확대). mobile은 폰 화면 폭 유지.
+// 콘텐츠 구역 폭 — desktop 캔버스는 v0.9에서 1200 → 1680 (40% 확대). mobile은 폰 화면 폭 유지.
 const CANVAS_WIDTH: Record<Track, number> = { desktop: 1680, mobile: 360 };
+// v0.9.1: 콘텐츠 구역 왼쪽에 추가되는 카드 배치 여유 구역(8cm ≈ 302px). 캔버스를 왼쪽으로 확장.
+// 블록은 left = x + LEFT_PAD 로 렌더되어 기존 레이아웃은 통째로 오른쪽으로 밀려 시각적 배치가 유지된다.
+const LEFT_PAD: Record<Track, number> = { desktop: 302, mobile: 0 };
 
 /** v0.7.1: 분기점 1024px — iPad 가로(1024) 이상은 desktop 자유 캔버스.
  *  그 미만(폰·갤럭시 폴드 펼침·iPad 세로·안드로이드 데스크탑 사이트 모드 980)은 mobile 리스트.
@@ -91,12 +94,13 @@ export function normalizeBlock(b: Block): Block {
   };
 }
 
-function clampBlock(b: Block, canvasWidth: number): Block {
+function clampBlock(b: Block, contentWidth: number, leftPad: number): Block {
   return {
     ...b,
-    x: Math.max(0, Math.min(canvasWidth - 80, b.x)),
+    // x는 왼쪽 여유 구역(-leftPad)부터 콘텐츠 우측 끝(contentWidth-80)까지 허용
+    x: Math.max(-leftPad, Math.min(contentWidth - 80, b.x)),
     y: Math.max(0, b.y),
-    w: Math.max(160, Math.min(canvasWidth, b.w)),
+    w: Math.max(160, Math.min(contentWidth, b.w)),
     h: Math.max(80, b.h),
   };
 }
@@ -132,6 +136,7 @@ function cardClass(style: CardStyle): string {
 
 interface DraggableBlockProps {
   block: Block;
+  leftPad: number;
   editMode: boolean;
   cardStyle: CardStyle;
   selected: boolean;
@@ -154,7 +159,7 @@ interface DraggableBlockProps {
   children: ReactNode;
 }
 
-function DraggableBlock({ block, editMode, cardStyle, selected, outOfBounds, effectiveOpacity, effectiveFontSize, textColor, pointColor, cardBackgroundColor, categoryName, dimmed, onSelect, onChange, onExpand, onQuickAdd, onBringForward, onSendBackward, onDelete, onDraw, children }: DraggableBlockProps) {
+function DraggableBlock({ block, leftPad, editMode, cardStyle, selected, outOfBounds, effectiveOpacity, effectiveFontSize, textColor, pointColor, cardBackgroundColor, categoryName, dimmed, onSelect, onChange, onExpand, onQuickAdd, onBringForward, onSendBackward, onDelete, onDraw, children }: DraggableBlockProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: block.id,
     disabled: !editMode,
@@ -207,7 +212,7 @@ function DraggableBlock({ block, editMode, cardStyle, selected, outOfBounds, eff
       }}
       className={`absolute ${cardClass(cardStyle)} ${isDragging ? 'shadow-2xl' : ''} ${editMode ? (outOfBounds ? 'ring-2 ring-rose-500' : selected ? 'ring-2 ring-violet-500' : 'ring-1 ring-violet-300/40') : ''} ${!editMode && (clickExpands || clickOpensDrawPad) ? 'cursor-zoom-in' : ''}`}
       style={{
-        left: block.x,
+        left: block.x + leftPad,
         top: block.y,
         width: block.w,
         height: block.h,
@@ -443,7 +448,10 @@ export function FreeCanvas({
   const [categoryFilter, setCategoryFilter] = useState('');
   const detectedTrack = useTrack();
   const track = forceTrack ?? detectedTrack;
-  const canvasWidth = CANVAS_WIDTH[track];
+  const contentWidth = CANVAS_WIDTH[track];
+  const leftPad = LEFT_PAD[track];
+  // 캔버스 전체 폭 = 콘텐츠 구역 + 왼쪽 여유 구역
+  const canvasWidth = contentWidth + leftPad;
 
   const blocks = (layouts[track] && layouts[track].length > 0) ? layouts[track] : defaultBlocks(track);
   const visibleBlocks = blocks.filter((b) => b.visible && (publicViewOnly ? b.visibility === 'public' : true));
@@ -452,7 +460,7 @@ export function FreeCanvas({
 
   function applyChange(id: string, patch: Partial<Block>) {
     if (!onLayoutsChange) return;
-    const next = blocks.map((b) => (b.id === id ? clampBlock({ ...b, ...patch }, canvasWidth) : b));
+    const next = blocks.map((b) => (b.id === id ? clampBlock({ ...b, ...patch }, contentWidth, leftPad) : b));
     onLayoutsChange({ ...layouts, [track]: next });
   }
 
@@ -733,10 +741,11 @@ export function FreeCanvas({
           <DraggableBlock
             key={b.id}
             block={b}
+            leftPad={leftPad}
             editMode={editMode}
             cardStyle={cardStyle}
             selected={selectedId === b.id}
-            outOfBounds={b.x < 0 || b.y < 0 || b.x + b.w > canvasWidth}
+            outOfBounds={b.x < -leftPad || b.y < 0 || b.x + b.w > contentWidth}
             effectiveOpacity={b.opacity ?? defaultOpacity}
             effectiveFontSize={toPt(b.fontSize, defaultFontSize)}
             textColor={textColor}
