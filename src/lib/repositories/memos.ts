@@ -28,14 +28,14 @@ export const memosRepo = {
     return (data as MemoRow | null) ?? null;
   },
 
-  async insert(input: { user_id: string; homepage_id: string; title: string; content: string }): Promise<MemoRow> {
+  async insert(input: { user_id: string; homepage_id: string; title: string; content: string; category_id?: string | null }): Promise<MemoRow> {
     const supabase = supabaseServer();
     const { data, error } = await supabase.from('memos').insert(input).select('*').single();
     if (error) throw new AppError('SERVER_INTERNAL_ERROR');
     return data as MemoRow;
   },
 
-  async update(userId: string, id: string, patch: { title?: string; content?: string }): Promise<MemoRow> {
+  async update(userId: string, id: string, patch: { title?: string; content?: string; category_id?: string | null }): Promise<MemoRow> {
     const supabase = supabaseServer();
     const { data, error } = await supabase
       .from('memos')

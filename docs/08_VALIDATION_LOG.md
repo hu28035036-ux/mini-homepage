@@ -192,3 +192,33 @@
 - 옛 enum 문자열 fontSize가 남은 layouts JSONB는 `normalizeBlock`/`toPt`가 pt로 변환 —
   마이그 0008은 컬럼만 변환하고 JSONB는 로드 시 보정.
 
+---
+
+## v0.9 Step 3 — 메모·URL 카테고리 백엔드 (2026-05-18)
+
+### 1. 범위
+- #8 메모 카테고리 / #10 URL 카테고리 — 데이터·검증·서비스·저장소·API.
+- 마이그 0009: `mini_homepages`에 `memo_categories`·`url_categories` jsonb,
+  `memos`·`urls`에 `category_id text`. 신규 테이블 없음(6테이블 화이트리스트 준수).
+- 신규 에러코드 `MEMO_CATEGORY_DUPLICATE`·`URL_CATEGORY_DUPLICATE` (docs/18 §3-4·3-6 반영,
+  누락돼 있던 `CARD_CATEGORY_DUPLICATE`도 §3-7에 보강).
+
+### 2. 실행 명령
+- `npx supabase migration up` → 0009 로컬 적용
+- `npx tsc --noEmit` → 0 에러 / `npm run build` → 성공 (신규 4개 라우트 등록 확인)
+- `npx playwright test` (Step 3 + 전체 회귀)
+
+### 3. 테스트 결과
+- 통과 84 / 스킵 3 / 실패 0.
+- 신규 사용자 행동 E2E: `tests/e2e/step3-memo-url-categories-api.spec.ts` TC-S3-001~006 (6건).
+  1. 메모 카테고리 생성·목록 2. 중복 이름 거부 3. 이름 수정 4. 삭제
+  5. URL 카테고리 생성·수정·삭제 6. 메모·URL 항목 category_id round-trip.
+- 회귀: 전체 13스펙 통과.
+
+### 4. 실패 및 수정 내역
+- (없음)
+
+### 5. 남은 위험 요소
+- 메모·URL의 `category_id`는 JSONB 카테고리 목록에 대한 느슨한 참조(FK 없음) —
+  카테고리 삭제 시 항목의 category_id는 dangling 상태로 남고 UI에서 "미분류"로 표시(Step 4·5).
+

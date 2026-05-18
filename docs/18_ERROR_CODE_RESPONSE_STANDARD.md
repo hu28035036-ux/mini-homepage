@@ -75,6 +75,7 @@
 | 코드 | HTTP | 사용자 메시지 | 발생 위치 |
 |---|---|---|---|
 | `URL_INVALID_FORMAT` | 400 | 올바른 URL 형식이 아닙니다. | `/api/urls` POST/PATCH |
+| `URL_CATEGORY_DUPLICATE` | 409 | 이미 사용 중인 카테고리 이름입니다. | `/api/urls/categories` (마이그 0009) |
 
 ### 3-5. ALBUM / PHOTO
 
@@ -85,13 +86,16 @@
 
 ### 3-6. MEMO
 
-(현재 도메인 전용 코드 없음. `VALIDATION_*`로 처리)
+| 코드 | HTTP | 사용자 메시지 | 발생 위치 |
+|---|---|---|---|
+| `MEMO_CATEGORY_DUPLICATE` | 409 | 이미 사용 중인 카테고리 이름입니다. | `/api/memos/categories` (마이그 0009) |
 
 ### 3-7. DECORATE / LAYOUT
 
 | 코드 | HTTP | 사용자 메시지 | 발생 위치 |
 |---|---|---|---|
 | `DECORATE_INVALID_VALUE` | 400 | 꾸미기 설정 값이 올바르지 않습니다. | `/api/decorate` (색·카드·폰트 enum 위반) |
+| `CARD_CATEGORY_DUPLICATE` | 409 | 이미 사용 중인 카테고리 이름입니다. | `/api/cards/categories` (마이그 0007) |
 | `LAYOUT_INVALID_MODE` | 400 | 레이아웃 모드 값이 올바르지 않습니다. | `/api/decorate` (`layout_mode` enum 위반) |
 | `LAYOUT_INVALID_SLOT` | 400 | 슬롯 번호가 올바르지 않습니다. | `/api/decorate` (slot 범위/중복) |
 | `LAYOUT_WIDGET_UNKNOWN` | 400 | 알 수 없는 위젯입니다. | `/api/decorate` (widget enum 위반) |

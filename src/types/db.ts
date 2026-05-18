@@ -67,7 +67,8 @@ export interface Layouts {
   mobile:  Block[];   // < 1024px (태블릿 포함, 태블릿은 폭만 자동 확대)
 }
 
-// 카드 카테고리 — mini_homepages.card_categories JSONB 배열 (마이그 0007)
+// 카테고리 — mini_homepages.{card,memo,url}_categories JSONB 배열
+// (카드=마이그 0007, 메모·URL=마이그 0009). 모두 동일 {id,name} 형태.
 export interface CardCategory {
   id: string;
   name: string;
@@ -94,6 +95,8 @@ export interface MiniHomepageRow {
   layout_slots: LayoutSlot[];
   layouts: Layouts;
   card_categories: CardCategory[];
+  memo_categories: CardCategory[];
+  url_categories: CardCategory[];
   default_card_opacity: number;
   default_font_size: FontSize;
   is_public: boolean;
@@ -108,6 +111,7 @@ export interface UrlRow {
   homepage_id: string;
   title: string;
   url: string;
+  category_id: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -142,6 +146,7 @@ export interface MemoRow {
   homepage_id: string;
   title: string;
   content: string;
+  category_id: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

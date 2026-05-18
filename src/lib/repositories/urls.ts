@@ -28,14 +28,14 @@ export const urlsRepo = {
     return (data as UrlRow | null) ?? null;
   },
 
-  async insert(input: { user_id: string; homepage_id: string; title: string; url: string }): Promise<UrlRow> {
+  async insert(input: { user_id: string; homepage_id: string; title: string; url: string; category_id?: string | null }): Promise<UrlRow> {
     const supabase = supabaseServer();
     const { data, error } = await supabase.from('urls').insert(input).select('*').single();
     if (error) throw new AppError('SERVER_INTERNAL_ERROR');
     return data as UrlRow;
   },
 
-  async update(userId: string, id: string, patch: { title?: string; url?: string }): Promise<UrlRow> {
+  async update(userId: string, id: string, patch: { title?: string; url?: string; category_id?: string | null }): Promise<UrlRow> {
     const supabase = supabaseServer();
     const { data, error } = await supabase
       .from('urls')

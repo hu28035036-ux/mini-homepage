@@ -126,6 +126,8 @@ export const homepagesRepo = {
         | 'default_font_size'
         | 'layout_mode'
         | 'card_categories'
+        | 'memo_categories'
+        | 'url_categories'
       >
     > & { layout_slots?: LayoutSlot[]; layouts?: Layouts }
   ): Promise<MiniHomepageRow> {
