@@ -58,7 +58,7 @@ function cardRoot(page: Page, kind: string): Locator {
 /** 카드를 클릭해 선택(편집 모드에서 카드 클릭 → onSelect) */
 async function selectCard(page: Page, kind: string) {
   await page.getByText(`⋮⋮ ${kind}`, { exact: false }).click();
-  await expect(page.locator('label:has-text("글자크기") select')).toBeVisible();
+  await expect(page.locator('[aria-label="카드 글자 크기(pt)"]')).toBeVisible();
 }
 
 /** 선택된 카드를 화살표 키로 이동 (Shift = ±10px). 키 입력 사이 텀으로 상태 반영 보장. */
@@ -247,18 +247,18 @@ test.describe('자유 캔버스 편집 (TC-CANVAS)', () => {
     expect(alerts).toEqual([]);
   });
 
-  test('TC-CANVAS-006 카드 글자크기 XL 시 편집 핸들 버튼 크기 유지(본문 cascade 분리)', async ({ page }) => {
+  test('TC-CANVAS-006 카드 글자크기 40pt 시 편집 핸들 버튼 크기 유지(본문 cascade 분리)', async ({ page }) => {
     const alerts = collectAlerts(page);
     await signupAndLogin(page, 'cv-font');
     await gotoAdminCanvas(page);
     await enterEditMode(page);
 
-    // #14 urls 카드 선택 → 글자크기 XL
+    // #14 urls 카드 선택 → 글자크기 40pt 직접 입력
     await selectCard(page, 'urls');
-    await page.locator('label:has-text("글자크기") select').selectOption('xl');
+    await page.locator('[aria-label="카드 글자 크기(pt)"]').fill('40');
     await page.waitForTimeout(500);
 
-    // 카드 본문 글자는 XL로 커지지만, 편집 핸들 버튼은 cascade에서 제외되어 text-[10px] 유지
+    // 카드 본문 글자는 40pt로 커지지만, 편집 핸들 버튼은 cascade에서 제외되어 text-[10px] 유지
     const pubBtn = handle(page, 'urls').getByRole('button', { name: '공개', exact: true });
     const btnFont = await pubBtn.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
     expect(btnFont).toBeLessThanOrEqual(12);

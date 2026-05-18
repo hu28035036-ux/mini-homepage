@@ -38,14 +38,9 @@ html, body {
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
 }
 
-/* v0.6 — 카드별 글자 크기 적용: 부모 fontSize가 자식의 text-* 클래스에 덮이지 않도록
-   data-block-fontsize 속성을 통해 카드 본문 전체에 비례적 em 적용 */
-[data-block-fontsize="xs"]   { font-size: 0.75rem; }
-[data-block-fontsize="sm"]   { font-size: 0.875rem; }
-[data-block-fontsize="base"] { font-size: 1rem; }
-[data-block-fontsize="lg"]   { font-size: 1.125rem; }
-[data-block-fontsize="xl"]   { font-size: 1.25rem; }
-[data-block-fontsize] :is(h1, h2, h3, h4, h5, h6, p, div, span, li, a, button, input, textarea) {
+/* v0.9 — 카드별 글자 크기(pt): .block-fontsize 래퍼에 인라인 fontSize 적용.
+   자식의 text-* 클래스가 부모 fontSize를 덮지 않도록 1em으로 리셋 */
+.block-fontsize :is(h1, h2, h3, h4, h5, h6, p, div, span, li, a, button, input, textarea) {
   font-size: 1em;
 }
 

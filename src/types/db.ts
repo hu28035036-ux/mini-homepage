@@ -41,7 +41,8 @@ export interface LayoutSlot {
 
 // v2 자유 캔버스 블록
 export type BlockKind = 'title' | 'profile' | 'urls' | 'albums' | 'memos' | 'custom' | 'drawing';
-export type FontSize = 'xs' | 'sm' | 'base' | 'lg' | 'xl';
+// v0.9: 글자 크기는 pt 정수 (6~96). 옛 enum(xs~xl)은 마이그 0008 + normalizeBlock으로 변환.
+export type FontSize = number;
 
 export interface Block {
   id: string;

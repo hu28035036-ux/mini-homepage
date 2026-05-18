@@ -163,3 +163,32 @@
 ### 5. 남은 위험 요소
 - 편집 진입이 `?edit=1` 쿼리파라미터 기반 — 모바일 트랙에는 캔버스가 없어 메뉴 "편집" 항목을 `!isMobile`로 숨김.
 
+---
+
+## v0.9 Step 2 — 글자 크기 pt 전환 (2026-05-18)
+
+### 1. 범위
+- #2 글자 크기 enum(xs~xl) → pt 정수 전환 / #3 pt 직접 입력 + 프리셋(9·12·16·20·28).
+- 마이그레이션 0008: `mini_homepages.default_font_size` text+check → integer(pt), 기존 enum값 USING 변환, default 12, check 6~96.
+
+### 2. 실행 명령
+- `npx supabase migration up` → 0008 로컬 적용
+- `npx tsc --noEmit` → 0 에러 / `npm run build` → 성공
+- `npx playwright test` (Step 2 영향 범위 + 전체 회귀)
+
+### 3. 테스트 결과
+- 통과 78 / 스킵 3 / 실패 0.
+- 신규 사용자 행동 E2E: `tests/e2e/step2-font-pt.spec.ts` TC-S2-001~006 (6건) 전부 통과.
+  1. pt 직접 입력 → 즉시 반영 2. 프리셋 20pt → 카드 20pt 3. "전역" 복귀 → 12pt
+  4. 꾸미기 전역 글자크기 변경 → 미리보기 반영 5. 저장 후 새로고침 유지
+  6. 신규 홈피 전역 기본 12pt(마이그 default).
+- 회귀: 전체 12스펙 통과.
+
+### 4. 실패 및 수정 내역
+- TC-CANVAS-006이 글자크기 select 제거로 영향 — 테스트를 pt number input(`fill('40')`)
+  기준으로 갱신, `selectCard` 헬퍼 셀렉터를 `[aria-label="카드 글자 크기(pt)"]`로 변경.
+
+### 5. 남은 위험 요소
+- 옛 enum 문자열 fontSize가 남은 layouts JSONB는 `normalizeBlock`/`toPt`가 pt로 변환 —
+  마이그 0008은 컬럼만 변환하고 JSONB는 로드 시 보정.
+

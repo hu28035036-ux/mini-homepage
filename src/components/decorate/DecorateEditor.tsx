@@ -4,10 +4,10 @@ import { useState, useMemo, useRef, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, Button, GhostButton, Input, Label, ErrorText } from '@/components/ui/primitives';
 import { WidgetBoard, cardClass, type PreviewData, type DecorateStyle } from '@/components/public/WidgetRenderer';
-import { useTrack, fontSizeClass } from '@/components/canvas/FreeCanvas';
+import { useTrack, FONT_SIZE_PRESETS } from '@/components/canvas/FreeCanvas';
 import { PATTERN_LIST, patternImage, patternSize, patternPosition } from '@/lib/canvas/patterns';
 import { ColorPicker, colorOrGradientStyle, textColorOrGradientStyle } from '@/components/decorate/ColorPicker';
-import type { MiniHomepageRow, LayoutMode, LayoutSlot, WidgetKind, CardStyle, FontStyle, FontSize, BackgroundPattern } from '@/types/db';
+import type { MiniHomepageRow, LayoutMode, LayoutSlot, WidgetKind, CardStyle, FontStyle, BackgroundPattern } from '@/types/db';
 
 const CARD_STYLES: { value: CardStyle; label: string }[] = [
   { value: 'basic', label: '기본형' },
@@ -99,7 +99,7 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
   const [cardBg, setCardBg] = useState<string>(initial.card_background_color ?? '');
   const [font, setFont] = useState<FontStyle>(initial.font_style);
   const [opacity, setOpacity] = useState<number>(initial.default_card_opacity ?? 1);
-  const [fontSize, setFontSize] = useState<FontSize>(initial.default_font_size ?? 'base');
+  const [fontSize, setFontSize] = useState<number>(initial.default_font_size ?? 12);
   const [mode, setMode] = useState<LayoutMode>(initial.layout_mode);
   const [slots, setSlots] = useState<LayoutSlot[]>(initial.layout_slots);
   const [saving, setSaving] = useState(false);
@@ -280,15 +280,15 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
                 aria-label="종합 미리보기 (배경 + 무늬 + 카드)"
               >
                 <div
-                  className={`${cardClass(card)} px-3 py-2 ${fontSizeClass(fontSize)}`}
-                  style={{ opacity, ...textColorOrGradientStyle(text), minWidth: '60%', textAlign: 'center' }}
+                  className={`${cardClass(card)} px-3 py-2`}
+                  style={{ opacity, fontSize: `${fontSize}pt`, ...textColorOrGradientStyle(text), minWidth: '60%', textAlign: 'center' }}
                 >
                   샘플 카드
                 </div>
                 <div className="text-[10px] opacity-60" style={textColorOrGradientStyle(text)}>
                   {pattern === 'none' ? '무늬 없음' : PATTERN_LIST.find((p) => p.value === pattern)?.label}
                   {' · 투명도 '}{Math.round(opacity * 100)}%
-                  {' · '}{fontSize.toUpperCase()}
+                  {' · '}{fontSize}pt
                 </div>
               </div>
               {useBg && (
@@ -388,19 +388,32 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
           </Card>
 
           <Card>
-            <Label htmlFor="font-size">글자 크기 (전역 기본값)</Label>
-            <select
-              id="font-size"
-              value={fontSize}
-              onChange={(e) => setFontSize(e.target.value as FontSize)}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
-            >
-              <option value="xs">XS — 매우 작게</option>
-              <option value="sm">SM — 작게</option>
-              <option value="base">기본</option>
-              <option value="lg">LG — 크게</option>
-              <option value="xl">XL — 매우 크게</option>
-            </select>
+            <Label htmlFor="font-size">글자 크기 (전역 기본값, pt)</Label>
+            <div className="flex items-center gap-2">
+              <input
+                id="font-size"
+                type="number"
+                min={6}
+                max={96}
+                value={fontSize}
+                onChange={(e) => setFontSize(Math.max(6, Math.min(96, Math.round(Number(e.target.value) || 12))))}
+                className="w-20 rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+              />
+              <span className="text-sm opacity-60">pt</span>
+              <div className="flex gap-1">
+                {FONT_SIZE_PRESETS.map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setFontSize(p)}
+                    className={`text-xs px-2 py-1 rounded ${fontSize === p ? 'bg-violet-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                    aria-label={`글자 크기 ${p}pt`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
             <p className="text-[11px] opacity-60 mt-1">카드별로 다르게 하려면 편집 모드에서 카드를 선택하세요.</p>
           </Card>
 
@@ -412,9 +425,10 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
           <Card className="p-0 overflow-hidden sticky top-4 h-fit max-h-[calc(100vh-2rem)]">
             <div className="px-4 py-2 border-b border-gray-100 text-xs text-gray-500 bg-white">미리보기 (저장 전)</div>
             <div
-              className={`max-h-[calc(100vh-6rem)] overflow-auto ${fontSizeClass(fontSize)}`}
+              className="max-h-[calc(100vh-6rem)] overflow-auto"
               style={{
                 opacity,
+                fontSize: `${fontSize}pt`,
                 backgroundColor: bg,
                 backgroundImage: pattern === 'none' ? undefined : patternImage(pattern, patternColor),
                 backgroundSize: pattern === 'none' ? undefined : patternSize(pattern),

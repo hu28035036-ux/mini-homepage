@@ -369,7 +369,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
         pointColor={hp.point_color}
         textColor={hp.text_color}
         defaultOpacity={hp.default_card_opacity ?? 1}
-        defaultFontSize={hp.default_font_size ?? 'base'}
+        defaultFontSize={hp.default_font_size ?? 12}
         renderBlock={renderBlock}
         cardCategories={cardCategories}
         onReloadCategories={loadAll}

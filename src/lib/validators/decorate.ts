@@ -25,7 +25,8 @@ const FONT_STYLES = [
   'pretendard', 'notoSans', 'notoSerif', 'nanumGothic', 'gowunDodum', 'nanumPen', 'ibmPlex', 'blackHan', 'hiMelody',
 ] as const;
 
-const FONT_SIZES = ['xs', 'sm', 'base', 'lg', 'xl'] as const;
+// v0.9: 글자 크기는 pt 정수 (6~96)
+const fontSizePt = z.number().int().min(6).max(96);
 
 const blockSchema = z.object({
   id: z.string().min(1),
@@ -38,7 +39,7 @@ const blockSchema = z.object({
   visible: z.boolean(),
   visibility: z.enum(['public', 'private']),
   opacity: z.number().min(0).max(1).optional(),
-  fontSize: z.enum(FONT_SIZES).optional(),
+  fontSize: fontSizePt.optional(),
   customTitle: z.string().max(200).optional(),
   customContent: z.string().max(5000).optional(),
   drawingUrl: z.string().url().nullable().optional(),
@@ -75,7 +76,7 @@ export const updateDecorateSchema = z.object({
   card_background_color: hexAlpha.nullable().optional(),
   font_style: z.enum(FONT_STYLES).optional(),
   default_card_opacity: z.number().min(0).max(1).optional(),
-  default_font_size: z.enum(FONT_SIZES).optional(),
+  default_font_size: fontSizePt.optional(),
   layout_mode: z.enum(['single', 'double']).optional(),
   layout_slots: z.array(slotSchema).optional(),
   layouts: layoutsSchema.optional(),

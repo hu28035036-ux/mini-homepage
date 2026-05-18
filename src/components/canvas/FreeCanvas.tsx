@@ -7,15 +7,18 @@ import { CardHeader } from '@/components/canvas/CardHeader';
 import { CardCategoryManager } from '@/components/canvas/CardCategoryManager';
 import type { Block, Layouts, CardStyle, FontStyle, FontSize, CardCategory } from '@/types/db';
 
-export function fontSizeClass(s: FontSize): string {
-  switch (s) {
-    case 'xs': return 'text-xs';
-    case 'sm': return 'text-sm';
-    case 'base': return 'text-base';
-    case 'lg': return 'text-lg';
-    case 'xl': return 'text-xl';
-  }
+// v0.9: 옛 enum(xs~xl) 글자 크기 → pt 변환표. 마이그 안 된 layouts JSONB 호환용.
+const FONT_PT: Record<string, number> = { xs: 9, sm: 11, base: 12, lg: 14, xl: 16 };
+
+/** Block.fontSize / default_font_size 를 pt 숫자로 보정 (옛 문자열 enum 호환). */
+export function toPt(v: number | string | undefined | null, fallback: number): number {
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  if (typeof v === 'string') return FONT_PT[v] ?? fallback;
+  return fallback;
 }
+
+/** 글자 크기 프리셋 (pt) */
+export const FONT_SIZE_PRESETS = [9, 12, 16, 20, 28] as const;
 
 export type Track = 'desktop' | 'mobile';
 // desktop 캔버스는 v0.9에서 1200 → 1680 (40% 확대). mobile은 폰 화면 폭 유지.
@@ -71,6 +74,12 @@ export function defaultBlocks(track: Track): Block[] {
 /** layouts 로드 시 검증 스키마(blockSchema)가 요구하는 값으로 보정.
  *  위치(x, y)는 손대지 않아 자유 배치를 유지하고, 크기·z·표시 필드만 규칙 안으로 끌어들인다. */
 export function normalizeBlock(b: Block): Block {
+  // 옛 문자열 fontSize(xs~xl)는 pt 숫자로 변환, 그 외는 그대로
+  const rawFs: unknown = b.fontSize;
+  const fontSize =
+    typeof rawFs === 'string' ? (FONT_PT[rawFs] ?? undefined)
+    : typeof rawFs === 'number' ? rawFs
+    : undefined;
   return {
     ...b,
     w: Math.min(4000, Math.max(160, b.w)),
@@ -78,6 +87,7 @@ export function normalizeBlock(b: Block): Block {
     z: Number.isInteger(b.z) ? b.z : 0,
     visible: b.visible ?? true,
     visibility: b.visibility ?? 'public',
+    fontSize,
   };
 }
 
@@ -213,11 +223,10 @@ function DraggableBlock({ block, editMode, cardStyle, selected, outOfBounds, eff
       }}
     >
       {/* 1. 내부 콘텐츠 — 핸들 아래에 깔리도록 먼저 작성 + 편집 모드 OFF는 인터랙티브, ON일 때는 pointer-events: none(드래그 우선) */}
-      {/* data-block-fontsize는 본문 div에만 — 편집 핸들/액션 버튼은 카드 폰트크기 cascade에서 제외 */}
+      {/* block-fontsize 래퍼는 본문 div에만 — 편집 핸들/액션 버튼은 카드 폰트크기 cascade에서 제외 */}
       <div
-        data-block-fontsize={effectiveFontSize}
-        className={`absolute inset-x-0 bottom-0 ${editMode ? 'top-8' : 'top-0'} overflow-auto p-4`}
-        style={editMode ? { pointerEvents: 'none' } : undefined}
+        className={`block-fontsize absolute inset-x-0 bottom-0 ${editMode ? 'top-8' : 'top-0'} overflow-auto p-4`}
+        style={{ fontSize: `${effectiveFontSize}pt`, ...(editMode ? { pointerEvents: 'none' as const } : {}) }}
       >
         {block.kind !== 'title' && (
           <CardHeader block={block} editMode={editMode} onChange={onChange} textColor={pointColor} categoryName={categoryName} />
@@ -411,7 +420,7 @@ export function FreeCanvas({
   pointColor,
   textColor,
   defaultOpacity = 1,
-  defaultFontSize = 'base',
+  defaultFontSize = 12,
   renderBlock,
   onExpand,
   onQuickAdd,
@@ -603,24 +612,44 @@ export function FreeCanvas({
               기본
             </button>
           </label>
-          <label className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5">
             <span className="opacity-60">글자크기</span>
-            <select
+            <input
+              type="number"
+              min={6}
+              max={96}
               value={selectedBlock.fontSize ?? ''}
+              placeholder="전역"
               onChange={(e) => {
                 const v = e.target.value;
-                applyChange(selectedBlock.id, { fontSize: v ? (v as FontSize) : undefined });
+                applyChange(selectedBlock.id, {
+                  fontSize: v ? Math.max(6, Math.min(96, Math.round(Number(v)))) : undefined,
+                });
               }}
-              className="rounded border border-gray-200 px-1 py-0.5 text-xs"
+              className="w-12 rounded border border-gray-200 px-1 py-0.5 text-xs"
+              aria-label="카드 글자 크기(pt)"
+            />
+            <span className="opacity-60">pt</span>
+            {FONT_SIZE_PRESETS.map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => applyChange(selectedBlock.id, { fontSize: p })}
+                className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 hover:bg-gray-200"
+                aria-label={`글자 크기 ${p}pt`}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => applyChange(selectedBlock.id, { fontSize: undefined })}
+              className="text-[10px] underline opacity-60 hover:opacity-100"
+              title="전역값 사용"
             >
-              <option value="">전역</option>
-              <option value="xs">XS</option>
-              <option value="sm">SM</option>
-              <option value="base">기본</option>
-              <option value="lg">LG</option>
-              <option value="xl">XL</option>
-            </select>
-          </label>
+              전역
+            </button>
+          </div>
           {cardCategories.length > 0 && (
             <label className="flex items-center gap-1.5">
               <span className="opacity-60">카테고리</span>
@@ -660,7 +689,7 @@ export function FreeCanvas({
             selected={selectedId === b.id}
             outOfBounds={b.x < 0 || b.y < 0 || b.x + b.w > canvasWidth}
             effectiveOpacity={b.opacity ?? defaultOpacity}
-            effectiveFontSize={b.fontSize ?? defaultFontSize}
+            effectiveFontSize={toPt(b.fontSize, defaultFontSize)}
             textColor={textColor}
             pointColor={pointColor}
             cardBackgroundColor={cardBackgroundColor}

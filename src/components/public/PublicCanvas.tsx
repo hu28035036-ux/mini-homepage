@@ -170,7 +170,7 @@ export function PublicCanvas({ data }: { data: PublicData }) {
         fontStyle={homepage.font_style}
         pointColor={homepage.point_color}
         defaultOpacity={homepage.default_card_opacity ?? 1}
-        defaultFontSize={homepage.default_font_size ?? 'base'}
+        defaultFontSize={homepage.default_font_size ?? 12}
         renderBlock={renderBlock}
         cardCategories={homepage.card_categories}
         publicViewOnly
