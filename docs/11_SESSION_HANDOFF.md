@@ -11,19 +11,16 @@
 
 ---
 
-## 0. ⚠️ 다음 세션 최우선 작업 — production 마이그레이션 0008·0009 적용
+## 0. ✅ v0.9 완료 — production 마이그 0008·0009 적용·배포 완료 (2026-05-19)
 
-**v0.9 코드(10개 수정 요청, Step 1~5)는 구현·검증 완료. master 머지 시 Vercel 자동
-배포된다. 그러나 production Supabase에 마이그 0008·0009가 적용돼야 글자 크기 pt·메모/URL
-카테고리 기능이 정상 동작한다.**
+**v0.9(10개 수정 요청, Step 1~6) 구현·검증·배포 완료. 미해결 작업 없음.**
 
-- 0008: `mini_homepages.default_font_size` text+check → integer(pt 6~96, 기본 12).
-- 0009: `mini_homepages`에 `memo_categories`·`url_categories` jsonb, `memos`·`urls`에
-  `category_id text`.
-- 자동 권한 분류기가 MCP DB 쓰기를 차단하므로 **Supabase 대시보드 SQL Editor에서
-  직접 실행** + `schema_migrations`에 `0008`·`0009` 히스토리 행 기록(0007 적용 절차 동일).
-- 마이그 파일 원본: `supabase/migrations/0008_font_size_pt.sql`,
-  `0009_memo_url_categories.sql`.
+- master 머지(`412d9f7`) → Vercel 자동 배포 완료. 운영 헬스 `/login` 200,
+  `/manifest.webmanifest` 200, 미존재 slug 404.
+- production 마이그 0008·0009 적용 확인 — `default_font_size` integer(기본 12),
+  `memo_categories`·`url_categories` jsonb, `memos`/`urls` `category_id` 컬럼,
+  `schema_migrations`에 `0008`·`0009` 히스토리 행 기록.
+- 다음 세션은 §6 작업 후보 중 사용자와 범위를 정해 분기.
 
 ---
 
@@ -35,10 +32,10 @@
 | GitHub repo | https://github.com/hu28035036-ux/mini-homepage (Private) |
 | Supabase Project | `mini-homepage-prod` (ref `efokjcootdmcrnpnqpce`, Seoul) |
 | Vercel Project | `mini-homepage` (orgId `team_Fej1ZZqXQJPzGwxXB9oGo9AB`, projectId `prj_F0mAKTWVVZ38KBfXYj9qDSlJ46L6`) |
-| 최근 작업 | v0.9 — 카드 편집·카테고리 개편 (10개 수정 요청, Step 1~6) |
+| 최근 commit | `412d9f7` (v0.9 Step 6 — 문서 갱신). master 머지·Vercel 배포 완료 |
 | E2E | 전체 96 passed / 3 skipped / 0 failed. v0.9 신규 30건(step1~5 각 6건) |
 | TypeScript | 0 에러, build OK |
-| 마이그레이션 | 0001~0007 로컬·운영 동기화 ✅ / **0008·0009 로컬 적용, 운영 미적용** ⚠️ (§0) |
+| 마이그레이션 | 0001~0009 로컬·운영 동기화 ✅ (2026-05-19 0008·0009 운영 적용 완료) |
 
 ---
 
@@ -281,6 +278,6 @@ npx supabase status  # 출력에 anon key 등 표시. legacy JWT는 docker exec 
 
 ## 9. 마지막 업데이트
 
-2026-05-19. v0.9 카드 편집·카테고리 개편 — 10개 수정 요청을 Step 1~5로 구현·검증 완료
-(전체 E2E 96 passed). 마이그 0008·0009 로컬 적용. **다음 세션 최우선: production에
-0008·0009 적용(§0).** 이후 §6 작업 후보 중 분기.
+2026-05-19. v0.9 카드 편집·카테고리 개편 — 10개 수정 요청을 Step 1~6으로 구현·검증·
+배포 완료(전체 E2E 96 passed, 마이그 0008·0009 운영 적용, master 머지·Vercel 배포).
+미해결 작업 없음 — 다음 세션은 §6 작업 후보 중 분기.
