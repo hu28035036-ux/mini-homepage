@@ -2,13 +2,15 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, Button, DangerButton, Input, Textarea } from '@/components/ui/primitives';
-import type { MemoRow } from '@/types/db';
+import { CategoryBar } from '@/components/categories/CategoryBar';
+import type { MemoRow, CardCategory } from '@/types/db';
 
 type DraftMap = Record<string, { title: string; content: string }>;
 
 export function MemosManager() {
   const [items, setItems] = useState<MemoRow[]>([]);
   const [drafts, setDrafts] = useState<DraftMap>({});
+  const [categories, setCategories] = useState<CardCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const savingSet = useRef<Set<string>>(new Set());
@@ -27,7 +29,12 @@ export function MemosManager() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  const loadCategories = useCallback(async () => {
+    const r = await (await fetch('/api/memos/categories')).json();
+    if (r.success) setCategories(r.data.items);
+  }, []);
+
+  useEffect(() => { load(); loadCategories(); }, [load, loadCategories]);
   useEffect(() => () => {
     Object.values(timers.current).forEach(clearTimeout);
   }, []);
@@ -82,6 +89,16 @@ export function MemosManager() {
     }, 800);
   }
 
+  async function changeCategory(id: string, categoryId: string) {
+    const value = categoryId || null;
+    setItems((s) => s.map((m) => (m.id === id ? { ...m, category_id: value } : m)));
+    await fetch(`/api/memos/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ category_id: value }),
+    });
+  }
+
   async function remove(id: string) {
     if (!confirm('이 메모를 삭제할까요?')) return;
     if (timers.current[id]) { clearTimeout(timers.current[id]); delete timers.current[id]; }
@@ -100,6 +117,15 @@ export function MemosManager() {
         <h1 className="text-2xl font-bold">메모장</h1>
         <Button onClick={addNew}>+ 새 메모</Button>
       </div>
+
+      <Card>
+        <CategoryBar
+          label="메모 카테고리"
+          apiBase="/api/memos/categories"
+          categories={categories}
+          onChanged={loadCategories}
+        />
+      </Card>
 
       {loading && <p className="text-sm opacity-50">불러오는 중...</p>}
 
@@ -129,6 +155,17 @@ export function MemosManager() {
                   <DangerButton onClick={() => remove(m.id)} aria-label="삭제">✕</DangerButton>
                 </div>
               </div>
+              <select
+                aria-label="메모 카테고리"
+                value={m.category_id ?? ''}
+                onChange={(e) => changeCategory(m.id, e.target.value)}
+                className="rounded-lg border border-gray-200 px-2 py-1 text-xs outline-none focus:border-violet-500"
+              >
+                <option value="">미분류</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
               <Textarea
                 aria-label="내용"
                 rows={4}

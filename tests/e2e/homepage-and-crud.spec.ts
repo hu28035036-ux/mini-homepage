@@ -23,7 +23,7 @@ test.describe('미니홈피 + URL/메모 CRUD (TC-HP / TC-URL / TC-MEMO)', () =>
     // 추가
     await page.getByLabel('제목').fill('테스트 사이트');
     await page.getByLabel('주소 (https://...)').fill('https://example.com/test');
-    await page.getByRole('button', { name: '추가' }).click();
+    await page.getByRole('button', { name: '추가', exact: true }).click();
     await expect(page.getByText('테스트 사이트')).toBeVisible();
     await expect(page.locator('a[href="https://example.com/test"]')).toBeVisible();
 

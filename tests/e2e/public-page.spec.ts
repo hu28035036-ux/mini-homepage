@@ -64,7 +64,7 @@ test.describe('공개/비공개 (TC-PUB)', () => {
     await page.goto('/admin/urls');
     await page.getByLabel('제목').fill('비공개 메모');
     await page.getByLabel('주소 (https://...)').fill('https://example.com/private');
-    await page.getByRole('button', { name: '추가' }).click();
+    await page.getByRole('button', { name: '추가', exact: true }).click();
     await expect(page.getByText('비공개 메모')).toBeVisible();
 
     // 비공개 상태에서도 본인은 봄. v0.6: data-public 속성으로 확인

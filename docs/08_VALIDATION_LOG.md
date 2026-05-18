@@ -222,3 +222,29 @@
 - 메모·URL의 `category_id`는 JSONB 카테고리 목록에 대한 느슨한 참조(FK 없음) —
   카테고리 삭제 시 항목의 category_id는 dangling 상태로 남고 UI에서 "미분류"로 표시(Step 4·5).
 
+---
+
+## v0.9 Step 4 — 메모·URL 카테고리 관리 UI (2026-05-19)
+
+### 1. 범위
+- #8·#10 — `MemosManager`·`UrlsManager`에 카테고리 추가/이름수정/삭제 + 항목별 카테고리 지정.
+- 신규 공용 컴포넌트 `CategoryBar`(추가·이름수정·삭제, apiBase 주입형).
+
+### 2. 실행 명령
+- `npx tsc --noEmit` → 0 에러 / `npm run build` → 성공
+- `npx playwright test` (전체 스위트)
+
+### 3. 테스트 결과
+- 통과 90 / 스킵 3 / 실패 0.
+- 신규 사용자 행동 E2E: `tests/e2e/step4-memo-url-category-ui.spec.ts` TC-S4-001~006 (6건).
+  1. 메모 카테고리 추가 2. 메모 항목 카테고리 지정 3. 이름 수정 4. 삭제
+  5. URL 카테고리 추가·지정·삭제 6. 미지정 항목 "미분류" 표시.
+
+### 4. 실패 및 수정 내역
+- `CategoryBar`의 "+ 추가" 버튼 추가로 `getByRole('button',{name:'추가'})`가 모호해져
+  homepage-and-crud TC-URL-001·public-page TC-PUB-005가 1차 실패 — 두 테스트의 URL
+  추가 버튼 셀렉터를 `{ name: '추가', exact: true }`로 갱신 후 통과.
+
+### 5. 남은 위험 요소
+- (없음 — Step 5에서 카드별 표시 카테고리 선택 연결 예정)
+
