@@ -1,14 +1,32 @@
-# mini-homepage (싸이월드 스타일 미니홈피 v1 MVP)
+# mini-homepage (싸이월드 감성 미니홈피)
 
-나만의 URL 보관함·앨범집·메모장을 가지고 내 취향대로 꾸미는 개인 미니홈피.
+나만의 URL 보관함·앨범집·메모장을 자유 캔버스 위에서 내 취향대로 꾸미는 개인 미니홈피.
 
 - **Next.js 15 App Router + TypeScript + Tailwind v4**
 - **Supabase Postgres + Storage** (Auth는 사용하지 않음)
 - **자체 회원가입**: bcryptjs + iron-session 쿠키
-- v1 범위: 회원가입/로그인, 미니홈피 자동 생성, URL/앨범/메모 CRUD, 꾸미기(색/배경/카드/폰트 + 레이아웃·슬롯), 공개/비공개, `/u/[slug]` 공개 페이지
-- v1 제외: AI, 댓글, 좋아요, 방명록, 방문자수, 드래그앤드롭, 태그, 검색
+- 배포: Vercel — https://mini-homepage.vercel.app
 
-상세 설계는 [docs/00_MASTER_INDEX.md](docs/00_MASTER_INDEX.md) 참조.
+## 주요 기능 (v0.9.1)
+
+- **인증·미니홈피** — 이메일 회원가입/로그인, 미니홈피 자동 생성, 기본 비공개
+- **기록** — URL 보관함 · 앨범집(카테고리·사진 업로드) · 메모장 CRUD
+- **자유 캔버스 편집** — 카드를 드래그·리사이즈·z-index로 자유 배치(PC/태블릿).
+  PC/모바일 레이아웃 분리, 캔버스 폭 1982px(왼쪽 카드 배치 여유 구역 포함).
+  편집 진입은 햄버거 메뉴 → "편집"
+- **카드 종류** — 프로필·URL·앨범·메모 + 텍스트 카드 + 그림판 카드. 카드 이름 편집
+- **그림판 카드** — 펜 5종·도형 6종·지우개 2종·팔레트·굵기 슬라이더, PNG 저장
+- **카테고리** — 카드/메모/URL/앨범 각각 카테고리로 분류. 카드별로 표시할 카테고리 선택
+  (앨범 카드는 미지정 시 최근 업로드 카테고리)
+- **꾸미기** — 배경색·이미지·무늬 8종, 카드 스타일 20종, 폰트 12종, 포인트/글자색
+  (그라데이션 지원), 카드 투명도, 글자 크기(pt 직접 입력 + 프리셋)
+- **공개 페이지** `/u/[slug]` — 공개 상태일 때만 외부 노출, 꾸미기·레이아웃 그대로 적용
+- **PWA** — 홈 화면 추가, 앱 아이콘
+- 제외(여전히): AI/챗봇, 댓글·좋아요·방명록·방문자수, 친구·팔로우, 태그·검색, 알림·결제
+
+상세 설계는 [docs/00_MASTER_INDEX.md](docs/00_MASTER_INDEX.md), 기능 목록은
+[docs/19_FEATURE_CATALOG.md](docs/19_FEATURE_CATALOG.md), 변경 이력은
+[docs/09_CHANGELOG.md](docs/09_CHANGELOG.md) 참조.
 
 ---
 
@@ -17,7 +35,7 @@
 ### 1) Supabase 프로젝트 만들기
 
 1. https://supabase.com 에서 새 프로젝트 생성 (예: `mini-homepage-dev`).
-2. **SQL Editor**에서 [`supabase/migrations/0001_initial.sql`](supabase/migrations/0001_initial.sql) 내용을 통째로 복사해서 실행.
+2. **SQL Editor**에서 [`supabase/migrations/`](supabase/migrations/)의 `0001`~`0009`를 번호 순서대로 실행 (또는 Supabase CLI `supabase db push`).
 3. **Storage**에서 `user-uploads` 버킷 생성:
    - Public bucket: **ON**
    - File size limit: 10 MB (또는 더 크게)
@@ -60,13 +78,15 @@ npm run dev
 
 1. `/signup` → 가입
 2. `/login` → 로그인 → `/admin` 자동 진입, 미니홈피 자동 생성
-3. `/admin/urls` 에서 URL 추가
+3. `/admin/urls` 에서 URL 추가 (카테고리 분류 가능)
 4. `/admin/albums` 에서 카테고리 추가 + 사진 업로드
-5. `/admin/memos` 에서 메모 작성
-6. `/admin/decorate` 에서 색/카드/폰트/배경 + 레이아웃·슬롯 변경 → 미리보기 확인 → 저장
-7. `/admin/settings` 에서 공개 토글 ON
-8. 시크릿 창에서 `/u/[slug]` 접속 → 정상 노출
-9. 다시 비공개로 → 시크릿 창 새로고침 → 404 ("페이지를 볼 수 없어요")
+5. `/admin/memos` 에서 메모 작성 (카테고리 분류 가능)
+6. `/admin/decorate` 에서 배경·색·카드 스타일·폰트·글자크기(pt) 변경 → 미리보기 → 저장
+7. `/admin` 홈에서 햄버거 메뉴 → "편집" → 자유 캔버스에서 카드 드래그·리사이즈·
+   카테고리·표시 분류 설정 → "편집 끝"
+8. `/admin/settings` 에서 공개 토글 ON
+9. 시크릿 창에서 `/u/[slug]` 접속 → 정상 노출
+10. 다시 비공개로 → 시크릿 창 새로고침 → 404 ("페이지를 볼 수 없어요")
 
 ---
 
@@ -77,33 +97,36 @@ npm run dev
 ```
 src/
   app/
-    (login|signup)/page.tsx           # 인증
+    login/page.tsx, signup/page.tsx   # 인증
     admin/                            # 관리자 페이지
-      layout.tsx                      # 인증 가드 + 사이드바
-      page.tsx                        # 관리자 홈
+      layout.tsx                      # 인증 가드 + 햄버거 메뉴
+      page.tsx                        # 관리자 홈 (자유 캔버스 / 모바일 리스트)
       urls/page.tsx
       albums/page.tsx
       memos/page.tsx
-      decorate/page.tsx               # 꾸미기 (핵심)
+      decorate/page.tsx               # 꾸미기 (색·카드·폰트·배경)
       settings/page.tsx
     u/[slug]/page.tsx                 # 공개 미니홈피
-    api/...                           # Route Handler
+    api/...                           # Route Handler (cards/memos/urls categories 포함)
   components/
     ui/                               # Card, Button, Input...
-    auth/, urls/, albums/, memos/,
+    auth/, urls/, albums/, memos/, categories/,
+    canvas/                           # FreeCanvas, CardHeader, DrawPad...
     decorate/, settings/, admin/, public/
   lib/
     auth/      # password, session, guards
     db/        # supabase-server
     storage/   # uploader, paths
+    canvas/    # patterns
     repositories/   # users, homepages, urls, albumCategories, photos, memos
-    services/       # auth, homepage, urls, albums, memos, decorate, publicView
+    services/       # auth, homepage, urls, albums, memos, decorate, publicView,
+                    # cardCategories, memoCategories, urlCategories
     validators/     # zod 스키마
     errors/         # codes, response
     utils/          # slug
   types/db.ts
   styles/globals.css
-supabase/migrations/0001_initial.sql
+supabase/migrations/0001~0009_*.sql
 ```
 
 ---
@@ -116,6 +139,7 @@ npm run build      # 프로덕션 빌드
 npm run start      # 빌드 실행
 npm run lint       # ESLint
 npm run typecheck  # TypeScript 검사 (tsc --noEmit)
+npx playwright test  # E2E (tests/e2e/ — Supabase 로컬 + Docker 필요)
 ```
 
 ---
@@ -134,9 +158,8 @@ npm run typecheck  # TypeScript 검사 (tsc --noEmit)
 
 ## 다음 단계 (v1.x / v2)
 
-- `tests/` 추가 (Vitest + Playwright)
 - 비밀번호 재설정 흐름
-- 휴지통 / 복구 UI
+- 휴지통 / 복구 UI (`deleted_at` 활용)
 - Supabase Storage signed URL 모델로 강화
-- RLS 도입 (필요 시)
+- 서버 사이드 세션 store(Redis)
 - AI 기능 도입 (별도 Phase, `docs/ai/`)
