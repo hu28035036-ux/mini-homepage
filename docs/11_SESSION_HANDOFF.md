@@ -1,13 +1,48 @@
 ---
 상태: Draft
-버전: v0.7.x
-마지막 수정일: 2026-05-13
+버전: v0.8
+마지막 수정일: 2026-05-18
 문서 목적: 운영 / 세션 인수인계
 ---
 
-# 세션 인수인계 — v0.7.x (그라데이션·무늬·lightbox·모바일 단순화)
+# 세션 인수인계 — v0.8 (카드 이름·카테고리·그림판 개편)
 
 다음 세션이 곧장 이어받을 수 있도록 **현재 상태 / 환경 / 다음 작업 후보**를 한 곳에 정리한다.
+
+---
+
+## 0. ⚠️ 다음 세션 최우선 작업 — production 마이그레이션 0007 적용
+
+**유일한 미완료 작업.** v0.8 코드는 master 머지·Vercel 배포 완료됐고, 보고된 버그
+2건(편집 버튼 사라짐 / 카드 위치 롤백)도 배포 서버에서 수정 확인됨. **그러나
+production Supabase에 마이그레이션 0007이 적용되지 않아 카드 카테고리 기능이
+동작하지 않는다** (`POST /api/cards/categories` → 500).
+
+- 증상: 배포 서버에서 카테고리 추가 시 500 (`card_categories` 컬럼 없음).
+- 영향 범위: 카드 카테고리 기능만. 편집 버튼·레이아웃 저장은 정상(컬럼 불필요).
+- 로컬 Supabase에는 이미 적용됨. **production(`mini-homepage-prod`, ref
+  `efokjcootdmcrnpnqpce`)에만 미적용.**
+
+**적용 방법 (둘 중 하나):**
+
+1. Supabase 대시보드 → SQL Editor에서 실행:
+   ```sql
+   alter table public.mini_homepages
+     add column if not exists card_categories jsonb not null default '[]'::jsonb;
+   alter table public.mini_homepages
+     drop constraint if exists mini_homepages_card_categories_check;
+   alter table public.mini_homepages
+     add constraint mini_homepages_card_categories_check
+     check (jsonb_typeof(card_categories) = 'array');
+   ```
+2. 또는 CLI: `supabase link --project-ref efokjcootdmcrnpnqpce` 후 `supabase db push`
+   (production DB 비밀번호 필요).
+
+**적용 후 검증:** 배포 서버에서 로그인 → `POST /api/cards/categories {"name":"테스트"}`
+가 201을 반환하는지 확인. 마이그 파일 원본: `supabase/migrations/0007_card_categories.sql`.
+
+> 정리 필요(선택): 검증 중 production에 테스트 계정 `deploy-verify-1779091730@example.test`
+> 1개가 생성됨. 삭제 UI가 없어 남아 있음.
 
 ---
 
@@ -19,11 +54,11 @@
 | GitHub repo | https://github.com/hu28035036-ux/mini-homepage (Private) |
 | Supabase Project | `mini-homepage-prod` (ref `efokjcootdmcrnpnqpce`, Seoul) |
 | Vercel Project | `mini-homepage` (orgId `team_Fej1ZZqXQJPzGwxXB9oGo9AB`, projectId `prj_F0mAKTWVVZ38KBfXYj9qDSlJ46L6`) |
-| 최근 commit | `51c1a18 feat(decorate): 글자/포인트 색상은 단색만 (그라데이션 제거)` |
-| 마지막 운영 배포 | Vercel 자동 — 완료, `/login` 200 |
-| E2E | **37 passed / 3 skipped / 0 failed** (chromium) |
-| TypeScript | 0 에러 |
-| 마이그레이션 | **0001~0006 로컬·운영 완전 동기화** ✅ |
+| 최근 commit | `b169857 Merge pull request #1` (v0.8 — 카드 이름·카테고리·그림판) |
+| 마지막 운영 배포 | Vercel 자동 — v0.8 배포 완료, `/login` 200, `/admin` 200 |
+| E2E | 신규 24건(카드이름6·그림판9·카테고리9) 단독 통과. 전체 60건 일괄은 부하로 간헐 timeout(환경) |
+| TypeScript | 0 에러, build OK |
+| 마이그레이션 | 0001~0006 로컬·운영 동기화 ✅ / **0007 로컬만 적용, 운영 미적용** ⚠️ (§0 참고) |
 
 ---
 
