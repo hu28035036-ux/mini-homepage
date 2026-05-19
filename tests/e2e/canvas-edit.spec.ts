@@ -220,7 +220,7 @@ test.describe('자유 캔버스 편집 (TC-CANVAS)', () => {
     expect(alerts).toEqual([]);
   });
 
-  test('TC-CANVAS-005 카드가 편집 범위를 벗어나면 경고 표시, 안으로 넣으면 해제', async ({ page }) => {
+  test('TC-CANVAS-005 카드를 화면 끝에 둔 뒤 창을 좁히면 경고, 키 이동 시 clamp되어 해제', async ({ page }) => {
     const alerts = collectAlerts(page);
     await signupAndLogin(page, 'cv-bounds');
     await gotoAdminCanvas(page);
@@ -228,18 +228,23 @@ test.describe('자유 캔버스 편집 (TC-CANVAS)', () => {
 
     const urlsRoot = cardRoot(page, 'urls');
 
-    // #12 urls 카드(x=360,w=400)를 오른쪽으로 이동 → x+w>1680(v0.9 캔버스 폭) → 경고 ring + ⚠
+    // #12 urls 카드를 화면 우측 끝까지 이동 → clampBlock이 가장자리에서 막아 화면 밖으로 안 나감 (경고 없음)
     await selectCard(page, 'urls');
     let put = waitDecoratePut(page);
-    await pressArrow(page, 'Shift+ArrowRight', 100); // x 360 → 1360, x+w=1760 > 1680
+    await pressArrow(page, 'Shift+ArrowRight', 100);
     expect((await put).ok()).toBeTruthy();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(300);
+    await expect(urlsRoot).not.toHaveClass(/ring-rose-500/);
+
+    // #13 브라우저 창을 좁히면 그 카드가 현재 화면 폭 밖이 되어 경고 ring + ⚠
+    await page.setViewportSize({ width: 1100, height: 720 });
+    await page.waitForTimeout(300);
     await expect(urlsRoot).toHaveClass(/ring-rose-500/);
     await expect(handle(page, 'urls').getByText('⚠')).toBeVisible();
 
-    // #13 다시 캔버스 안으로 → 경고 해제
+    // #14 카드를 키로 이동 → clampBlock이 좁아진 화면(1100px) 안으로 끌어들여 경고 해제
     put = waitDecoratePut(page);
-    await pressArrow(page, 'Shift+ArrowLeft', 100);
+    await pressArrow(page, 'ArrowLeft', 1);
     expect((await put).ok()).toBeTruthy();
     await page.waitForTimeout(500);
     await expect(urlsRoot).not.toHaveClass(/ring-rose-500/);

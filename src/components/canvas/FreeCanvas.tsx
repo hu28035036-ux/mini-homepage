@@ -48,6 +48,24 @@ export function useTrack(): Track {
   return track;
 }
 
+// 공개 페이지는 FreeCanvas를 SSR한다. SSR엔 viewport 폭을 알 수 없어, 기존 desktop
+// 캔버스 폭(1982)을 fallback으로 써 첫 HTML 레이아웃이 종전과 동일하게 나오도록 한다.
+const SSR_FALLBACK_WIDTH = 1982;
+
+/** 현재 브라우저 창 폭(px). resize에 반응. SSR에선 SSR_FALLBACK_WIDTH. */
+export function useViewportWidth(): number {
+  const [width, setWidth] = useState<number>(() =>
+    typeof window === 'undefined' ? SSR_FALLBACK_WIDTH : window.innerWidth
+  );
+  useEffect(() => {
+    const update = () => setWidth(window.innerWidth);
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+  return width;
+}
+
 /** 신규 사용자/빈 layout일 때만 사용되는 안전한 기본 배치 */
 export function defaultBlocks(track: Track): Block[] {
   const base = (k: Block['kind'], x: number, y: number, w: number, h: number, z = k === 'title' ? 1 : 0): Block => ({
@@ -94,13 +112,15 @@ export function normalizeBlock(b: Block): Block {
   };
 }
 
-function clampBlock(b: Block, contentWidth: number, leftPad: number): Block {
-  const w = Math.max(160, Math.min(contentWidth, b.w));
+function clampBlock(b: Block, frameWidth: number, leftPad: number): Block {
+  const w = Math.max(160, Math.min(Math.min(4000, frameWidth), b.w));
+  // 작업 공간은 브라우저 창 전체(frameWidth). 화면 좌표 left = x + leftPad 가
+  // [0, frameWidth] 안에 머물도록 x 범위를 환산 — 카드 전체가 창 안에 들어오고 밖으로는 못 나간다.
+  const minX = -leftPad;
+  const maxX = frameWidth - leftPad - w;
   return {
     ...b,
-    // 카드 전체가 캔버스 안에 들어오도록: 왼쪽 끝(-leftPad)부터 카드 오른쪽 끝이 콘텐츠 우측 끝에 닿는 위치(contentWidth-w)까지.
-    // 화면(캔버스) 어디든 배치 가능하되 화면 밖으로는 나가지 못한다.
-    x: Math.max(-leftPad, Math.min(contentWidth - w, b.x)),
+    x: Math.max(minX, Math.min(Math.max(minX, maxX), b.x)),
     y: Math.max(0, b.y),
     w,
     h: Math.max(80, b.h),
@@ -452,8 +472,9 @@ export function FreeCanvas({
   const track = forceTrack ?? detectedTrack;
   const contentWidth = CANVAS_WIDTH[track];
   const leftPad = LEFT_PAD[track];
-  // 캔버스 전체 폭 = 콘텐츠 구역 + 왼쪽 여유 구역
-  const canvasWidth = contentWidth + leftPad;
+  const viewportWidth = useViewportWidth();
+  // desktop 작업 공간 = 브라우저 창 전체 폭(동적). mobile은 종전 고정 폭.
+  const canvasWidth = track === 'desktop' ? viewportWidth : contentWidth + leftPad;
 
   const blocks = (layouts[track] && layouts[track].length > 0) ? layouts[track] : defaultBlocks(track);
   const visibleBlocks = blocks.filter((b) => b.visible && (publicViewOnly ? b.visibility === 'public' : true));
@@ -462,7 +483,7 @@ export function FreeCanvas({
 
   function applyChange(id: string, patch: Partial<Block>) {
     if (!onLayoutsChange) return;
-    const next = blocks.map((b) => (b.id === id ? clampBlock({ ...b, ...patch }, contentWidth, leftPad) : b));
+    const next = blocks.map((b) => (b.id === id ? clampBlock({ ...b, ...patch }, canvasWidth, leftPad) : b));
     onLayoutsChange({ ...layouts, [track]: next });
   }
 
@@ -543,8 +564,9 @@ export function FreeCanvas({
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
+    // canvasWidth — 창 리사이즈 후 키 이동이 최신 clamp 폭을 쓰도록 deps에 포함
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editMode, selectedId, blocks, onExitEdit]);
+  }, [editMode, selectedId, blocks, onExitEdit, canvasWidth]);
 
   // 평소 모드로 전환 시 선택 해제
   useEffect(() => { if (!editMode) setSelectedId(null); }, [editMode]);
@@ -558,7 +580,7 @@ export function FreeCanvas({
       applyChange(id, { x: block.x + e.delta.x, y: block.y + e.delta.y });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [blocks, layouts, onLayoutsChange, track]
+    [blocks, layouts, onLayoutsChange, track, canvasWidth]
   );
 
   // 마우스·터치 모두 지원. 5px 이동 후 드래그 시작(클릭과 구분)
@@ -571,7 +593,7 @@ export function FreeCanvas({
   return (
     <DndContext sensors={sensors} onDragEnd={onDragEnd}>
       {editMode && (
-        <div className="sticky top-2 z-50 mx-auto mb-2 flex justify-end gap-2" style={{ maxWidth: canvasWidth }}>
+        <div className="sticky top-2 z-50 mx-auto mb-2 flex justify-end gap-2" style={{ maxWidth: track === 'desktop' ? '100%' : canvasWidth }}>
           {cardCategories.length > 0 && (
             <select
               value={categoryFilter}
@@ -733,8 +755,15 @@ export function FreeCanvas({
         </div>
       )}
       <div
-        className={`relative mx-auto font-${fontStyle} ${editMode ? 'bg-[radial-gradient(circle,rgba(0,0,0,0.04)_1px,transparent_1px)] [background-size:24px_24px] outline-dashed outline-2 outline-violet-300' : ''}`}
-        style={{ width: canvasWidth, minHeight, maxWidth: '100%', color: 'inherit' }}
+        className={`relative font-${fontStyle} ${editMode ? 'bg-[radial-gradient(circle,rgba(0,0,0,0.04)_1px,transparent_1px)] [background-size:24px_24px] outline-dashed outline-2 outline-violet-300' : ''}`}
+        style={{
+          // desktop: max-w-6xl 부모를 깨고 브라우저 창 전체 폭으로 펼침 (full-bleed)
+          ...(track === 'desktop'
+            ? { width: '100vw', marginLeft: 'calc(50% - 50vw)' }
+            : { width: canvasWidth, maxWidth: '100%', marginLeft: 'auto', marginRight: 'auto' }),
+          minHeight,
+          color: 'inherit',
+        }}
       >
         {visibleBlocks.map((b) => {
           const categoryName = cardCategories.find((c) => c.id === b.categoryId)?.name;
@@ -747,7 +776,11 @@ export function FreeCanvas({
             editMode={editMode}
             cardStyle={cardStyle}
             selected={selectedId === b.id}
-            outOfBounds={b.x < -leftPad || b.y < 0 || b.x + b.w > contentWidth}
+            outOfBounds={
+              track === 'desktop'
+                ? (b.x < -leftPad || b.y < 0 || b.x + leftPad + b.w > viewportWidth)
+                : (b.x < -leftPad || b.y < 0 || b.x + b.w > contentWidth)
+            }
             effectiveOpacity={b.opacity ?? defaultOpacity}
             effectiveFontSize={toPt(b.fontSize, defaultFontSize)}
             textColor={textColor}
