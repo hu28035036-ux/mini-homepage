@@ -22,7 +22,8 @@
   (그라데이션 지원), 카드 투명도, 글자 크기(pt 직접 입력 + 프리셋)
 - **공개 페이지** `/u/[slug]` — 공개 상태일 때만 외부 노출, 꾸미기·레이아웃 그대로 적용
 - **PWA** — 홈 화면 추가, 앱 아이콘
-- 제외(여전히): AI/챗봇, 댓글·좋아요·방명록·방문자수, 친구·팔로우, 태그·검색, 알림·결제
+- 제외(여전히): AI/챗봇, 댓글·좋아요·방명록·방문자수, 친구·팔로우, 자유형 태그·전역 검색,
+  배경음악, 알림·결제 (※ URL/메모/앨범/카드 카테고리 분류는 구현됨)
 
 상세 설계는 [docs/00_MASTER_INDEX.md](docs/00_MASTER_INDEX.md), 기능 목록은
 [docs/19_FEATURE_CATALOG.md](docs/19_FEATURE_CATALOG.md), 변경 이력은
@@ -37,8 +38,9 @@
 1. https://supabase.com 에서 새 프로젝트 생성 (예: `mini-homepage-dev`).
 2. **SQL Editor**에서 [`supabase/migrations/`](supabase/migrations/)의 `0001`~`0009`를 번호 순서대로 실행 (또는 Supabase CLI `supabase db push`).
 3. **Storage**에서 `user-uploads` 버킷 생성:
-   - Public bucket: **ON**
+   - Public bucket: **OFF** (private — 이미지 접근은 `/api/img` 프록시가 통제)
    - File size limit: 10 MB (또는 더 크게)
+   - 마이그레이션 `0010`이 버킷을 private으로 강제하므로, 생성 시 ON으로 만들었어도 무방
 4. **Project Settings → API**에서 다음 값 복사:
    - `Project URL` (https://xxxxx.supabase.co)
    - `service_role` 비밀 키 (절대 클라이언트 노출 금지)
@@ -153,13 +155,13 @@ npx playwright test  # E2E (tests/e2e/ — Supabase 로컬 + Docker 필요)
 - 모든 repository 쿼리는 `where user_id = $session_user AND deleted_at IS NULL`을 자동 부착.
 - 비공개 미니홈피와 미존재 slug는 동일한 404 응답으로 통일.
 - 응답은 `lib/errors/response.ts`의 `ok()` / `fail()` / `handle()`로만 생성.
+- 업로드 이미지는 **private 버킷**에 저장되고 `/api/img` 프록시가 접근을 통제(본인 또는 공개 미니홈피). DB에는 full URL이 아닌 **스토리지 경로**만 저장한다.
 
 ---
 
 ## 다음 단계 (v1.x / v2)
 
 - 비밀번호 재설정 흐름
-- 휴지통 / 복구 UI (`deleted_at` 활용)
-- Supabase Storage signed URL 모델로 강화
 - 서버 사이드 세션 store(Redis)
+- 영구삭제 시 Storage 원본 파일 정리(고아 파일)
 - AI 기능 도입 (별도 Phase, `docs/ai/`)

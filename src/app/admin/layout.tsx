@@ -3,6 +3,7 @@ import { getCurrentUserId } from '@/lib/auth/guards';
 import { homepageService } from '@/lib/services/homepage';
 import { MenuButton } from '@/components/admin/MenuButton';
 import { patternImage, patternSize, patternPosition } from '@/lib/canvas/patterns';
+import { imgSrc } from '@/lib/storage/imageSrc';
 
 function isGradient(v: string): boolean {
   return /^(linear|radial|conic)-gradient\(/.test(v);
@@ -23,7 +24,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const bgIsGradient = isGradient(hp.background_color);
   // backgroundImage 우선순위: 업로드 이미지 > 패턴 > 그라데이션
   const computedBgImage = useImage
-    ? `url(${hp.background_image_url})`
+    ? `url(${imgSrc(hp.background_image_url)})`
     : (usePattern ? patternImg : (bgIsGradient ? hp.background_color : undefined));
   const computedBgColor = bgIsGradient ? 'transparent' : hp.background_color;
   const containerStyle: React.CSSProperties = {

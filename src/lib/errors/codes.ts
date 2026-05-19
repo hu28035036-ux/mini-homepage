@@ -35,6 +35,8 @@ export const ERROR_CODES = {
 
   DB_RECORD_NOT_FOUND: { status: 404, message: '데이터를 찾을 수 없습니다.' },
 
+  TRASH_RESTORE_BLOCKED: { status: 409, message: '이 항목의 카테고리가 삭제 상태입니다. 카테고리를 먼저 복구해 주세요.' },
+
   SERVER_INTERNAL_ERROR: { status: 500, message: '일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' },
 } as const;
 

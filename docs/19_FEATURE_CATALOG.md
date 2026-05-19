@@ -1,6 +1,6 @@
 ---
 상태: Approved
-버전: v0.9
+버전: v0.9.4
 마지막 수정일: 2026-05-19
 문서 목적: 구현 관리 / 기능 목록 (단일 소스)
 ---
@@ -59,9 +59,12 @@
 |---|---|---|---|---|---|---|---|---|
 | 배경색/배경 이미지/이미지 ON-OFF | 컬러 피커 + 업로드 + 토글 | `components/decorate/*`, `services/decorate.ts` | `PUT /api/decorate`, `POST /api/decorate/background` | mini_homepages | 본인 | TC-DEC-001~003 | Active | Passing |
 | 포인트색/글자색 | 컬러 피커 | `components/decorate/ColorPicker.tsx` | `PUT /api/decorate` | mini_homepages | 본인 | TC-DEC-004/005 | Active | Passing |
-| 카드 스타일 4종 | basic/rounded/shadow/transparent | `CardStyleSelector` | 위와 동일 | mini_homepages | 본인 | TC-DEC-006 | Active | Passing |
-| 폰트 3종 | default/rounded/emotional | `FontSelector` | 위와 동일 | mini_homepages | 본인 | TC-DEC-007 | Active | Passing |
+| 배경 무늬 8종 | dots/grid/diagonal/stripes/checker/crosshatch/waves/triangles + 색상(alpha) | `lib/canvas/patterns.ts`, `components/decorate/DecorateEditor.tsx` | `PUT /api/decorate` | mini_homepages | 본인 | TC-DEC-001~003 | Active | Passing |
+| 그라데이션 / 카드 투명도 | 배경·카드 배경 그라데이션(2색 + 각도), 카드 투명도 슬라이더 | `components/decorate/ColorPicker.tsx` | `PUT /api/decorate` | mini_homepages | 본인 | — | Active | Passing |
+| 카드 스타일 20종 | basic·rounded·shadow·transparent + 16종(soft·bordered·glass·minimal·elevated·frame·sticky·mint·pink·sky·notebook·grid-paper·dashed·double-border·ringed·bevel) | `components/decorate/DecorateEditor.tsx` | 위와 동일 | mini_homepages | 본인 | TC-DEC-006 | Active | Passing |
+| 폰트 12종 | default·rounded·emotional + pretendard·notoSans·notoSerif·nanumGothic·gowunDodum·nanumPen·ibmPlex·blackHan·hiMelody | `components/decorate/DecorateEditor.tsx` | 위와 동일 | mini_homepages | 본인 | TC-DEC-007 | Active | Passing |
 | 미리보기 즉시 반영 | 로컬 state 기반 | `PreviewBoard` | (저장 전 서버 미반영) | — | 본인 | TC-DEC-008 | Active | Passing |
+| 테마 프리셋 6종 | 꾸미기 값 묶음(배경색·무늬·색상·카드·폰트·투명도·크기) 원클릭 적용. 적용 후 세부 조정·저장. 배경 이미지·레이아웃은 유지 | `lib/presets/themes.ts`, `components/decorate/DecorateEditor.tsx` | `PUT /api/decorate` | mini_homepages | 본인 | TC-PRESET-001~006 | Active | Passing |
 
 ## 7. 레이아웃 / 위젯 배치
 
@@ -86,19 +89,23 @@
 |---|---|---|---|---|---|---|---|---|
 | 소프트 삭제 | `deleted_at` 사용, 일반 조회 제외 | `repositories/*` | 모든 DELETE/GET | 모든 사용자 데이터 | — | TC-RET-001~005 | Active | Passing |
 | 사용자별 데이터 분리 | repository 레이어가 `user_id` 강제 부착 | `repositories/*` | 모든 API | 모든 사용자 데이터 | — | TC-ISO-001~006 | Active | Passing |
+| 휴지통·복구 | 삭제된 URL·사진·메모·앨범 카테고리 조회/복구/영구삭제. 카테고리 복구 시 사진 cascade 복구, 사진 개별 복구는 카테고리 삭제 상태면 차단. 자동 영구삭제 없음(PRD §5) | `repositories/trash.ts`, `services/trash.ts`, `components/trash/TrashManager.tsx` | `GET /api/trash`, `POST /api/trash/restore`, `POST /api/trash/purge` | urls·photos·memos·album_categories | 본인 | TC-TRASH-001~006 | Active | Passing |
+| 이미지 프록시 / private 스토리지 | 업로드 이미지는 private 버킷 + `/api/img` 프록시로만 접근(본인 또는 공개 미니홈피). DB엔 full URL이 아닌 스토리지 경로 저장, `imgSrc()`가 표시용 변환 | `app/api/img/route.ts`, `lib/storage/imageSrc.ts`, `lib/storage/uploader.ts` | `GET /api/img` | (Storage) photos·mini_homepages | 본인/공개 | TC-IMG-001~005 | Active | Passing |
 
-## 10. v1 제외 (참고용으로 보존)
+## 10. 현재 제외 기능 (참고용으로 보존)
+
+> 자유 캔버스 드래그앤드롭과 URL·메모·카드 카테고리는 v0.5~v0.9에서 채택되어 §6·§11·§12에 Active로 기재됨. 아래는 현재 범위에서 제외된 기능이다 (PRD §7).
 
 | 기능 | 상태 | 비고 |
 |---|---|---|
-| 드래그앤드롭 꾸미기 | Deprecated/Excluded | PRD §7 |
-| 태그/검색/카테고리(URL) | Deprecated/Excluded | PRD §7 |
-| 댓글/좋아요/방명록/방문자 수 | Deprecated/Excluded | PRD §7 |
-| 배경음악 | Deprecated/Excluded | PRD §7 |
-| 친구/팔로우 | Deprecated/Excluded | PRD §7 |
-| AI 요약/RAG/챗봇 | Deprecated/Excluded | PRD §7. 추후 도입 시 `docs/ai/` 신규 |
-| URL 썸네일 자동 가져오기 | Deprecated/Excluded | PRD §7 |
-| 알림/결제 | Deprecated/Excluded | PRD §7 |
+| 자유형 태그 / 전역 검색 | Excluded | PRD §7. 카테고리 분류(URL·메모·앨범·카드)는 구현됨 — §6·§11·§12 참조 |
+| 댓글/좋아요/방명록/방문자 수 | Excluded | PRD §7 |
+| 배경음악 | Excluded | PRD §7 |
+| 친구/팔로우 | Excluded | PRD §7 |
+| AI 요약/RAG/챗봇 | Excluded | PRD §7. 추후 도입 시 `docs/ai/` 신규 |
+| URL 썸네일 자동 가져오기 | Excluded | PRD §7 |
+| 앨범별·메모별 세부 공개 설정 | Excluded | PRD §7 |
+| 알림/결제 | Excluded | PRD §7 |
 
 ## 11. 카드 이름 · 카테고리 · 그림판 (v0.8 자유 캔버스)
 
@@ -121,3 +128,9 @@
 | 메모 카테고리 | 카테고리 추가/이름수정/삭제 + 메모별 지정 | `components/categories/CategoryBar.tsx`, `MemosManager.tsx`, `services/memoCategories.ts` | `GET/POST /api/memos/categories`, `PATCH/DELETE .../[id]` | mini_homepages (`memo_categories` JSONB), memos (`category_id`, 마이그 0009) | 본인 | TC-S3-001~004, TC-S4-001~004·006 | Active | Passing |
 | URL 카테고리 | 카테고리 추가/이름수정/삭제 + URL별 지정 | `CategoryBar.tsx`, `UrlsManager.tsx`, `services/urlCategories.ts` | `GET/POST /api/urls/categories`, `PATCH/DELETE .../[id]` | mini_homepages (`url_categories` JSONB), urls (`category_id`, 마이그 0009) | 본인 | TC-S3-005~006, TC-S4-005~006 | Active | Passing |
 | 카드별 표시 카테고리 | 앨범/메모/URL 카드가 표시할 카테고리 선택. 앨범 미지정 시 최근 업로드 카테고리. 공개 페이지 동일 필터 | `FreeCanvas.tsx`, `HomeDashboard.tsx`, `PublicCanvas.tsx` | `PUT /api/decorate` (layouts) | mini_homepages (`layouts`의 `albumCategoryId`·`memoCategoryId`·`urlCategoryId`) | 공개/본인 | TC-S5-001~006 | Active | Passing |
+
+## 13. v0.9.1 자유 캔버스 폭 확장
+
+| 기능 | 설명 | 위치 | API | 테이블 | 권한 | TC | 상태 | 테스트 |
+|---|---|---|---|---|---|---|---|---|
+| 캔버스 좌측 확장 | desktop 자유 캔버스 폭 1680→1982px. 왼쪽에 302px(약 8cm) 카드 배치 여유 구역 추가 | `components/canvas/FreeCanvas.tsx` | — | — | 본인 | — | Active | Untested |

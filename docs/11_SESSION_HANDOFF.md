@@ -1,21 +1,30 @@
 ---
 상태: Draft
-버전: v0.9
+버전: v0.9.4
 마지막 수정일: 2026-05-19
 문서 목적: 운영 / 세션 인수인계
 ---
 
-# 세션 인수인계 — v0.9 (카드 편집·카테고리 개편)
+# 세션 인수인계 — v0.9.4 (프리셋 + 휴지통 + private 스토리지)
 
 다음 세션이 곧장 이어받을 수 있도록 **현재 상태 / 환경 / 다음 작업 후보**를 한 곳에 정리한다.
 
 ---
 
-## 0. ✅ v0.9 완료 — production 마이그 0008·0009 적용·배포 완료 (2026-05-19)
+## 0. ✅ v0.9.4 완료 — 프리셋·휴지통·private 스토리지 (2026-05-19)
 
-**v0.9(10개 수정 요청, Step 1~6) 구현·검증·배포 완료. 미해결 작업 없음.**
+**v0.9.2~v0.9.4 구현·검증 완료. 전체 E2E 114 passed / 3 skipped. 미해결 작업 없음.**
 
-- master 머지(`412d9f7`) → Vercel 자동 배포 완료. 운영 헬스 `/login` 200,
+- **v0.9.2** — 테마 프리셋 6종(꾸미기 값 묶음 원클릭). 순수 프론트 상수, DB 변경 없음.
+- **v0.9.3** — 휴지통·복구 UI(`/admin/trash`). URL·사진·메모·앨범 카테고리 복구/영구삭제.
+  스키마 변경 없음(`deleted_at` 재사용).
+- **v0.9.4** — private 버킷 + 이미지 프록시(`/api/img`). 마이그 **0010** 신규(버킷 private).
+  ⚠️ **운영 배포 시 마이그 0010 적용 필요** — 적용 전엔 레거시 public URL이 `imgSrc`로 호환됨.
+- **v0.9.1** — 자유 캔버스 폭 1680→1982px (왼쪽 302px/8cm 카드 배치 여유 구역 확장).
+  레이아웃 상수·문서 변경, 신규 마이그 없음.
+- **문서 정합성 정리(2026-05-19)** — PRD를 v2 범위(자유 캔버스·꾸미기 확장·카테고리)로
+  현행화(`DCR-20260519-03`), Feature Catalog §6·§10 수치/모순 정정, 전 문서 버전·날짜 동기화.
+- v0.9: master 머지(`412d9f7`) → Vercel 자동 배포 완료. 운영 헬스 `/login` 200,
   `/manifest.webmanifest` 200, 미존재 slug 404.
 - production 마이그 0008·0009 적용 확인 — `default_font_size` integer(기본 12),
   `memo_categories`·`url_categories` jsonb, `memos`/`urls` `category_id` 컬럼,
@@ -138,7 +147,7 @@ npm run dev
 
 ```powershell
 npx playwright test
-# 기대: 37 passed / 3 skipped / 0 failed (chromium)
+# 기대: 96 passed / 3 skipped / 0 failed (chromium)
 ```
 
 ### 3-3. 배포 (코드 변경 후)
@@ -175,7 +184,7 @@ npx supabase status  # 출력에 anon key 등 표시. legacy JWT는 docker exec 
 
 ## 5. 운영 후속 작업
 
-- ✅ **마이그레이션 0001~0006 모두 운영 적용 완료** (이전 세션 토큰 `sbp_66a115c7b8eb82788602efb3287efd57a5291876`로 push 진행). 새 세션에서 마이그 추가 시 토큰 재발급 또는 같은 토큰 사용. 사용 후 폐기 권장.
+- ✅ **마이그레이션 0001~0009 모두 운영 적용 완료** (0008·0009는 2026-05-19 적용). 새 세션에서 마이그 추가 시 토큰 재발급 또는 같은 토큰 사용. 사용 후 폐기 권장.
 - 운영 헬스 — `/login` 200, `/manifest.webmanifest` 200.
 - 사용자 실 디바이스 점검 — 안드로이드 크롬·iOS Safari·갤럭시 폴드6 펼침 viewport에서 모바일 리스트 정상 진입(1024 미만)·꾸미기 안내 화면·사진 lightbox·다운로드 작동 여부.
 
@@ -218,7 +227,7 @@ npx supabase status  # 출력에 anon key 등 표시. legacy JWT는 docker exec 
 |---|---|---|
 | 로그아웃 후 옛 쿠키 토큰 재사용 가능 (iron-session stateless) | 토큰 도용 시나리오만 영향. 정상 브라우저는 만료 쿠키로 덮어써져 안전 | 서버 사이드 세션 store(Redis) 도입 — v2 |
 | 비밀번호 재설정 흐름 없음 | 사용자가 비밀번호 잊으면 운영자 수동 처리 | 운영 런북 §2-3 임시 절차. v2 도입 예정 |
-| Supabase Storage Public 버킷 | 비공개 미니홈피의 이미지 URL이 유출되면 외부 접근 가능 | v2에서 signed URL 모델로 강화 |
+| ~~Supabase Storage Public 버킷~~ | v0.9.4에서 해소 — private 버킷 + `/api/img` 프록시(본인/공개 미니홈피만 접근) | 완료 |
 | 모바일 터치 드래그/리사이즈 | 실제 모바일에서 검증 부족 (touchAction: none 적용했지만) | 실 디바이스에서 직접 점검 필요 |
 
 ---
@@ -226,7 +235,7 @@ npx supabase status  # 출력에 anon key 등 표시. legacy JWT는 docker exec 
 ## 8. 다음 세션을 위한 §49 형식 진입 지시문 (필요 시 복붙)
 
 ```text
-이번 작업은 v0.7.x 운영 검증 후속이다. 직전 세션에서 그라데이션 배경/카드 + 사진 lightbox + 카드 스타일 20종 + 모바일 단순화를 완료했다.
+이번 작업은 v0.9.1 후속이다. 직전 세션까지 자유 캔버스 + 카드 편집·카테고리 개편(v0.9) + 캔버스 폭 확장(v0.9.1) + 문서 정합성 정리를 완료했다.
 
 반드시 아래 순서로 진행해라.
 
@@ -245,9 +254,9 @@ npx supabase status  # 출력에 anon key 등 표시. legacy JWT는 docker exec 
 
 3. 코드 작업 전 기준선 확인:
    - npx tsc --noEmit (0 에러)
-   - npx playwright test (37 passed / 3 skipped / 0 failed)
+   - npx playwright test (96 passed / 3 skipped / 0 failed)
    - npm run build (성공)
-   - 마이그레이션 0001~0006 운영 동기화 확인 — `SUPABASE_ACCESS_TOKEN=... npx supabase migration list`
+   - 마이그레이션 0001~0009 운영 동기화 확인 — `SUPABASE_ACCESS_TOKEN=... npx supabase migration list`
 
 4. 단위화/모듈화 기준 준수:
    - lib/services/*, lib/repositories/*, lib/validators/* 분리 유지
@@ -278,6 +287,7 @@ npx supabase status  # 출력에 anon key 등 표시. legacy JWT는 docker exec 
 
 ## 9. 마지막 업데이트
 
-2026-05-19. v0.9 카드 편집·카테고리 개편 — 10개 수정 요청을 Step 1~6으로 구현·검증·
-배포 완료(전체 E2E 96 passed, 마이그 0008·0009 운영 적용, master 머지·Vercel 배포).
+2026-05-19. v0.9 카드 편집·카테고리 개편(Step 1~6) 구현·검증·배포 완료(전체 E2E 96 passed,
+마이그 0008·0009 운영 적용). 이후 v0.9.1 자유 캔버스 폭 확장 + 문서 정합성 정리
+(PRD v2 현행화, Feature Catalog 수치 정정, 전 문서 버전 동기화) 완료.
 미해결 작업 없음 — 다음 세션은 §6 작업 후보 중 분기.

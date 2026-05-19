@@ -17,7 +17,7 @@ test.describe('앨범 이미지 업로드 E2E (TC-ALB-006~010)', () => {
 
     // 이미지 1장 업로드 (input[type=file]은 hidden — setInputFiles 작동)
     await page.setInputFiles('input[type=file]', FIXTURE);
-    await expect(page.locator('img[src*="supabase"], img[src*="storage"], img[alt=""]').first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('img[src*="/api/img"]').first()).toBeVisible({ timeout: 15_000 });
   });
 
   test('TC-ALB-007 같은 카테고리에 2장 → 그리드 2장', async ({ page }) => {

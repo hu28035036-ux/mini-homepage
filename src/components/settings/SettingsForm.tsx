@@ -3,6 +3,7 @@
 import { useState, ChangeEvent, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, Button, Input, Textarea, Label, ErrorText } from '@/components/ui/primitives';
+import { imgSrc } from '@/lib/storage/imageSrc';
 import type { MiniHomepageRow } from '@/types/db';
 
 export function SettingsForm({
@@ -115,7 +116,7 @@ export function SettingsForm({
           <Label>프로필 이미지</Label>
           <div className="flex items-center gap-3">
             {profileUrl ? (
-              <img src={profileUrl} alt="" className="w-16 h-16 rounded-full object-cover" />
+              <img src={imgSrc(profileUrl)} alt="" className="w-16 h-16 rounded-full object-cover" />
             ) : (
               <div className="w-16 h-16 rounded-full bg-gray-200" />
             )}

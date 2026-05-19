@@ -1,6 +1,6 @@
 ---
 상태: Draft
-버전: v0.9
+버전: v0.9.4
 마지막 수정일: 2026-05-19
 문서 목적: 운영 / 변경 이력
 ---
@@ -8,6 +8,31 @@
 # 변경 이력
 
 본 문서는 시간순 변경 기록을 남긴다. 현재 기능 지도는 `docs/19_FEATURE_CATALOG.md`에 있으며, 본 문서는 "언제, 무엇이 바뀌었는지"만 간단히 적는다.
+
+## v0.9.4 — 2026-05-19 (private 스토리지 + 이미지 프록시)
+
+- 🆕 **private 버킷 + 이미지 프록시** — `user-uploads` 버킷을 private으로 전환(마이그 0010). 이미지는 `/api/img` 프록시가 접근 통제(본인 또는 공개 미니홈피 소유자) 후 스트리밍. URL만 알면 비공개 미니홈피 이미지를 보던 문제 해소
+- DB 저장값을 full URL → **스토리지 경로**로 통일. `imgSrc()` 헬퍼가 경로/레거시 URL을 프록시 src로 변환 → 데이터 마이그레이션 불필요. `uploadImage()`가 경로 반환, `publicUrl()` 제거
+- 신규: `app/api/img/route.ts`, `lib/storage/imageSrc.ts`. 렌더 지점 7파일을 `imgSrc()`로 감쌈. `blockSchema`의 `drawingUrl`·`background_image_url`은 URL→경로라 `.url()` 검증 제거
+- 🧪 E2E `image-proxy.spec.ts` 5건(TC-IMG-001~005), albums·drawing 단언 갱신. 전체 114 passed / 3 skipped
+
+## v0.9.3 — 2026-05-19 (휴지통·복구 UI)
+
+- 🆕 **휴지통·복구** — 삭제한 URL·사진·메모·앨범 카테고리를 모아 보고 복구하거나 영구 삭제. 햄버거 메뉴 → 휴지통(`/admin/trash`). 카테고리 복구 시 함께 삭제된 사진까지 cascade 복구, 사진 개별 복구는 소속 카테고리가 삭제 상태면 차단(`TRASH_RESTORE_BLOCKED`). 영구 삭제는 사용자가 직접 누를 때만 — 자동 영구삭제 없음(PRD §5)
+- 신규: `repositories/trash.ts`, `services/trash.ts`, `GET /api/trash`·`POST /api/trash/restore`·`POST /api/trash/purge`, `components/trash/TrashManager.tsx`, `/admin/trash`. 스키마 변경 없음(기존 `deleted_at` 재사용)
+- ⚠️ 영구삭제는 DB 행만 제거 — 사진의 Supabase Storage 원본 파일 정리는 별도 작업으로 보류(기존 DrawPad 고아 파일 이슈와 함께 처리 예정)
+- 🧪 E2E `trash.spec.ts` 6건(TC-TRASH-001~006) — 빈 휴지통·노출·복구·영구삭제·메모 복구·카테고리 노출
+
+## v0.9.2 — 2026-05-19 (테마 프리셋)
+
+- 🆕 **테마 프리셋 6종** — 꾸미기 값 묶음(배경색·무늬·무늬색·포인트색·글자색·카드 스타일·카드 배경색·폰트·투명도·글자 크기)을 원클릭으로 적용. 클래식 화이트/포근한 크림/파스텔 핑크/민트 노트/미드나잇/레트로 그리드. 적용 후 세부 조정·저장(`PUT /api/decorate`). 순수 프론트 상수(`src/lib/presets/themes.ts`), DB·API 변경 없음. 적용 시 배경 이미지 토글은 해제, 레이아웃은 유지
+- 🧪 E2E `preset-themes.spec.ts` 6건(TC-PRESET-001~006) — 노출·적용·배경토글 해제·세부 조정·저장 유지·덮어쓰기
+
+## v0.9.1 — 2026-05-19 (자유 캔버스 폭 확장 + 문서 정합성 정리)
+
+- 🆕 **자유 캔버스 좌측 확장** — desktop 캔버스 폭 1680→1982px. 왼쪽에 302px(약 8cm) 카드 배치 여유 구역 추가
+- 📝 **README v0.9.1 갱신** — 현재 기능에 맞게 갱신
+- 📝 **문서 정합성 정리** — PRD를 v2 범위(자유 캔버스·꾸미기 확장·카테고리)로 현행화(`DCR-20260519-03`). Feature Catalog §6 카드 스타일 4→20종·폰트 3→12종 정정, §10 v1 제외 표의 자기모순(드래그앤드롭·카테고리가 Excluded·Active 동시 표기) 해소. 전 문서 버전·날짜 동기화
 
 ## v0.9 — 2026-05-19 (카드 편집·카테고리 개편 — 10개 수정 요청)
 

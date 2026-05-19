@@ -1,4 +1,5 @@
 import type { LayoutMode, LayoutSlot, WidgetKind, CardStyle, FontStyle } from '@/types/db';
+import { imgSrc } from '@/lib/storage/imageSrc';
 
 export interface PreviewData {
   profile: { nickname: string; intro: string | null; image_url: string | null };
@@ -75,7 +76,7 @@ function ProfileWidget({ data }: { data: PreviewData['profile'] }) {
   return (
     <div className="text-center py-4">
       {data.image_url ? (
-        <img src={data.image_url} alt="" className="w-20 h-20 rounded-full object-cover mx-auto mb-3" />
+        <img src={imgSrc(data.image_url)} alt="" className="w-20 h-20 rounded-full object-cover mx-auto mb-3" />
       ) : (
         <div className="w-20 h-20 rounded-full bg-gray-200 mx-auto mb-3" />
       )}
@@ -114,7 +115,7 @@ function AlbumsWidget({ data, point }: { data: PreviewData['albums']; point: str
           <div className="text-xs opacity-70 mb-1.5">{a.category}</div>
           <div className="grid grid-cols-3 gap-1.5">
             {a.photos.map((p) => (
-              <img key={p.id} src={p.image_url} alt={p.caption ?? ''} className="aspect-square object-cover rounded" />
+              <img key={p.id} src={imgSrc(p.image_url)} alt={p.caption ?? ''} className="aspect-square object-cover rounded" />
             ))}
           </div>
         </div>
@@ -163,7 +164,7 @@ export function WidgetBoard({ style, data }: { style: DecorateStyle; data: Previ
     backgroundColor: style.background_color,
     color: style.text_color,
     backgroundImage:
-      style.use_background_image && style.background_image_url ? `url(${style.background_image_url})` : undefined,
+      style.use_background_image && style.background_image_url ? `url(${imgSrc(style.background_image_url)})` : undefined,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
   };

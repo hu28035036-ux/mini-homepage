@@ -42,7 +42,7 @@ const blockSchema = z.object({
   fontSize: fontSizePt.optional(),
   customTitle: z.string().max(200).optional(),
   customContent: z.string().max(5000).optional(),
-  drawingUrl: z.string().url().nullable().optional(),
+  drawingUrl: z.string().max(500).nullable().optional(),
   categoryId: z.string().optional(),
   albumCategoryId: z.string().optional(),
   memoCategoryId: z.string().optional(),
@@ -69,7 +69,7 @@ const cardCategoriesSchema = z.array(
 
 export const updateDecorateSchema = z.object({
   background_color: colorOrGradient.optional(),
-  background_image_url: z.string().url().nullable().optional(),
+  background_image_url: z.string().max(500).nullable().optional(),
   use_background_image: z.boolean().optional(),
   background_pattern: z.enum(BACKGROUND_PATTERNS).optional(),
   background_pattern_color: hexAlpha.optional(),

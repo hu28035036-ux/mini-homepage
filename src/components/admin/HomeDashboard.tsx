@@ -11,6 +11,7 @@ import { MemosManager } from '@/components/memos/MemosManager';
 import { MobileHome } from '@/components/admin/MobileHome';
 import { PhotoLightbox, type LightboxPhoto } from '@/components/albums/PhotoLightbox';
 import { textColorOrGradientStyle } from '@/components/decorate/ColorPicker';
+import { imgSrc } from '@/lib/storage/imageSrc';
 import type { Block, Layouts, MiniHomepageRow, PhotoRow, UrlRow, MemoRow, AlbumCategoryRow, CardCategory } from '@/types/db';
 
 const Expand = () => (
@@ -172,7 +173,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
         return (
           <div className="h-full flex flex-col items-center justify-center text-center">
             {hp.profile_image_url ? (
-              <img src={hp.profile_image_url} alt="" className="w-16 h-16 rounded-full object-cover mb-2" />
+              <img src={imgSrc(hp.profile_image_url)} alt="" className="w-16 h-16 rounded-full object-cover mb-2" />
             ) : (
               <div className="w-16 h-16 rounded-full bg-black/10 mb-2" />
             )}
@@ -213,7 +214,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
         const recentCatId = sorted[0]?.category_id ?? null;
         const showCatId = b.albumCategoryId ?? recentCatId;
         const shownPhotos = showCatId ? photos.filter((p) => p.category_id === showCatId) : photos;
-        const lbPhotos = shownPhotos.slice(0, 9).map<LightboxPhoto>((p) => ({ url: p.image_url, caption: p.caption }));
+        const lbPhotos = shownPhotos.slice(0, 9).map<LightboxPhoto>((p) => ({ url: imgSrc(p.image_url), caption: p.caption }));
         return (
           <div>
             {shownPhotos.length === 0 ? (
@@ -228,7 +229,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
                     className="block"
                     aria-label="사진 크게 보기"
                   >
-                    <img src={p.image_url} alt={p.caption ?? ''} className="aspect-square w-full object-cover rounded cursor-zoom-in" />
+                    <img src={imgSrc(p.image_url)} alt={p.caption ?? ''} className="aspect-square w-full object-cover rounded cursor-zoom-in" />
                   </button>
                 ))}
               </div>
@@ -259,7 +260,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
           <div className="h-full flex items-center justify-center">
             {b.drawingUrl ? (
               <img
-                src={b.drawingUrl}
+                src={imgSrc(b.drawingUrl)}
                 alt="그림"
                 className="max-w-full max-h-full object-contain rounded"
               />
@@ -411,7 +412,7 @@ export function HomeDashboard({ hp }: { hp: MiniHomepageRow }) {
 
       <DrawPad
         open={drawingTarget !== null}
-        initialUrl={drawingTarget?.drawingUrl ?? null}
+        initialUrl={drawingTarget?.drawingUrl ? imgSrc(drawingTarget.drawingUrl) : null}
         onClose={() => setDrawingTarget(null)}
         onSave={(url) => {
           if (!drawingTarget) return;

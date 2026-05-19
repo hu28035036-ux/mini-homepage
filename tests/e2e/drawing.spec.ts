@@ -23,7 +23,7 @@ test.describe('그림판 카드 업로드 (TC-DRAW)', () => {
     expect(res.status()).toBe(200);
     const body = await res.json();
     expect(body.success).toBe(true);
-    expect(body.data.drawing_url).toMatch(/^https?:\/\//);
+    expect(body.data.drawing_url).toMatch(/\/drawings\//);
 
     // 그 URL을 layouts.desktop의 drawing block에 적용
     const url = body.data.drawing_url;
@@ -193,7 +193,7 @@ test.describe('그림판 도구 (TC-DRAW v2) — Phase 2', () => {
     await page.locator('[data-drawpad-canvas]').waitFor({ state: 'hidden' });
     const img = page.locator('[data-block-kind="drawing"] img');
     await expect(img).toBeVisible();
-    await expect(img).toHaveAttribute('src', /^https?:\/\//);
+    await expect(img).toHaveAttribute('src', /\/api\/img\?path=/);
 
     // 재오픈 → 캔버스 다시 표시 (기존 PNG 배경 로드)
     await page.locator('[data-block-kind="drawing"]').click();

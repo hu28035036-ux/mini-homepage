@@ -5,6 +5,7 @@ import { FreeCanvas } from '@/components/canvas/FreeCanvas';
 import { PhotoLightbox, type LightboxPhoto } from '@/components/albums/PhotoLightbox';
 import { textColorOrGradientStyle } from '@/components/decorate/ColorPicker';
 import { patternImage, patternSize, patternPosition } from '@/lib/canvas/patterns';
+import { imgSrc } from '@/lib/storage/imageSrc';
 
 function isGradient(v: string): boolean {
   return /^(linear|radial|conic)-gradient\(/.test(v);
@@ -44,7 +45,7 @@ export function PublicCanvas({ data }: { data: PublicData }) {
         return (
           <div className="h-full flex flex-col items-center justify-center text-center">
             {homepage.profile_image_url ? (
-              <img src={homepage.profile_image_url} alt="" className="w-16 h-16 rounded-full object-cover mb-2" />
+              <img src={imgSrc(homepage.profile_image_url)} alt="" className="w-16 h-16 rounded-full object-cover mb-2" />
             ) : (
               <div className="w-16 h-16 rounded-full bg-black/10 mb-2" />
             )}
@@ -79,7 +80,7 @@ export function PublicCanvas({ data }: { data: PublicData }) {
         const recentCatId = sorted[0]?.category_id ?? null;
         const showCatId = b.albumCategoryId ?? recentCatId;
         const shown = showCatId ? data.photos.filter((p) => p.category_id === showCatId) : data.photos;
-        const lb: LightboxPhoto[] = shown.slice(0, 9).map((p) => ({ url: p.image_url, caption: p.caption }));
+        const lb: LightboxPhoto[] = shown.slice(0, 9).map((p) => ({ url: imgSrc(p.image_url), caption: p.caption }));
         return (
           <div>
             {shown.length === 0 ? (
@@ -94,7 +95,7 @@ export function PublicCanvas({ data }: { data: PublicData }) {
                     className="block"
                     aria-label="사진 크게 보기"
                   >
-                    <img src={p.image_url} alt={p.caption ?? ''} className="aspect-square w-full object-cover rounded cursor-zoom-in" />
+                    <img src={imgSrc(p.image_url)} alt={p.caption ?? ''} className="aspect-square w-full object-cover rounded cursor-zoom-in" />
                   </button>
                 ))}
               </div>
@@ -131,7 +132,7 @@ export function PublicCanvas({ data }: { data: PublicData }) {
           <div className="h-full flex items-center justify-center">
             {b.drawingUrl ? (
               <img
-                src={b.drawingUrl}
+                src={imgSrc(b.drawingUrl)}
                 alt="그림"
                 className="max-w-full max-h-full object-contain rounded"
               />
@@ -146,7 +147,7 @@ export function PublicCanvas({ data }: { data: PublicData }) {
   const patternImg = usePattern ? patternImage(homepage.background_pattern, homepage.background_pattern_color) : '';
   const bgIsGradient = isGradient(homepage.background_color);
   const computedBgImage = useImage
-    ? `url(${homepage.background_image_url})`
+    ? `url(${imgSrc(homepage.background_image_url)})`
     : (usePattern ? patternImg : (bgIsGradient ? homepage.background_color : undefined));
   const wrapperStyle: React.CSSProperties = {
     backgroundColor: bgIsGradient ? 'transparent' : homepage.background_color,

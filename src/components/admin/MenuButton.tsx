@@ -157,6 +157,14 @@ export function MenuButton({
           >
             설정
           </Link>
+          <Link
+            role="menuitem"
+            href="/admin/trash"
+            onClick={() => setOpen(false)}
+            className="block px-4 py-2.5 hover:bg-black/5"
+          >
+            휴지통
+          </Link>
 
           <div className="h-px bg-black/5" />
 

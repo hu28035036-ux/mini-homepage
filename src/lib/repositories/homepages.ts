@@ -34,6 +34,21 @@ export const homepagesRepo = {
     return (data as MiniHomepageRow | null) ?? null;
   },
 
+  async isPublicByUserId(userId: string): Promise<boolean> {
+    const supabase = supabaseServer();
+    const { data, error } = await supabase
+      .from('mini_homepages')
+      .select('is_public')
+      .eq('user_id', userId)
+      .is('deleted_at', null)
+      .maybeSingle();
+    if (error) {
+      console.error('[homepages.isPublicByUserId]', error);
+      return false;
+    }
+    return !!data && (data as { is_public: boolean }).is_public === true;
+  },
+
   async slugExists(slug: string): Promise<boolean> {
     const supabase = supabaseServer();
     const { data, error } = await supabase

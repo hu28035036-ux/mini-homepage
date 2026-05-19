@@ -7,6 +7,7 @@ import { WidgetBoard, cardClass, type PreviewData, type DecorateStyle } from '@/
 import { useTrack, FONT_SIZE_PRESETS } from '@/components/canvas/FreeCanvas';
 import { PATTERN_LIST, patternImage, patternSize, patternPosition } from '@/lib/canvas/patterns';
 import { ColorPicker, colorOrGradientStyle, textColorOrGradientStyle } from '@/components/decorate/ColorPicker';
+import { THEME_PRESETS, type ThemePreset } from '@/lib/presets/themes';
 import type { MiniHomepageRow, LayoutMode, LayoutSlot, WidgetKind, CardStyle, FontStyle, BackgroundPattern } from '@/types/db';
 
 const CARD_STYLES: { value: CardStyle; label: string }[] = [
@@ -162,6 +163,23 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
     setSlots((s) => s.map((sl, i) => (i === idx ? { ...sl, ...patch } : sl)));
   }
 
+  function applyPreset(p: ThemePreset) {
+    const v = p.values;
+    setBg(v.background_color);
+    setUseBg(false);
+    setPattern(v.background_pattern);
+    setPatternColor(v.background_pattern_color);
+    setPoint(v.point_color);
+    setText(v.text_color);
+    setCard(v.card_style);
+    setCardBg(v.card_background_color);
+    setFont(v.font_style);
+    setOpacity(v.default_card_opacity);
+    setFontSize(v.default_font_size);
+    setErr('');
+    setMsg(`'${p.name}' 프리셋 적용 — 저장해야 반영됩니다.`);
+  }
+
   async function uploadBg(e: ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) return;
@@ -231,6 +249,36 @@ export function DecorateEditor({ initial }: { initial: MiniHomepageRow }) {
       <div className={isMobile ? "grid grid-cols-1 gap-4" : "grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-4"}>
         {/* 좌측 편집 패널 */}
         <div className="space-y-4">
+          <Card>
+            <h2 className="text-sm font-bold mb-1">테마 프리셋</h2>
+            <p className="text-[11px] opacity-60 mb-3">원클릭으로 분위기를 바꾼 뒤 아래에서 세부 조정하세요. 배경 이미지·레이아웃은 그대로 유지됩니다.</p>
+            <div className="grid grid-cols-2 gap-2">
+              {THEME_PRESETS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  data-preset={p.id}
+                  onClick={() => applyPreset(p)}
+                  title={p.description}
+                  className="text-left rounded-lg border border-gray-200 p-2 hover:border-violet-400 hover:bg-violet-50/40 transition"
+                >
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span
+                      className="w-4 h-4 rounded-full border border-black/10 shrink-0"
+                      style={{ background: p.values.background_color }}
+                    />
+                    <span
+                      className="w-3 h-3 rounded-full shrink-0"
+                      style={{ background: p.values.point_color }}
+                    />
+                  </div>
+                  <div className="text-xs font-medium">{p.name}</div>
+                  <div className="text-[10px] opacity-55 leading-tight">{p.description}</div>
+                </button>
+              ))}
+            </div>
+          </Card>
+
           <Card>
             <h2 className="text-sm font-bold mb-3">배경</h2>
             <Label htmlFor="bg">배경색 (단색 또는 그라데이션)</Label>

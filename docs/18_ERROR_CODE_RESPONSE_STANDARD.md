@@ -42,7 +42,7 @@
 
 - 형식: `영역_상황_원인`
 - 모두 UPPER_SNAKE_CASE.
-- 영역은 도메인 또는 카테고리: `AUTH`, `VALIDATION`, `HOMEPAGE`, `URL`, `ALBUM`, `PHOTO`, `MEMO`, `DECORATE`, `LAYOUT`, `STORAGE`, `DB`, `RATE`, `SERVER`.
+- 영역은 도메인 또는 카테고리: `AUTH`, `VALIDATION`, `HOMEPAGE`, `URL`, `ALBUM`, `PHOTO`, `MEMO`, `DECORATE`, `LAYOUT`, `STORAGE`, `DB`, `TRASH`, `RATE`, `SERVER`.
 
 ## 3. 오류 코드 카탈로그
 
@@ -113,6 +113,12 @@
 | 코드 | HTTP | 사용자 메시지 | 발생 위치 |
 |---|---|---|---|
 | `DB_RECORD_NOT_FOUND` | 404 | 데이터를 찾을 수 없습니다. | 자원 조회/수정/삭제에서 미존재 또는 소유자 불일치 시 |
+
+### 3-9-1. TRASH
+
+| 코드 | HTTP | 사용자 메시지 | 발생 위치 |
+|---|---|---|---|
+| `TRASH_RESTORE_BLOCKED` | 409 | 이 항목의 카테고리가 삭제 상태입니다. 카테고리를 먼저 복구해 주세요. | `POST /api/trash/restore` (사진 복구 시 소속 카테고리가 삭제 상태) |
 
 ### 3-10. SERVER
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, ChangeEvent } from 'react';
 import { Card, Button, GhostButton, DangerButton, Input, Label, ErrorText } from '@/components/ui/primitives';
 import { PhotoLightbox, type LightboxPhoto } from '@/components/albums/PhotoLightbox';
+import { imgSrc } from '@/lib/storage/imageSrc';
 import type { AlbumCategoryRow, PhotoRow } from '@/types/db';
 
 async function getJson<T>(url: string): Promise<{ success: boolean; data?: T; message?: string }> {
@@ -15,7 +16,7 @@ export function AlbumsManager() {
   const [photos, setPhotos] = useState<PhotoRow[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const lightboxPhotos: LightboxPhoto[] = photos.map((p) => ({ url: p.image_url, caption: p.caption }));
+  const lightboxPhotos: LightboxPhoto[] = photos.map((p) => ({ url: imgSrc(p.image_url), caption: p.caption }));
   const [newCat, setNewCat] = useState('');
   const [err, setErr] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
@@ -165,7 +166,7 @@ export function AlbumsManager() {
                   className="block w-full"
                   aria-label="사진 크게 보기"
                 >
-                  <img src={p.image_url} alt={p.caption ?? ''} className="aspect-square w-full object-cover rounded-lg cursor-zoom-in" />
+                  <img src={imgSrc(p.image_url)} alt={p.caption ?? ''} className="aspect-square w-full object-cover rounded-lg cursor-zoom-in" />
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); deletePhoto(p.id); }}
