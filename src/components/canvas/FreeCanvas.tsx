@@ -95,12 +95,14 @@ export function normalizeBlock(b: Block): Block {
 }
 
 function clampBlock(b: Block, contentWidth: number, leftPad: number): Block {
+  const w = Math.max(160, Math.min(contentWidth, b.w));
   return {
     ...b,
-    // x는 왼쪽 여유 구역(-leftPad)부터 콘텐츠 우측 끝(contentWidth-80)까지 허용
-    x: Math.max(-leftPad, Math.min(contentWidth - 80, b.x)),
+    // 카드 전체가 캔버스 안에 들어오도록: 왼쪽 끝(-leftPad)부터 카드 오른쪽 끝이 콘텐츠 우측 끝에 닿는 위치(contentWidth-w)까지.
+    // 화면(캔버스) 어디든 배치 가능하되 화면 밖으로는 나가지 못한다.
+    x: Math.max(-leftPad, Math.min(contentWidth - w, b.x)),
     y: Math.max(0, b.y),
-    w: Math.max(160, Math.min(contentWidth, b.w)),
+    w,
     h: Math.max(80, b.h),
   };
 }
